@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+
+html, body {
+  background: theme("colors.base");
+  color: theme("colors.ink");
+}
+
+/* O app é para plantão: nada de animação longa atrapalhando. */
+@media (prefers-reduced-motion: no-preference) {
+  .transicao { transition: background-color 90ms ease, border-color 90ms ease; }
+}
+
+/* Foco sempre visível — o app é operado por teclado. */
+:focus-visible {
+  outline: 2px solid theme("colors.accent");
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: theme("colors.base"); }
+::-webkit-scrollbar-thumb {
+  background: theme("colors.edge");
+  border-radius: 5px;
+  border: 2px solid theme("colors.base");
+}
+::-webkit-scrollbar-thumb:hover { background: #3b434e; }
+
+@media print { body { background: #fff; color: #000; } }
