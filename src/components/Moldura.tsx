@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CATEGORIAS } from "@/data/snippets";
+import { contagens } from "@/lib/repositorio";
+import { useTextos } from "@/hooks/useTextos";
 import { PaletaComandos } from "./PaletaComandos";
 import { AvisoCopia } from "./AvisoCopia";
 import { RegistrarSW } from "./RegistrarSW";
@@ -12,6 +14,16 @@ export function Moldura({ children }: { children: React.ReactNode }) {
   const [paletaAberta, setPaletaAberta] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+
+  // Contagem viva: o número ao lado da categoria acompanha o que você cria
+  // e apaga, em vez de repetir o total que veio do PS.py.
+  const textos = useTextos();
+  const totais = contagens(textos);
+
+  // O listener global vive fora do ciclo de render; lê o estado por ref para
+  // não decidir com base num valor de uma renderização anterior.
+  const paletaAbertaRef = useRef(paletaAberta);
+  paletaAbertaRef.current = paletaAberta;
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -23,13 +35,13 @@ export function Moldura({ children }: { children: React.ReactNode }) {
       }
       // ESC volta ao menu, como no app original — mas só se a paleta
       // estiver fechada (senão ela mesma trata o ESC).
-      if (e.key === "Escape" && !paletaAberta && pathname !== "/") {
+      if (e.key === "Escape" && !paletaAbertaRef.current && pathname !== "/") {
         router.push("/");
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [paletaAberta, pathname, router]);
+  }, [pathname, router]);
 
   // A tela de entrada é anterior ao app: sem barra lateral, sem paleta.
   if (pathname === "/entrar") return <>{children}</>;
@@ -66,7 +78,7 @@ export function Moldura({ children }: { children: React.ReactNode }) {
               >
                 {c.label}
                 <span className={`font-mono text-[10px] ${ativo ? "text-accentInk/70" : "text-inkDim/60"}`}>
-                  {c.total}
+                  {totais[c.slug] ?? c.total}
                 </span>
               </Link>
             );
@@ -89,6 +101,14 @@ export function Moldura({ children }: { children: React.ReactNode }) {
             }`}
           >
             LINKS
+          </Link>
+          <Link
+            href="/backup"
+            className={`transicao flex shrink-0 whitespace-nowrap rounded px-3 py-1.5 text-[11px] font-semibold tracking-wide ${
+              pathname === "/backup" ? "bg-accent text-accentInk" : "text-inkDim hover:bg-panelHover hover:text-ink"
+            }`}
+          >
+            BACKUP
           </Link>
         </nav>
       </aside>

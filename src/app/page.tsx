@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
-import { CATEGORIAS, SNIPPETS } from "@/data/snippets";
+import { CATEGORIAS } from "@/data/snippets";
 import { CALCULADORAS } from "@/lib/calculadoras";
+import { contagens } from "@/lib/repositorio";
+import { useTextos } from "@/hooks/useTextos";
 
 const FERRAMENTAS = [
   { href: "/apps/labs", nome: "FORMATADOR DE EXAMES", nota: "cola o laudo do SHIFT, sai a linha pronta" },
@@ -9,12 +13,15 @@ const FERRAMENTAS = [
 ];
 
 export default function Home() {
+  const textos = useTextos();
+  const totais = contagens(textos);
+
   return (
     <div className="p-4 lg:p-8">
       <header className="mb-8">
         <h1 className="font-mono text-2xl font-bold tracking-widest text-ink">PS JAPA</h1>
         <p className="mt-1 text-xs text-inkDim">
-          {SNIPPETS.length} textos · {CALCULADORAS.length} escores · {FERRAMENTAS.length} ferramentas
+          {textos.length} textos · {CALCULADORAS.length} escores · {FERRAMENTAS.length} ferramentas
         </p>
         <p className="mt-3 max-w-xl text-[11px] leading-relaxed text-inkDim">
           Aperte{" "}
@@ -35,7 +42,9 @@ export default function Home() {
               className="transicao group rounded border border-edge bg-panel p-3 hover:border-accent hover:bg-panelHover"
             >
               <span className="block text-[12px] font-bold tracking-wide text-ink">{c.label}</span>
-              <span className="mt-1 block font-mono text-[10px] text-inkDim">{c.total} itens</span>
+              <span className="mt-1 block font-mono text-[10px] text-inkDim">
+                {totais[c.slug] ?? c.total} itens
+              </span>
             </Link>
           ))}
         </div>

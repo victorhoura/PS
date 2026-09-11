@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CATEGORIAS, SNIPPETS } from "@/data/snippets";
+import { CATEGORIAS } from "@/data/snippets";
 import { CALCULADORAS } from "@/lib/calculadoras";
 import { copiar, normalizar } from "@/lib/clipboard";
+import { useTextos } from "@/hooks/useTextos";
 import { avisarCopia } from "./AvisoCopia";
 
 /**
@@ -24,14 +25,7 @@ interface Resultado {
 
 const LABEL_CATEGORIA = Object.fromEntries(CATEGORIAS.map((c) => [c.slug, c.label]));
 
-const ITENS: Resultado[] = [
-  ...SNIPPETS.map((s) => ({
-    chave: `s:${s.id}`,
-    titulo: s.nome,
-    contexto: LABEL_CATEGORIA[s.categoria] ?? s.categoria,
-    acao: { tipo: "copiar" as const, texto: s.texto },
-    peso: 0,
-  })),
+const FERRAMENTAS: Resultado[] = [
   ...CALCULADORAS.map((c) => ({
     chave: `c:${c.slug}`,
     titulo: c.nome,
@@ -62,13 +56,6 @@ const ITENS: Resultado[] = [
   },
 ];
 
-/** Índice pré-normalizado: buscar é o caminho quente, não dá para normalizar a cada tecla. */
-const INDICE = ITENS.map((i) => ({
-  item: i,
-  titulo: normalizar(i.titulo),
-  contexto: normalizar(i.contexto),
-}));
-
 function pontuar(alvo: { titulo: string; contexto: string }, termo: string): number {
   if (alvo.titulo.startsWith(termo)) return 3;
   if (alvo.titulo.includes(termo)) return 2;
@@ -82,20 +69,42 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
   const inputRef = useRef<HTMLInputElement>(null);
   const listaRef = useRef<HTMLUListElement>(null);
   const router = useRouter();
+  const textos = useTextos();
+
+  /**
+   * Índice pré-normalizado. Refeito só quando os textos mudam — não a cada
+   * tecla, que é o caminho quente da busca.
+   */
+  const indice = useMemo(() => {
+    const itens: Resultado[] = [
+      ...textos.map((s) => ({
+        chave: `s:${s.id}`,
+        titulo: s.nome,
+        contexto: LABEL_CATEGORIA[s.categoria] ?? s.categoria,
+        acao: { tipo: "copiar" as const, texto: s.texto },
+        peso: 0,
+      })),
+      ...FERRAMENTAS,
+    ];
+    return itens.map((i) => ({
+      item: i,
+      titulo: normalizar(i.titulo),
+      contexto: normalizar(i.contexto),
+    }));
+  }, [textos]);
 
   const resultados = useMemo(() => {
     const t = normalizar(termo.trim());
-    if (!t) {
-      // Sem termo: mostra as ferramentas, que é o menu mais curto.
-      return ITENS.filter((i) => i.peso === 1);
-    }
-    return INDICE
+    // Sem termo: mostra as ferramentas, que é o menu mais curto.
+    if (!t) return FERRAMENTAS;
+
+    return indice
       .map((e) => ({ item: e.item, p: pontuar(e, t) }))
       .filter((e) => e.p > 0)
       .sort((a, b) => b.p - a.p || a.item.titulo.localeCompare(b.item.titulo))
       .slice(0, 60)
       .map((e) => e.item);
-  }, [termo]);
+  }, [termo, indice]);
 
   useEffect(() => setSelecionado(0), [termo]);
 
@@ -128,6 +137,9 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Escape") {
       e.preventDefault();
+      // Sem isto o Esc chega ao handler global da Moldura e, além de fechar
+      // a paleta, joga você de volta no menu — perdendo a tela onde estava.
+      e.stopPropagation();
       aoFechar();
     } else if (e.key === "ArrowDown") {
       e.preventDefault();

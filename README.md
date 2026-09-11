@@ -14,6 +14,30 @@ formatador de laudos. Nada do que é digitado no formatador é persistido.
 | Escores | Alvarado, CURB-65, Glasgow, qSOFA, Wells (TVP) |
 | Ferramentas | Formatador de exames (SHIFT/AFIP), conversor de letras, contador |
 
+## Criar e editar textos
+
+Cada categoria tem **+ NOVO** ao lado da busca, e cada item um **✎** para
+editar. Os 311 textos originais vêm embutidos no bundle e nunca são alterados:
+
+| Ação | O que acontece |
+|---|---|
+| Criar | Entra no topo da categoria, marcado com ponto azul |
+| Editar um original | Grava um override; ponto âmbar; **Restaurar original** desfaz |
+| Ocultar um original | Grava uma lápide; restaurável a qualquer momento |
+| Apagar um texto seu | Some de vez |
+
+As criações aparecem no `Ctrl+K` e nas contagens da barra lateral na hora.
+
+### Onde isso é guardado
+
+No `localStorage` **deste navegador**. Não atravessa computadores e não
+sobrevive a uma limpeza de dados do navegador. A tela **BACKUP** exporta e
+importa um JSON com tudo que é seu — é assim que você leva seus textos para o
+computador do plantão.
+
+Quando o Supabase entrar, essa camada passa a sincronizar sozinha e o backup
+vira só uma rede de segurança.
+
 ## Teclado
 
 | Tecla | Ação |
@@ -21,7 +45,8 @@ formatador de laudos. Nada do que é digitado no formatador é persistido.
 | `Ctrl/Cmd + K` | Busca global em tudo |
 | `↑` `↓` | Navegar nos resultados |
 | `Enter` | Copiar o texto / abrir a ferramenta |
-| `Esc` | Voltar ao menu |
+| `Esc` | Voltar ao menu (fecha busca/editor primeiro) |
+| `Ctrl/Cmd + Enter` | Salvar, dentro do editor |
 
 ## Desenvolvimento
 
@@ -43,6 +68,8 @@ src/
     labs.ts            formatador de laudos — porte de formatar_labs()
     calculadoras.ts    escores como dados, não como telas
     clipboard.ts       cópia + normalização de busca
+    repositorio.ts       base embutida + camada local (criar/editar/backup)
+  hooks/useTextos.ts   assina o repositório (useSyncExternalStore)
   data/snippets.ts     GERADO a partir do PS.py — não editar à mão
   sessao.ts            cookie assinado da tranca de entrada
   proxy.ts             redireciona para /entrar sem sessão válida
