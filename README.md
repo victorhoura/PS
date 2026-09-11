@@ -44,8 +44,31 @@ src/
     calculadoras.ts    escores como dados, não como telas
     clipboard.ts       cópia + normalização de busca
   data/snippets.ts     GERADO a partir do PS.py — não editar à mão
+  sessao.ts            cookie assinado da tranca de entrada
+  proxy.ts             redireciona para /entrar sem sessão válida
 public/sw.js           service worker (offline)
 ```
+
+## Senha
+
+O app é trancado por uma senha única, como o `PASSWORD` do `PS.py` — mas a
+senha vive numa variável de ambiente, nunca no código.
+
+Na Vercel, em **Settings → Environment Variables**, defina:
+
+| Variável | Valor |
+|---|---|
+| `PS_SENHA` | a senha (Production, Preview e Development) |
+
+Sem essa variável o app **fica aberto** e a tela de entrada avisa — é
+deliberado: uma variável esquecida não pode trancar o plantão para fora.
+
+O que vai para o navegador é um cookie `HttpOnly` + `Secure` + `SameSite=Lax`,
+assinado com HMAC-SHA256 por uma chave derivada da senha. Dura 180 dias, então
+se entra uma vez por computador. Trocar `PS_SENHA` invalida todas as sessões.
+
+Não é autenticação de usuário: é uma tranca só. Conta de verdade, com sessão
+revogável, entra junto com o Supabase.
 
 ## Offline
 

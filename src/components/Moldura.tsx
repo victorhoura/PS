@@ -31,6 +31,9 @@ export function Moldura({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [paletaAberta, pathname, router]);
 
+  // A tela de entrada é anterior ao app: sem barra lateral, sem paleta.
+  if (pathname === "/entrar") return <>{children}</>;
+
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row">
       <RegistrarSW />
