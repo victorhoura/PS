@@ -34,7 +34,7 @@ export default function Home() {
 
       <section className="mb-8">
         <h2 className="mb-3 font-mono text-[11px] font-bold tracking-widest text-inkDim">TEXTOS</h2>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {CATEGORIAS.map((c) => (
             <Link
               key={c.slug}

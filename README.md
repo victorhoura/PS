@@ -97,6 +97,23 @@ se entra uma vez por computador. Trocar `PS_SENHA` invalida todas as sessões.
 Não é autenticação de usuário: é uma tranca só. Conta de verdade, com sessão
 revogável, entra junto com o Supabase.
 
+## Janela estreita
+
+O caso de uso é o app encostado na lateral da tela, ao lado do sistema do
+hospital. O layout tem duas formas:
+
+| Largura | Forma |
+|---|---|
+| ≥ 1024px | barra lateral fixa, como app de desktop |
+| < 1024px | barra de topo de uma linha + menu vertical em gaveta (`☰`) |
+
+Não existe faixa horizontal de categorias: ela rolava para o lado, escondia
+metade dos destinos e comia altura útil. O conteúdo não estoura em nenhuma
+largura a partir de 320px.
+
+A largura mínima da **janela** de um PWA instalado é imposta pelo Chrome/Edge,
+não pelo app — não há propriedade de manifest que mude isso.
+
 ## Offline
 
 É um PWA: instala como aplicativo e funciona sem rede. O service worker

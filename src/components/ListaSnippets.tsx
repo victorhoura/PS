@@ -38,7 +38,9 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
     if (mensagem) avisarCopia(mensagem, true);
   }
 
-  // Texto de uma linha só (CID) fica melhor em grade densa que em lista.
+  // Texto de uma linha só (CID) vai em grade densa — mas só a partir de
+  // 640px. Em janela estreita duas colunas truncam o nome, e
+  // "CONJUNTI…" não distingue alérgica de bacteriana de viral.
   const curto = itens.length > 0 && itens.every((i) => i.texto.length <= 12);
 
   return (
@@ -74,7 +76,7 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
       )}
 
       {curto ? (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {filtrados.map((s) => (
             <div
               key={s.id}
