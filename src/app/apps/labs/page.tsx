@@ -17,7 +17,7 @@ export default function FormatadorLabs() {
   return (
     <div className="flex h-full flex-col p-4 lg:p-6">
       <header className="mb-4">
-        <h1 className="font-mono text-lg font-bold tracking-widest text-ink">FORMATADOR DE EXAMES</h1>
+        <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">FORMATADOR DE EXAMES</h1>
         <p className="mt-0.5 text-[11px] text-inkDim">
           Cole o laudo do SHIFT/AFIP. A linha compacta sai embaixo, pronta para o prontuário.
         </p>
@@ -35,7 +35,7 @@ export default function FormatadorLabs() {
             placeholder="Ctrl+V aqui…"
             autoFocus
             spellCheck={false}
-            className="min-h-0 flex-1 resize-none rounded border border-edge bg-panel px-3 py-2 font-mono text-[11px] leading-relaxed text-ink outline-none placeholder:text-inkDim/50 focus:border-accent"
+            className="min-h-0 flex-1 resize-none rounded-lg border border-edge bg-panel px-3 py-2 font-mono text-[11px] leading-relaxed text-ink outline-none placeholder:text-inkDim/50 focus:border-accent"
           />
         </div>
 
@@ -43,7 +43,7 @@ export default function FormatadorLabs() {
           <label className="mb-1.5 font-mono text-[10px] font-bold tracking-widest text-inkDim">
             LINHA FORMATADA
           </label>
-          <output className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap rounded border border-edge bg-panel px-3 py-2 font-mono text-[12px] leading-relaxed text-ink">
+          <output className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap rounded-lg border border-edge bg-panel px-3 py-2 font-mono text-[12px] leading-relaxed text-ink">
             {saida || (
               <span className="text-inkDim/60">
                 Nada reconhecido ainda. Cole o laudo ao lado.
@@ -55,13 +55,13 @@ export default function FormatadorLabs() {
             <button
               onClick={() => void copiarSaida()}
               disabled={!saida}
-              className="transicao flex-1 rounded bg-accent px-4 py-2.5 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-30"
+              className="transicao flex-1 rounded-lg bg-accent px-4 py-2.5 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-30"
             >
               COPIAR
             </button>
             <button
               onClick={() => setBruto("")}
-              className="transicao rounded border border-edge bg-panel px-4 py-2.5 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+              className="transicao rounded-lg border border-edge bg-panel px-4 py-2.5 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
             >
               LIMPAR
             </button>

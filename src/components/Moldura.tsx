@@ -9,6 +9,9 @@ import { Navegacao } from "./Navegacao";
 import { PaletaComandos } from "./PaletaComandos";
 import { AvisoCopia } from "./AvisoCopia";
 import { RegistrarSW } from "./RegistrarSW";
+import { BotaoBloquear } from "./BotaoBloquear";
+import { BotaoTema } from "./BotaoTema";
+import { IconeBusca, IconeFechar, IconeMenu } from "./Icones";
 
 /**
  * Duas formas para o mesmo app:
@@ -17,10 +20,6 @@ import { RegistrarSW } from "./RegistrarSW";
  *  - janela estreita: barra de topo curta e, no ☰, um menu que toma a
  *    janela inteira — numa janela de 400px uma gaveta de 240px sobre fundo
  *    escurecido só desperdiça o espaço que existe.
- *
- * A janela estreita é o caso de plantão — o app encostado na lateral da tela,
- * ao lado do SISS. Por isso nada de faixa horizontal de categorias: ela rola
- * para o lado, esconde metade dos destinos e come altura útil.
  */
 export function Moldura({ children }: { children: React.ReactNode }) {
   const [paletaAberta, setPaletaAberta] = useState(false);
@@ -49,8 +48,8 @@ export function Moldura({ children }: { children: React.ReactNode }) {
       }
       if (e.key !== "Escape") return;
 
-      // Esc fecha o que estiver por cima antes de navegar: gaveta, depois
-      // paleta (que trata o próprio Esc), e só então volta ao menu.
+      // Esc fecha o que estiver por cima antes de navegar: menu, depois
+      // paleta (que trata o próprio Esc), e só então volta ao início.
       if (gavetaRef.current) {
         setGavetaAberta(false);
         return;
@@ -61,7 +60,7 @@ export function Moldura({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [pathname, router]);
 
-  // Trocar de página fecha a gaveta, inclusive quando a navegação veio da
+  // Trocar de página fecha o menu, inclusive quando a navegação veio da
   // paleta ou do botão voltar do navegador.
   useEffect(() => setGavetaAberta(false), [pathname]);
 
@@ -70,18 +69,39 @@ export function Moldura({ children }: { children: React.ReactNode }) {
 
   const marca = (
     <Link href="/" className="flex min-w-0 items-baseline gap-2">
-      <span className="font-mono text-sm font-bold tracking-widest text-accent">PS JAPA</span>
-      <span className="truncate text-[10px] text-inkDim">PRONTO SOCORRO</span>
+      <span className="font-mono text-sm font-bold tracking-[0.18em] text-accent">PS JAPA</span>
+      <span className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-inkDim">
+        Pronto socorro
+      </span>
     </Link>
   );
 
-  const botaoBuscar = (
+  const botaoBusca = (
     <button
       onClick={() => setPaletaAberta(true)}
-      className="transicao shrink-0 rounded border border-edge px-2 py-1 text-[11px] text-inkDim hover:bg-panelHover hover:text-ink"
+      aria-label="Buscar"
+      className="transicao flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-edge px-2.5 text-[11px] text-inkDim hover:bg-panelHover hover:text-ink"
     >
-      Buscar <kbd className="ml-1 font-mono text-[10px] text-accent">Ctrl K</kbd>
+      <IconeBusca tamanho={14} />
+      <kbd className="font-mono text-[10px] text-accent">Ctrl K</kbd>
     </button>
+  );
+
+  const barraTopo = (fechando: boolean) => (
+    <div className="flex items-center gap-1.5 border-b border-edge bg-panel px-2 py-2">
+      <button
+        onClick={() => setGavetaAberta(!fechando)}
+        aria-label={fechando ? "Fechar menu" : "Abrir menu"}
+        aria-expanded={fechando}
+        className="transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-edge text-ink hover:bg-panelHover"
+      >
+        {fechando ? <IconeFechar /> : <IconeMenu />}
+      </button>
+      <div className="min-w-0 flex-1">{marca}</div>
+      {botaoBusca}
+      <BotaoTema compacto />
+      <BotaoBloquear compacto />
+    </div>
   );
 
   return (
@@ -89,18 +109,7 @@ export function Moldura({ children }: { children: React.ReactNode }) {
       <RegistrarSW />
 
       {/* ---------- janela estreita: barra de topo ---------- */}
-      <header className="flex items-center gap-2 border-b border-edge bg-panel px-2 py-2 lg:hidden">
-        <button
-          onClick={() => setGavetaAberta(true)}
-          aria-label="Abrir menu"
-          aria-expanded={gavetaAberta}
-          className="transicao shrink-0 rounded border border-edge px-2.5 py-1.5 text-ink hover:bg-panelHover"
-        >
-          <span aria-hidden className="block text-[13px] leading-none">☰</span>
-        </button>
-        <div className="min-w-0 flex-1">{marca}</div>
-        {botaoBuscar}
-      </header>
+      <header className="lg:hidden">{barraTopo(false)}</header>
 
       {/* ---------- janela estreita: menu ocupando a janela toda ---------- */}
       {gavetaAberta && (
@@ -110,21 +119,10 @@ export function Moldura({ children }: { children: React.ReactNode }) {
           aria-label="Menu"
           className="fixed inset-0 z-40 flex flex-col bg-base lg:hidden"
         >
-          {/* Mesma altura da barra de topo, para o menu abrir e fechar sem
-              nada saltar de lugar na tela. */}
-          <div className="flex items-center gap-2 border-b border-edge bg-panel px-2 py-2">
-            <button
-              onClick={() => setGavetaAberta(false)}
-              aria-label="Fechar menu"
-              className="transicao shrink-0 rounded border border-edge px-2.5 py-1.5 text-ink hover:bg-panelHover"
-            >
-              <span aria-hidden className="block text-[13px] leading-none">✕</span>
-            </button>
-            <div className="min-w-0 flex-1">{marca}</div>
-            {botaoBuscar}
-          </div>
-
-          <div className="min-h-0 flex-1 overflow-y-auto pt-2">
+          {/* Mesma altura da barra de topo, para abrir e fechar o menu não
+              deslocar nada na tela. */}
+          {barraTopo(true)}
+          <div className="min-h-0 flex-1 overflow-y-auto">
             <Navegacao
               totais={totais}
               variante="cheia"
@@ -135,20 +133,34 @@ export function Moldura({ children }: { children: React.ReactNode }) {
       )}
 
       {/* ---------- tela larga: barra lateral fixa ---------- */}
-      <aside className="hidden shrink-0 border-r border-edge bg-panel lg:block lg:h-dvh lg:w-56 lg:overflow-y-auto">
-        <div className="px-4 py-3">
+      <aside className="hidden shrink-0 border-r border-edge bg-panel lg:flex lg:h-dvh lg:w-56 lg:flex-col">
+        <div className="px-4 pb-3 pt-4">
           <Link href="/" className="block">
-            <span className="font-mono text-sm font-bold tracking-widest text-accent">PS JAPA</span>
-            <span className="block text-[10px] text-inkDim">PRONTO SOCORRO</span>
+            <span className="font-mono text-sm font-bold tracking-[0.18em] text-accent">
+              PS JAPA
+            </span>
+            <span className="mt-0.5 block font-mono text-[9px] uppercase tracking-[0.14em] text-inkDim">
+              Pronto socorro
+            </span>
           </Link>
           <button
             onClick={() => setPaletaAberta(true)}
-            className="transicao mt-3 w-full rounded border border-edge px-2 py-1 text-left text-[11px] text-inkDim hover:bg-panelHover hover:text-ink"
+            className="transicao mt-3 flex h-8 w-full items-center gap-2 rounded-md border border-edge px-2.5 text-[11px] text-inkDim hover:bg-panelHover hover:text-ink"
           >
-            Buscar <kbd className="ml-1 font-mono text-[10px] text-accent">Ctrl K</kbd>
+            <IconeBusca tamanho={14} />
+            <span>Buscar</span>
+            <kbd className="ml-auto font-mono text-[10px] text-accent">Ctrl K</kbd>
           </button>
         </div>
-        <Navegacao totais={totais} />
+
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <Navegacao totais={totais} />
+        </div>
+
+        <div className="border-t border-edge px-2 py-2">
+          <BotaoTema />
+          <BotaoBloquear />
+        </div>
       </aside>
 
       <main className="min-w-0 flex-1 lg:h-dvh lg:overflow-y-auto">{children}</main>

@@ -26,13 +26,13 @@ export function Calculadora({ slug }: { slug: string }) {
   return (
     <div className="p-4 lg:p-6">
       <header className="mb-4">
-        <h1 className="font-mono text-lg font-bold tracking-widest text-ink">{calc.nome}</h1>
+        <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">{calc.nome}</h1>
         <p className="mt-0.5 text-[11px] text-inkDim">{calc.subtitulo}</p>
       </header>
 
       <div
         aria-live="polite"
-        className="mb-5 rounded border border-accent/40 bg-accent/10 px-4 py-3"
+        className="mb-5 rounded-lg border border-accent/40 bg-accent/10 px-4 py-3"
       >
         <span className="font-mono text-xl font-bold text-accent">{resumo}</span>
       </div>
@@ -40,7 +40,7 @@ export function Calculadora({ slug }: { slug: string }) {
       <div className="grid gap-5 lg:grid-cols-2">
         <div className="space-y-5">
           {calc.grupos.map((g) => (
-            <fieldset key={g.titulo} className="rounded border border-edge bg-panel p-3">
+            <fieldset key={g.titulo} className="rounded-lg border border-edge bg-panel p-3">
               <legend className="px-1 font-mono text-[10px] font-bold tracking-widest text-inkDim">
                 {g.titulo}
               </legend>
@@ -93,19 +93,19 @@ export function Calculadora({ slug }: { slug: string }) {
 
           <button
             onClick={() => setResposta(respostaInicial(calc))}
-            className="transicao w-full rounded border border-edge bg-panel px-4 py-2 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+            className="transicao w-full rounded-lg border border-edge bg-panel px-4 py-2 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
           >
             ZERAR
           </button>
         </div>
 
         <div className="flex flex-col">
-          <pre className="min-h-48 flex-1 overflow-auto whitespace-pre-wrap rounded border border-edge bg-panel px-3 py-3 font-mono text-[11px] leading-relaxed text-ink">
+          <pre className="min-h-48 flex-1 overflow-auto whitespace-pre-wrap rounded-lg border border-edge bg-panel px-3 py-3 font-mono text-[11px] leading-relaxed text-ink">
             {laudo}
           </pre>
           <button
             onClick={() => void copiarLaudo()}
-            className="transicao mt-2 w-full rounded bg-accent px-4 py-2.5 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110"
+            className="transicao mt-2 w-full rounded-lg bg-accent px-4 py-2.5 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110"
           >
             COPIAR RESULTADO
           </button>

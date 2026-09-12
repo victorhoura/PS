@@ -26,18 +26,31 @@ export function Navegacao({
 
   const item = (ativo: boolean) =>
     [
-      "transicao flex items-center justify-between gap-2 rounded font-semibold tracking-wide",
-      cheia ? "px-4 py-3 text-[13px]" : "px-3 py-2 text-[11px]",
-      ativo ? "bg-accent text-accentInk" : "text-inkDim hover:bg-panelHover hover:text-ink",
+      "transicao flex items-center justify-between gap-2 rounded-md font-semibold tracking-wide",
+      cheia ? "px-4 py-3 text-[13px]" : "px-3 py-1.5 text-[11px]",
+      ativo
+        ? "bg-accent text-accentInk"
+        : "text-inkDim hover:bg-panelHover hover:text-ink",
     ].join(" ");
 
   const contador = (ativo: boolean) =>
-    `shrink-0 font-mono ${cheia ? "text-[11px]" : "text-[10px]"} ${
-      ativo ? "text-accentInk/70" : "text-inkDim/60"
+    `tabular shrink-0 font-mono ${cheia ? "text-[11px]" : "text-[10px]"} ${
+      ativo ? "text-accentInk/75" : "text-inkDim/60"
     }`;
 
+  const grupo = (titulo: string) => (
+    <p
+      className={`px-3 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/50 ${
+        cheia ? "mb-1.5 mt-4" : "mb-1 mt-3"
+      }`}
+    >
+      {titulo}
+    </p>
+  );
+
   return (
-    <nav className={`flex flex-col ${cheia ? "gap-1 px-3 pb-6" : "gap-0.5 px-2 pb-4"}`}>
+    <nav className={`flex flex-col ${cheia ? "gap-0.5 px-3 pb-6" : "gap-px px-2 pb-4"}`}>
+      {grupo("Textos")}
       {CATEGORIAS.map((c) => {
         const href = `/c/${c.slug}`;
         const ativo = pathname === href;
@@ -49,8 +62,7 @@ export function Navegacao({
         );
       })}
 
-      <div className={`h-px bg-edge ${cheia ? "my-3" : "my-2"}`} />
-
+      {grupo("Ferramentas")}
       <Link href="/apps" onClick={aoNavegar} className={item(pathname.startsWith("/apps"))}>
         APLICATIVOS
       </Link>

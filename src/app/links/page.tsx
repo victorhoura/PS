@@ -12,7 +12,7 @@ const CONSULTA = [
 function Grupo({ titulo, itens }: { titulo: string; itens: { nome: string; url: string }[] }) {
   return (
     <section className="mb-8">
-      <h2 className="mb-3 font-mono text-[11px] font-bold tracking-widest text-inkDim">{titulo}</h2>
+      <h2 className="mb-3 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">{titulo}</h2>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {itens.map((l) => (
           <a
@@ -20,7 +20,7 @@ function Grupo({ titulo, itens }: { titulo: string; itens: { nome: string; url: 
             href={l.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="transicao rounded border border-edge bg-panel p-3 hover:border-accent hover:bg-panelHover"
+            className="transicao rounded-lg border border-edge bg-panel p-3 hover:border-accent/60 hover:bg-panelHover"
           >
             <span className="block text-[12px] font-bold tracking-wide text-ink">{l.nome}</span>
             <span className="mt-1 block truncate font-mono text-[10px] text-inkDim">
@@ -36,12 +36,12 @@ function Grupo({ titulo, itens }: { titulo: string; itens: { nome: string; url: 
 export default function Links() {
   return (
     <div className="p-4 lg:p-6">
-      <h1 className="mb-6 font-mono text-lg font-bold tracking-widest text-ink">LINKS</h1>
+      <h1 className="mb-6 font-mono text-base font-bold tracking-[0.16em] text-ink">LINKS</h1>
 
       <Grupo titulo="SISTEMAS DO HOSPITAL" itens={SISTEMA} />
       <Grupo titulo="CONSULTA" itens={CONSULTA} />
 
-      <div className="max-w-2xl rounded border border-warn/40 bg-warn/10 p-4">
+      <div className="max-w-2xl rounded-lg border border-warn/40 bg-warn/10 p-4">
         <h2 className="mb-1.5 text-[11px] font-bold tracking-widest text-warn">SEM SENHAS AQUI</h2>
         <p className="text-[11px] leading-relaxed text-inkDim">
           Este app guarda só os endereços. Login e senha ficam no gerenciador de senhas do

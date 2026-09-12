@@ -117,7 +117,7 @@ export function EditorTexto({
               setErro("");
             }}
             placeholder="Ex.: AMIGDALITE"
-            className="mb-4 w-full rounded border border-edge bg-base px-3 py-2 text-[12px] font-bold tracking-wide text-ink outline-none placeholder:text-inkDim/50 focus:border-accent"
+            className="mb-4 w-full rounded-lg border border-edge bg-base px-3 py-2 text-[12px] font-bold tracking-wide text-ink outline-none placeholder:text-inkDim/50 focus:border-accent"
           />
 
           <label htmlFor="ed-texto" className="mb-1.5 block font-mono text-[10px] font-bold tracking-widest text-inkDim">
@@ -133,7 +133,7 @@ export function EditorTexto({
             rows={14}
             spellCheck={false}
             placeholder="O texto que vai para a área de transferência…"
-            className="w-full resize-y rounded border border-edge bg-base px-3 py-2 font-mono text-[11px] leading-relaxed text-ink outline-none placeholder:text-inkDim/50 focus:border-accent"
+            className="w-full resize-y rounded-lg border border-edge bg-base px-3 py-2 font-mono text-[11px] leading-relaxed text-ink outline-none placeholder:text-inkDim/50 focus:border-accent"
           />
 
           {erro && (
@@ -146,13 +146,13 @@ export function EditorTexto({
         <footer className="flex flex-wrap items-center gap-2 border-t border-edge px-4 py-3">
           <button
             onClick={salvar}
-            className="transicao rounded bg-accent px-5 py-2 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110"
+            className="transicao rounded-lg bg-accent px-5 py-2 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110"
           >
             SALVAR
           </button>
           <button
             onClick={() => aoFechar()}
-            className="transicao rounded border border-edge px-4 py-2 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+            className="transicao rounded-md border border-edge px-4 py-2 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
           >
             CANCELAR
           </button>
@@ -163,7 +163,7 @@ export function EditorTexto({
             {!criando && editado && (
               <button
                 onClick={voltarAoOriginal}
-                className="transicao rounded border border-edge px-3 py-2 text-[11px] font-bold tracking-wide text-warn hover:bg-panelHover"
+                className="transicao rounded-md border border-edge px-3 py-2 text-[11px] font-bold tracking-wide text-warn hover:bg-panelHover"
               >
                 RESTAURAR ORIGINAL
               </button>
@@ -172,14 +172,14 @@ export function EditorTexto({
               (confirmandoApagar ? (
                 <button
                   onClick={apagar}
-                  className="transicao rounded bg-danger px-3 py-2 text-[11px] font-bold tracking-wide text-white hover:brightness-110"
+                  className="transicao rounded-md bg-danger px-3 py-2 text-[11px] font-bold tracking-wide text-white hover:brightness-110"
                 >
                   CONFIRMAR {proprio ? "EXCLUSÃO" : "OCULTAR"}
                 </button>
               ) : (
                 <button
                   onClick={() => setConfirmandoApagar(true)}
-                  className="transicao rounded border border-danger/50 px-3 py-2 text-[11px] font-bold tracking-wide text-danger hover:bg-danger/10"
+                  className="transicao rounded-md border border-danger/50 px-3 py-2 text-[11px] font-bold tracking-wide text-danger hover:bg-danger/10"
                 >
                   {proprio ? "APAGAR" : "OCULTAR"}
                 </button>

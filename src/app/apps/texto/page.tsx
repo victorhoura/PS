@@ -41,7 +41,7 @@ export default function ConversorLetras() {
   return (
     <div className="flex h-full flex-col p-4 lg:p-6">
       <header className="mb-4">
-        <h1 className="font-mono text-lg font-bold tracking-widest text-ink">CONVERSOR DE LETRAS</h1>
+        <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">CONVERSOR DE LETRAS</h1>
       </header>
 
       <div className="mb-4 flex flex-wrap gap-2">
@@ -67,23 +67,23 @@ export default function ConversorLetras() {
           onChange={(e) => setEntrada(e.target.value)}
           placeholder="Digite ou cole o texto…"
           autoFocus
-          className="min-h-48 resize-none rounded border border-edge bg-panel px-3 py-2 text-[12px] leading-relaxed text-ink outline-none placeholder:text-inkDim/50 focus:border-accent"
+          className="min-h-48 resize-none rounded-lg border border-edge bg-panel px-3 py-2 text-[12px] leading-relaxed text-ink outline-none placeholder:text-inkDim/50 focus:border-accent"
         />
         <div className="flex min-h-48 flex-col">
-          <output className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap rounded border border-edge bg-panel px-3 py-2 text-[12px] leading-relaxed text-ink">
+          <output className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap rounded-lg border border-edge bg-panel px-3 py-2 text-[12px] leading-relaxed text-ink">
             {saida}
           </output>
           <div className="mt-2 flex gap-2">
             <button
               onClick={async () => avisarCopia("TEXTO", await copiar(saida))}
               disabled={!saida}
-              className="transicao flex-1 rounded bg-accent px-4 py-2.5 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110 disabled:opacity-30"
+              className="transicao flex-1 rounded-lg bg-accent px-4 py-2.5 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110 disabled:opacity-30"
             >
               COPIAR
             </button>
             <button
               onClick={() => setEntrada("")}
-              className="transicao rounded border border-edge bg-panel px-4 py-2.5 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+              className="transicao rounded-lg border border-edge bg-panel px-4 py-2.5 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
             >
               LIMPAR
             </button>

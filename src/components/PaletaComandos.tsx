@@ -7,6 +7,7 @@ import { CALCULADORAS } from "@/lib/calculadoras";
 import { copiar, normalizar } from "@/lib/clipboard";
 import { useTextos } from "@/hooks/useTextos";
 import { avisarCopia } from "./AvisoCopia";
+import { IconeBusca } from "./Icones";
 
 /**
  * Busca global. No PS.py achar "DIPIRONA" era: menu -> FÁRMACOS -> rolar/buscar
@@ -162,18 +163,23 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
         role="dialog"
         aria-modal="true"
         aria-label="Buscar"
-        className="flex max-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg border border-edge bg-panel shadow-2xl"
+        className="flex max-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-edge bg-panel shadow-painel"
         onClick={(e) => e.stopPropagation()}
       >
-        <input
-          ref={inputRef}
-          value={termo}
-          onChange={(e) => setTermo(e.target.value)}
-          onKeyDown={onKeyDown}
-          placeholder="Buscar texto, CID, fármaco, calculadora…"
-          aria-label="Buscar"
-          className="w-full border-b border-edge bg-transparent px-4 py-3 text-sm text-ink outline-none placeholder:text-inkDim/60"
-        />
+        <div className="flex items-center gap-2.5 border-b border-edge px-4">
+          <span className="text-inkDim/60">
+            <IconeBusca tamanho={16} />
+          </span>
+          <input
+            ref={inputRef}
+            value={termo}
+            onChange={(e) => setTermo(e.target.value)}
+            onKeyDown={onKeyDown}
+            placeholder="Buscar texto, CID, fármaco, calculadora…"
+            aria-label="Buscar"
+            className="w-full bg-transparent py-3.5 text-sm text-ink outline-none placeholder:text-inkDim/60"
+          />
+        </div>
 
         <ul ref={listaRef} className="min-h-0 flex-1 overflow-y-auto py-1">
           {resultados.length === 0 && (
@@ -187,6 +193,7 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
                 className={`flex w-full items-center justify-between gap-3 px-4 py-2 text-left ${
                   i === selecionado ? "bg-accent/15" : ""
                 }`}
+                style={i === selecionado ? { boxShadow: "inset 2px 0 0 rgb(var(--accent))" } : undefined}
               >
                 <span className="truncate text-[13px] font-semibold text-ink">{r.titulo}</span>
                 <span className="shrink-0 font-mono text-[10px] uppercase text-inkDim">{r.contexto}</span>
@@ -195,7 +202,7 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
           ))}
         </ul>
 
-        <div className="flex gap-4 border-t border-edge px-4 py-2 font-mono text-[10px] text-inkDim">
+        <div className="flex gap-4 border-t border-edge bg-base/50 px-4 py-2 font-mono text-[10px] text-inkDim">
           <span>↑↓ navegar</span>
           <span>↵ copiar / abrir</span>
           <span>esc fechar</span>

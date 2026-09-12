@@ -7,6 +7,7 @@ import { daCategoria, ehNovo } from "@/lib/repositorio";
 import { useTextos } from "@/hooks/useTextos";
 import { avisarCopia } from "./AvisoCopia";
 import { EditorTexto } from "./EditorTexto";
+import { IconeBusca, IconeEditar, IconeMais, IconeSeta } from "./Icones";
 
 /**
  * Lista de uma categoria. Mantém o gesto do app original — clicou, copiou —
@@ -45,42 +46,48 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
 
   return (
     <div className="p-4 lg:p-6">
-      <header className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
-        <h1 className="font-mono text-lg font-bold tracking-widest text-ink">{titulo}</h1>
-        <span className="font-mono text-[11px] text-inkDim">
+      <header className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">{titulo}</h1>
+        <span className="tabular font-mono text-[11px] text-inkDim">
           {filtrados.length}/{itens.length}
         </span>
       </header>
 
       <div className="mb-4 flex gap-2">
-        <input
-          value={termo}
-          onChange={(e) => setTermo(e.target.value)}
-          placeholder="Filtrar nesta categoria…"
-          aria-label={`Filtrar ${titulo}`}
-          autoFocus
-          className="min-w-0 flex-1 rounded border border-edge bg-panel px-3 py-2 text-sm text-ink outline-none placeholder:text-inkDim/60 focus:border-accent"
-        />
+        <div className="relative min-w-0 flex-1">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-inkDim/60">
+            <IconeBusca tamanho={14} />
+          </span>
+          <input
+            value={termo}
+            onChange={(e) => setTermo(e.target.value)}
+            placeholder="Filtrar nesta categoria…"
+            aria-label={`Filtrar ${titulo}`}
+            autoFocus
+            className="h-9 w-full rounded-lg border border-edge bg-panel pl-9 pr-3 text-[13px] text-ink outline-none transition-colors placeholder:text-inkDim/60 focus:border-accent"
+          />
+        </div>
         <button
           onClick={() => setEditor("novo")}
-          className="transicao shrink-0 rounded bg-accent px-4 py-2 text-[11px] font-bold tracking-wide text-accentInk hover:brightness-110"
+          className="transicao flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-[11px] font-bold tracking-wide text-accentInk hover:brightness-110"
         >
-          + NOVO
+          <IconeMais tamanho={14} />
+          NOVO
         </button>
       </div>
 
       {filtrados.length === 0 && (
-        <p className="py-8 text-center text-xs text-inkDim">
+        <p className="py-10 text-center text-xs text-inkDim">
           {itens.length === 0 ? "Categoria vazia. Crie o primeiro texto." : "Nada encontrado."}
         </p>
       )}
 
       {curto ? (
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {filtrados.map((s) => (
             <div
               key={s.id}
-              className="transicao flex items-stretch overflow-hidden rounded border border-edge bg-panel hover:border-accent"
+              className="transicao group flex items-stretch overflow-hidden rounded-lg border border-edge bg-panel hover:border-accent/60"
             >
               <button
                 onClick={() => void copiarItem(s)}
@@ -90,18 +97,25 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
                   <Marca snippet={s} />
                   <span className="truncate text-[11px] font-semibold text-ink">{s.nome}</span>
                 </span>
-                <span className="shrink-0 font-mono text-[11px] text-accent">{s.texto}</span>
+                <span className="tabular shrink-0 font-mono text-[11px] text-accent">
+                  {s.texto}
+                </span>
               </button>
               <BotaoEditar aoClicar={() => setEditor(s)} nome={s.nome} />
             </div>
           ))}
         </div>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-1.5">
           {filtrados.map((s) => {
             const expandido = aberto === s.id;
             return (
-              <li key={s.id} className="overflow-hidden rounded border border-edge bg-panel">
+              <li
+                key={s.id}
+                className={`transicao overflow-hidden rounded-lg border bg-panel ${
+                  expandido ? "border-accent/60" : "border-edge hover:border-accent/40"
+                }`}
+              >
                 <div className="flex items-stretch">
                   <button
                     onClick={() => void copiarItem(s)}
@@ -109,7 +123,9 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
                   >
                     <span className="flex items-center gap-1.5">
                       <Marca snippet={s} />
-                      <span className="text-[12px] font-bold tracking-wide text-ink">{s.nome}</span>
+                      <span className="text-[12px] font-bold tracking-wide text-ink">
+                        {s.nome}
+                      </span>
                     </span>
                     {!expandido && (
                       <span className="mt-0.5 block truncate text-[11px] text-inkDim">
@@ -122,13 +138,13 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
                     onClick={() => setAberto(expandido ? null : s.id)}
                     aria-expanded={expandido}
                     aria-label={expandido ? `Recolher ${s.nome}` : `Ver texto de ${s.nome}`}
-                    className="transicao shrink-0 border-l border-edge px-3.5 font-mono text-[10px] text-inkDim hover:bg-panelHover hover:text-ink"
+                    className="transicao flex w-10 shrink-0 items-center justify-center border-l border-edge text-inkDim hover:bg-panelHover hover:text-ink"
                   >
-                    {expandido ? "▲" : "▼"}
+                    <IconeSeta aberto={expandido} tamanho={14} />
                   </button>
                 </div>
                 {expandido && (
-                  <pre className="max-h-80 overflow-auto whitespace-pre-wrap border-t border-edge bg-base px-3 py-2 font-mono text-[11px] leading-relaxed text-inkDim">
+                  <pre className="max-h-80 overflow-auto whitespace-pre-wrap border-t border-edge bg-base px-3 py-2.5 font-mono text-[11px] leading-relaxed text-inkDim">
                     {s.texto}
                   </pre>
                 )}
@@ -184,9 +200,9 @@ function BotaoEditar({ aoClicar, nome }: { aoClicar: () => void; nome: string })
       onClick={aoClicar}
       aria-label={`Editar ${nome}`}
       title={`Editar ${nome}`}
-      className="transicao shrink-0 border-l border-edge px-3.5 text-[13px] text-inkDim hover:bg-panelHover hover:text-accent"
+      className="transicao flex w-10 shrink-0 items-center justify-center border-l border-edge text-inkDim hover:bg-panelHover hover:text-accent"
     >
-      ✎
+      <IconeEditar tamanho={14} />
     </button>
   );
 }

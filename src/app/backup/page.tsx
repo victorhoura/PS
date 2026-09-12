@@ -39,7 +39,7 @@ export default function Backup() {
 
   return (
     <div className="p-4 lg:p-6">
-      <h1 className="mb-1 font-mono text-lg font-bold tracking-widest text-ink">BACKUP</h1>
+      <h1 className="mb-1 font-mono text-base font-bold tracking-[0.16em] text-ink">BACKUP</h1>
       <p className="mb-6 max-w-2xl text-[11px] leading-relaxed text-inkDim">
         Os {SNIPPETS.length} textos originais vêm dentro do app e não se perdem nunca. O que{" "}
         <strong className="text-ink">você</strong> cria e edita fica guardado só neste navegador —
@@ -55,7 +55,7 @@ export default function Backup() {
       {aviso && (
         <p
           role="status"
-          className={`mb-5 rounded border px-3 py-2 text-[11px] ${
+          className={`mb-5 rounded-lg border px-3 py-2 text-[11px] ${
             aviso.ok ? "border-ok/40 bg-ok/10 text-ok" : "border-danger/40 bg-danger/10 text-danger"
           }`}
         >
@@ -63,8 +63,8 @@ export default function Backup() {
         </p>
       )}
 
-      <section className="mb-6 max-w-2xl rounded border border-edge bg-panel p-4">
-        <h2 className="mb-1.5 font-mono text-[11px] font-bold tracking-widest text-inkDim">SALVAR</h2>
+      <section className="mb-6 max-w-2xl rounded-lg border border-edge bg-panel p-4">
+        <h2 className="mb-1.5 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">SALVAR</h2>
         <p className="mb-3 text-[11px] leading-relaxed text-inkDim">
           Baixa um arquivo com tudo que você criou e editou. Guarde junto com seus documentos —
           e refaça depois de uma sessão em que você mexeu bastante.
@@ -72,7 +72,7 @@ export default function Backup() {
         <button
           onClick={baixar}
           disabled={!temCamada}
-          className="transicao rounded bg-accent px-5 py-2 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-30"
+          className="transicao rounded-lg bg-accent px-5 py-2 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-30"
         >
           BAIXAR BACKUP
         </button>
@@ -81,8 +81,8 @@ export default function Backup() {
         )}
       </section>
 
-      <section className="mb-6 max-w-2xl rounded border border-edge bg-panel p-4">
-        <h2 className="mb-1.5 font-mono text-[11px] font-bold tracking-widest text-inkDim">RESTAURAR</h2>
+      <section className="mb-6 max-w-2xl rounded-lg border border-edge bg-panel p-4">
+        <h2 className="mb-1.5 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">RESTAURAR</h2>
         <p className="mb-3 text-[11px] leading-relaxed text-inkDim">
           Carrega um backup neste navegador — é assim que você leva seus textos para o computador
           do plantão. <strong className="text-warn">Substitui</strong> o que estiver aqui agora.
@@ -96,7 +96,7 @@ export default function Backup() {
         />
       </section>
 
-      <section className="max-w-2xl rounded border border-danger/30 bg-danger/5 p-4">
+      <section className="max-w-2xl rounded-lg border border-danger/30 bg-danger/5 p-4">
         <h2 className="mb-1.5 font-mono text-[11px] font-bold tracking-widest text-danger">
           VOLTAR AO ORIGINAL
         </h2>
@@ -112,13 +112,13 @@ export default function Backup() {
                 setConfirmandoLimpeza(false);
                 setAviso({ ok: true, texto: "Voltou ao conteúdo original." });
               }}
-              className="transicao rounded bg-danger px-4 py-2 text-[11px] font-bold tracking-wide text-white hover:brightness-110"
+              className="transicao rounded-md bg-danger px-4 py-2 text-[11px] font-bold tracking-wide text-white hover:brightness-110"
             >
               CONFIRMAR — APAGA {resumo.novos + resumo.editados} ALTERAÇÕES
             </button>
             <button
               onClick={() => setConfirmandoLimpeza(false)}
-              className="transicao rounded border border-edge px-4 py-2 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+              className="transicao rounded-md border border-edge px-4 py-2 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
             >
               CANCELAR
             </button>
@@ -127,7 +127,7 @@ export default function Backup() {
           <button
             onClick={() => setConfirmandoLimpeza(true)}
             disabled={!temCamada}
-            className="transicao rounded border border-danger/50 px-4 py-2 text-[11px] font-bold tracking-wide text-danger hover:bg-danger/10 disabled:cursor-not-allowed disabled:opacity-30"
+            className="transicao rounded-md border border-danger/50 px-4 py-2 text-[11px] font-bold tracking-wide text-danger hover:bg-danger/10 disabled:cursor-not-allowed disabled:opacity-30"
           >
             APAGAR MINHAS ALTERAÇÕES
           </button>
@@ -144,8 +144,8 @@ export default function Backup() {
 
 function Contador({ rotulo, valor, cor }: { rotulo: string; valor: number; cor: string }) {
   return (
-    <div className="rounded border border-edge bg-panel px-3 py-2">
-      <span className={`block font-mono text-xl font-bold tabular-nums ${cor}`}>{valor}</span>
+    <div className="rounded-lg border border-edge bg-panel px-3 py-2">
+      <span className={`block font-mono text-xl font-bold tabular ${cor}`}>{valor}</span>
       <span className="mt-0.5 block font-mono text-[9px] tracking-widest text-inkDim">{rotulo}</span>
     </div>
   );

@@ -38,6 +38,32 @@ computador do plantão.
 Quando o Supabase entrar, essa camada passa a sincronizar sozinha e o backup
 vira só uma rede de segurança.
 
+## Tema
+
+Botão no rodapé da barra lateral (ou na barra de topo, em janela estreita).
+Escuro é o padrão — é o tema do `PS.py` e o que serve em plantão noturno.
+
+As cores são variáveis CSS em `globals.css`, no formato `R G B`, para que os
+modificadores de opacidade do Tailwind (`bg-accent/10`) continuem valendo.
+Trocar de tema é trocar valores de variável, sem reconstruir classe nenhuma.
+Um script embutido aplica o tema salvo antes da primeira pintura, para a tela
+não piscar.
+
+## Bloquear
+
+Botão de cadeado: apaga o cookie de sessão e volta para a tela de senha. É para
+o computador compartilhado — você levanta da mesa e tranca, em vez de deixar a
+sessão aberta por 180 dias para quem sentar depois.
+
+O proxy manda `Cache-Control: no-store` nas páginas protegidas. Sem isso o
+bloqueio não valeria: o navegador reexibiria a página do próprio cache ao
+apertar "voltar", sem consultar o servidor. Isso também desliga o bfcache
+dessas páginas.
+
+**Limite conhecido:** offline, o service worker ainda serve as páginas que
+guardou, porque não tem como ler o cookie (ele é `httpOnly`). Bloquear protege
+o computador conectado, que é o caso real; não protege uma máquina sem rede.
+
 ## Teclado
 
 | Tecla | Ação |

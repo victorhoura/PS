@@ -20,7 +20,14 @@ export async function proxy(req: NextRequest) {
   if (!senha) return NextResponse.next();
 
   if (await cookieValido(req.cookies.get(NOME_COOKIE)?.value, senha)) {
-    return NextResponse.next();
+    const resposta = NextResponse.next();
+    // Sem isto o bloqueio nao vale: o navegador guarda o HTML e, ao voltar,
+    // reexibe a pagina do proprio cache sem consultar o servidor — e este
+    // proxy nunca roda. `no-store` tambem desliga o bfcache da pagina.
+    // O funcionamento offline nao depende deste cache e sim do service
+    // worker, que tem armazenamento proprio.
+    resposta.headers.set("Cache-Control", "no-store, must-revalidate");
+    return resposta;
   }
 
   const destino = req.nextUrl.clone();

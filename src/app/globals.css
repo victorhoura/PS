@@ -2,32 +2,100 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: dark; }
+/*
+ * As cores vivem como triplas RGB em variáveis CSS, e não como hex no
+ * tailwind.config, por dois motivos: trocar de tema vira trocar de valores
+ * (sem reconstruir classe nenhuma), e o formato "R G B" mantém os
+ * modificadores de opacidade do Tailwind funcionando — bg-accent/10,
+ * border-danger/40 e afins.
+ *
+ * O escuro é o padrão: é o tema do PS.py e o que serve melhor em plantão
+ * noturno. O claro existe para sala bem iluminada e para imprimir.
+ */
 
-html, body {
-  background: theme("colors.base");
-  color: theme("colors.ink");
+:root,
+:root[data-tema="escuro"] {
+  color-scheme: dark;
+
+  --base: 13 15 18;
+  --panel: 22 25 30;
+  --panel-hover: 31 36 43;
+  --edge: 43 49 58;
+  --ink: 232 234 237;
+  --ink-dim: 154 163 174;
+  --accent: 47 181 217;
+  --accent-ink: 6 34 43;
+  --warn: 224 160 48;
+  --danger: 224 82 82;
+  --ok: 63 179 127;
+  --sombra: 0 0 0;
+}
+
+:root[data-tema="claro"] {
+  color-scheme: light;
+
+  --base: 244 245 247;
+  --panel: 255 255 255;
+  --panel-hover: 237 239 243;
+  --edge: 214 219 226;
+  --ink: 21 24 28;
+  --ink-dim: 88 97 108;
+  /* Ciano escurecido: o do tema escuro não alcança contraste AA sobre branco. */
+  --accent: 11 106 133;
+  --accent-ink: 255 255 255;
+  --warn: 141 92 8;
+  --danger: 179 38 30;
+  --ok: 22 114 76;
+  --sombra: 100 116 139;
+}
+
+html,
+body {
+  background: rgb(var(--base));
+  color: rgb(var(--ink));
 }
 
 /* O app é para plantão: nada de animação longa atrapalhando. */
 @media (prefers-reduced-motion: no-preference) {
-  .transicao { transition: background-color 90ms ease, border-color 90ms ease; }
+  .transicao {
+    transition:
+      background-color 90ms ease,
+      border-color 90ms ease,
+      color 90ms ease;
+  }
 }
 
 /* Foco sempre visível — o app é operado por teclado. */
 :focus-visible {
-  outline: 2px solid theme("colors.accent");
+  outline: 2px solid rgb(var(--accent));
   outline-offset: 2px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: theme("colors.base"); }
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 ::-webkit-scrollbar-thumb {
-  background: theme("colors.edge");
+  background: rgb(var(--edge));
   border-radius: 5px;
-  border: 2px solid theme("colors.base");
+  border: 2px solid rgb(var(--base));
 }
-::-webkit-scrollbar-thumb:hover { background: #3b434e; }
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--ink-dim) / 0.6);
+}
 
-@media print { body { background: #fff; color: #000; } }
+/* Números em tabela e escores não devem "dançar" ao mudar de valor. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+}
