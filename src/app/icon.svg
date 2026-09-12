@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="PS JAPA">
-  <rect width="512" height="512" rx="96" fill="#0d0f12"/>
-  <path d="M256 120v272M120 256h272" stroke="#2fb5d9" stroke-width="56" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="PS JAPA">
+  <rect width="512" height="512" rx="114" fill="#0d1218"/>
+  <rect x="214" y="104" width="84" height="304" rx="42" fill="#2fb5d9"/>
+  <rect x="104" y="214" width="304" height="84" rx="42" fill="#2fb5d9"/>
 </svg>

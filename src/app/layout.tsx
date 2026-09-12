@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   description: "Apoio ao atendimento em pronto socorro",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "PS JAPA", statusBarStyle: "black-translucent" },
+  icons: {
+    // O iOS ignora o manifest e lê esta tag; o PNG é opaco porque lá a
+    // transparência do ícone vira preto.
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {

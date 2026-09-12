@@ -9,7 +9,7 @@
  * VERSAO muda a cada deploy para descartar o cache velho.
  */
 
-const VERSAO = "20260912120203";
+const VERSAO = "20260912150314";
 const CACHE = `ps-japa-${VERSAO}`;
 
 const ROTAS = [
@@ -40,7 +40,8 @@ const ESTATICOS = [
   "/icone.svg",
   "/icone-192.png",
   "/icone-512.png",
-  "/icone-maskable.png"
+  "/icone-maskable.png",
+  "/apple-touch-icon.png"
 ];
 
 self.addEventListener("install", (evento) => {

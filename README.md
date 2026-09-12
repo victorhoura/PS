@@ -140,6 +140,26 @@ largura a partir de 320px.
 A largura mínima da **janela** de um PWA instalado é imposta pelo Chrome/Edge,
 não pelo app — não há propriedade de manifest que mude isso.
 
+## Ícone
+
+Cruz médica com uma linha de ECG atravessando a barra horizontal. Foi escolhida
+entre seis candidatos por degradar bem: grande mostra cruz **e** pulso; a 28px
+o pulso some e sobra uma cruz limpa. As alternativas que recortavam a cruz
+viravam borrão nesse tamanho.
+
+Os arquivos são gerados rasterizando SVG no Chromium (`scripts/`), não por
+código de desenho próprio — a primeira versão usava um rasterizador escrito à
+mão cuja matemática de canto arredondado deixou o ícone 75% transparente, e ele
+aparecia como cacos na barra de tarefas.
+
+| Arquivo | Uso |
+|---|---|
+| `public/icone.svg` | manifest, qualquer tamanho |
+| `public/icone-192.png`, `-512.png` | instalação do PWA |
+| `public/icone-maskable.png` | Android/Windows, conteúdo na zona segura (76%) |
+| `public/apple-touch-icon.png` | iOS, opaco (lá transparência vira preto) |
+| `src/app/icon.svg` | favicon, sem o pulso — a 16px ele vira ruído |
+
 ## Offline
 
 É um PWA: instala como aplicativo e funciona sem rede. O service worker
