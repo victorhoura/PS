@@ -22,10 +22,19 @@ export function EditorTexto({
   const [texto, setTexto] = useState(alvo?.texto ?? "");
   const [erro, setErro] = useState("");
   const [confirmandoApagar, setConfirmandoApagar] = useState(false);
+  const [confirmandoDescarte, setConfirmandoDescarte] = useState(false);
   const nomeRef = useRef<HTMLInputElement>(null);
 
   const editado = alvo ? foiEditado(alvo.id) : false;
   const proprio = alvo ? ehNovo(alvo.id) : true;
+
+  const alterado = nome !== (alvo?.nome ?? "") || texto !== (alvo?.texto ?? "");
+
+  /** Só fecha direto se não há nada a perder; senão pede confirmação. */
+  function tentarFechar() {
+    if (alterado) setConfirmandoDescarte(true);
+    else aoFechar();
+  }
 
   useEffect(() => {
     nomeRef.current?.focus();
@@ -36,7 +45,7 @@ export function EditorTexto({
       if (e.key === "Escape") {
         e.preventDefault();
         e.stopPropagation();
-        aoFechar();
+        tentarFechar();
       }
       // Ctrl+Enter salva sem tirar a mão do teclado.
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
@@ -82,26 +91,24 @@ export function EditorTexto({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 p-4 pt-[6vh]"
-      onClick={() => aoFechar()}
-    >
+    // Clicar fora NÃO fecha: aqui se digita receita, e perder o texto por um
+    // clique torto ao lado da caixa é o tipo de coisa que faz desistir de usar.
+    // A saída é sempre deliberada: Salvar, Cancelar ou Esc.
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 p-4 pt-[6vh]">
       <div
         role="dialog"
         aria-modal="true"
         aria-label={criando ? "Criar texto" : "Editar texto"}
-        className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg border border-edge bg-panel shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
+        className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-edge bg-panel shadow-painel"
       >
         <header className="flex items-center justify-between border-b border-edge px-4 py-2.5">
           <h2 className="font-mono text-[11px] font-bold tracking-widest text-ink">
             {criando ? "NOVO TEXTO" : "EDITAR TEXTO"}
           </h2>
-          {!criando && !proprio && (
-            <span className="font-mono text-[10px] text-inkDim">
-              {editado ? "original editado" : "original do PS.py"}
-            </span>
-          )}
+          <span className="flex items-center gap-2 font-mono text-[10px] text-inkDim">
+            {alterado && <span className="text-warn">não salvo</span>}
+            {!criando && !proprio && (editado ? "original editado" : "original do PS.py")}
+          </span>
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
@@ -143,6 +150,27 @@ export function EditorTexto({
           )}
         </div>
 
+        {confirmandoDescarte && (
+          <div className="flex flex-wrap items-center gap-2 border-t border-warn/40 bg-warn/10 px-4 py-3">
+            <span className="mr-1 text-[11px] font-semibold text-warn">
+              Descartar o que você digitou?
+            </span>
+            <button
+              onClick={() => setConfirmandoDescarte(false)}
+              autoFocus
+              className="transicao rounded-md bg-accent px-4 py-1.5 text-[11px] font-bold tracking-wide text-accentInk hover:brightness-110"
+            >
+              CONTINUAR EDITANDO
+            </button>
+            <button
+              onClick={() => aoFechar()}
+              className="transicao rounded-md border border-danger/50 px-3 py-1.5 text-[11px] font-bold tracking-wide text-danger hover:bg-danger/10"
+            >
+              DESCARTAR
+            </button>
+          </div>
+        )}
+
         <footer className="flex flex-wrap items-center gap-2 border-t border-edge px-4 py-3">
           <button
             onClick={salvar}
@@ -151,7 +179,7 @@ export function EditorTexto({
             SALVAR
           </button>
           <button
-            onClick={() => aoFechar()}
+            onClick={tentarFechar}
             className="transicao rounded-md border border-edge px-4 py-2 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
           >
             CANCELAR

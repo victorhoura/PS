@@ -28,6 +28,10 @@ editar. Os 311 textos originais vêm embutidos no bundle e nunca são alterados:
 
 As criações aparecem no `Ctrl+K` e nas contagens da barra lateral na hora.
 
+A caixa de edição **não fecha com clique fora** — só por Salvar, Cancelar ou
+`Esc`. E se houver texto não salvo, Cancelar e `Esc` pedem confirmação antes de
+descartar; o cabeçalho marca "não salvo" enquanto houver alteração pendente.
+
 ### Onde isso é guardado
 
 No `localStorage` **deste navegador**. Não atravessa computadores e não
