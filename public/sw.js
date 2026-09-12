@@ -9,7 +9,7 @@
  * VERSAO muda a cada deploy para descartar o cache velho.
  */
 
-const VERSAO = "20260912151235";
+const VERSAO = "20260912163210";
 const CACHE = `ps-japa-${VERSAO}`;
 
 const ROTAS = [

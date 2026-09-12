@@ -53,6 +53,30 @@ Trocar de tema é trocar valores de variável, sem reconstruir classe nenhuma.
 Um script embutido aplica o tema salvo antes da primeira pintura, para a tela
 não piscar.
 
+## Cofre (aba LINKS)
+
+Guarda login, senha e o cartão de chave dinâmica **cifrados neste navegador**.
+Nada disso existe no código, em variável de ambiente ou no servidor — o
+repositório é público e nunca deve ver credencial.
+
+| Peça | Escolha |
+|---|---|
+| Derivação | PBKDF2-SHA256, 250 mil iterações |
+| Cifra | AES-GCM 256 (esconde **e** detecta adulteração) |
+| Onde mora | `localStorage`, só neste navegador |
+| Senha-mestra | nunca gravada; fica em memória enquanto aberto |
+
+A senha-mestra é **separada** do `PS_SENHA`: passar da porta do app não abre o
+cofre. O cofre se tranca sozinho após 5 minutos parado, e bloquear o app o
+tranca junto (o componente desmonta e a chave em memória some).
+
+A chave dinâmica aceita `3A`, `a3` ou `3 a`, e o valor vai direto para a área
+de transferência — nunca é desenhado na tela.
+
+**O que isso não resolve:** guardar o cartão junto da senha enfraquece o
+segundo fator, já que os dois passam a depender da mesma senha-mestra; o cofre
+não atravessa navegadores; e vale conferir a política do hospital antes.
+
 ## Bloquear
 
 Botão de cadeado: apaga o cookie de sessão e volta para a tela de senha. É para

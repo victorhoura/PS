@@ -1,3 +1,5 @@
+import { Cofre } from "@/components/Cofre";
+
 const SISTEMA = [
   { nome: "SISS — HOSPITAL GUARULHOS", url: "https://hospitalarguarulhos.sissonline.com.br/Abertura/Login.aspx" },
   { nome: "SHIFT / AFIP — LABORATÓRIO", url: "https://shiftlis.afip.com.br/shift/lis/afip/elis/s01.iu.web.Login.cls?config=UNICO" },
@@ -41,13 +43,26 @@ export default function Links() {
       <Grupo titulo="SISTEMAS DO HOSPITAL" itens={SISTEMA} />
       <Grupo titulo="CONSULTA" itens={CONSULTA} />
 
-      <div className="max-w-2xl rounded-lg border border-warn/40 bg-warn/10 p-4">
-        <h2 className="mb-1.5 text-[11px] font-bold tracking-widest text-warn">SEM SENHAS AQUI</h2>
-        <p className="text-[11px] leading-relaxed text-inkDim">
-          Este app guarda só os endereços. Login e senha ficam no gerenciador de senhas do
-          navegador, que preenche sozinho e não deixa credencial dentro do código. A chave
-          dinâmica do SISS fica no cartão físico.
-        </p>
+      <Cofre />
+
+      <div className="mt-6 max-w-2xl rounded-lg border border-warn/40 bg-warn/10 p-4">
+        <h2 className="mb-1.5 text-[11px] font-bold tracking-widest text-warn">
+          O QUE O COFRE NÃO RESOLVE
+        </h2>
+        <ul className="space-y-1.5 text-[11px] leading-relaxed text-inkDim">
+          <li>
+            • Guardar o cartão de chave dinâmica junto da senha enfraquece o segundo fator:
+            os dois passam a depender da mesma senha-mestra. Se puder, deixe o cartão no papel.
+          </li>
+          <li>
+            • O cofre vive só neste navegador. Limpar dados do navegador apaga o cofre, e ele
+            não acompanha você para outro computador.
+          </li>
+          <li>
+            • Confira a política do hospital: guardar credencial do prontuário em software
+            próprio pode contrariar o termo que você assinou.
+          </li>
+        </ul>
       </div>
     </div>
   );
