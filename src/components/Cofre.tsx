@@ -121,6 +121,44 @@ export function Cofre() {
     setEstado({ modo: "aberto", conteudo, editando: false });
   }
 
+  /** O que sai é o blob cifrado; sem a senha-mestra o arquivo é inútil. */
+  function exportar() {
+    const blob = lerBlob();
+    if (!blob) return;
+    const url = URL.createObjectURL(new Blob([blob], { type: "application/json" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ps-japa-cofre-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    avisarCopia("Cofre exportado (cifrado).", true);
+  }
+
+  async function importar(arquivo: File) {
+    const conteudoArquivo = (await arquivo.text()).trim();
+    // Só aceita depois de provar que decifra: um arquivo errado não pode
+    // sobrescrever silenciosamente o cofre que já está aqui.
+    if (!senha) {
+      setErro("Digite a senha-mestra do arquivo antes de importar.");
+      return;
+    }
+    setOcupado(true);
+    const conteudo = await decifrar(conteudoArquivo, senha);
+    setOcupado(false);
+    if (!conteudo) {
+      setErro("Arquivo inválido ou senha-mestra incorreta.");
+      return;
+    }
+    if (!gravarBlob(conteudoArquivo)) {
+      setErro("O navegador recusou gravar.");
+      return;
+    }
+    mestraRef.current = senha;
+    setSenha("");
+    setErro("");
+    setEstado({ modo: "aberto", conteudo, editando: false });
+  }
+
   if (estado.modo === "carregando") {
     return <Moldura><p className="text-[11px] text-inkDim">…</p></Moldura>;
   }
@@ -151,6 +189,19 @@ export function Cofre() {
           >
             {ocupado ? "CIFRANDO…" : "CRIAR COFRE"}
           </button>
+          <label className="transicao mt-1 cursor-pointer text-center text-[10px] text-inkDim underline decoration-dotted hover:text-ink">
+            importar cofre de outro computador
+            <input
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void importar(f);
+                e.target.value = "";
+              }}
+            />
+          </label>
         </form>
       </Moldura>
     );
@@ -172,6 +223,19 @@ export function Cofre() {
           >
             {ocupado ? "ABRINDO…" : "DESTRANCAR"}
           </button>
+          <label className="transicao mt-1 cursor-pointer text-center text-[10px] text-inkDim underline decoration-dotted hover:text-ink">
+            importar cofre de outro computador
+            <input
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void importar(f);
+                e.target.value = "";
+              }}
+            />
+          </label>
         </form>
       </Moldura>
     );
@@ -188,6 +252,7 @@ export function Cofre() {
     <VistaCofre
       conteudo={estado.conteudo}
       aoEditar={() => setEstado({ ...estado, editando: true })}
+      aoExportar={exportar}
       aoTrancar={trancar}
     />
   );
@@ -209,10 +274,12 @@ function Moldura({ children }: { children: React.ReactNode }) {
 function VistaCofre({
   conteudo,
   aoEditar,
+  aoExportar,
   aoTrancar,
 }: {
   conteudo: ConteudoCofre;
   aoEditar: () => void;
+  aoExportar: () => void;
   aoTrancar: () => void;
 }) {
   const [combinacao, setCombinacao] = useState("");
@@ -245,6 +312,13 @@ function VistaCofre({
             className="transicao rounded-md border border-edge px-3 py-1.5 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
           >
             EDITAR
+          </button>
+          <button
+            onClick={aoExportar}
+            title="Baixa o cofre cifrado, para levar a outro computador"
+            className="transicao rounded-md border border-edge px-3 py-1.5 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+          >
+            EXPORTAR
           </button>
           <button
             onClick={aoTrancar}

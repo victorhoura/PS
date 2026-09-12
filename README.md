@@ -73,9 +73,9 @@ tranca junto (o componente desmonta e a chave em memória some).
 A chave dinâmica aceita `3A`, `a3` ou `3 a`, e o valor vai direto para a área
 de transferência — nunca é desenhado na tela.
 
-**O que isso não resolve:** guardar o cartão junto da senha enfraquece o
-segundo fator, já que os dois passam a depender da mesma senha-mestra; o cofre
-não atravessa navegadores; e vale conferir a política do hospital antes.
+**EXPORTAR** baixa o blob cifrado para levar a outro computador; sem a
+senha-mestra o arquivo é inútil. **Importar** exige digitar a senha-mestra
+antes: o arquivo só substitui o cofre atual depois de provar que decifra.
 
 ## Bloquear
 

@@ -45,25 +45,6 @@ export default function Links() {
 
       <Cofre />
 
-      <div className="mt-6 max-w-2xl rounded-lg border border-warn/40 bg-warn/10 p-4">
-        <h2 className="mb-1.5 text-[11px] font-bold tracking-widest text-warn">
-          O QUE O COFRE NÃO RESOLVE
-        </h2>
-        <ul className="space-y-1.5 text-[11px] leading-relaxed text-inkDim">
-          <li>
-            • Guardar o cartão de chave dinâmica junto da senha enfraquece o segundo fator:
-            os dois passam a depender da mesma senha-mestra. Se puder, deixe o cartão no papel.
-          </li>
-          <li>
-            • O cofre vive só neste navegador. Limpar dados do navegador apaga o cofre, e ele
-            não acompanha você para outro computador.
-          </li>
-          <li>
-            • Confira a política do hospital: guardar credencial do prontuário em software
-            próprio pode contrariar o termo que você assinou.
-          </li>
-        </ul>
-      </div>
     </div>
   );
 }
