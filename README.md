@@ -105,7 +105,7 @@ hospital. O layout tem duas formas:
 | Largura | Forma |
 |---|---|
 | ≥ 1024px | barra lateral fixa, como app de desktop |
-| < 1024px | barra de topo de uma linha + menu vertical em gaveta (`☰`) |
+| < 1024px | barra de topo de uma linha; o `☰` abre um menu que toma a janela inteira |
 
 Não existe faixa horizontal de categorias: ela rolava para o lado, escondia
 metade dos destinos e comia altura útil. O conteúdo não estoura em nenhuma

@@ -13,8 +13,10 @@ import { RegistrarSW } from "./RegistrarSW";
 /**
  * Duas formas para o mesmo app:
  *
- *  - tela larga (>= lg): barra lateral fixa, como um app de desktop;
- *  - janela estreita: barra de topo curta + gaveta vertical.
+ *  - tela larga (>= 1024px): barra lateral fixa, como um app de desktop;
+ *  - janela estreita: barra de topo curta e, no ☰, um menu que toma a
+ *    janela inteira — numa janela de 400px uma gaveta de 240px sobre fundo
+ *    escurecido só desperdiça o espaço que existe.
  *
  * A janela estreita é o caso de plantão — o app encostado na lateral da tela,
  * ao lado do SISS. Por isso nada de faixa horizontal de categorias: ela rola
@@ -100,30 +102,34 @@ export function Moldura({ children }: { children: React.ReactNode }) {
         {botaoBuscar}
       </header>
 
-      {/* ---------- janela estreita: gaveta vertical ---------- */}
+      {/* ---------- janela estreita: menu ocupando a janela toda ---------- */}
       {gavetaAberta && (
         <div
-          className="fixed inset-0 z-40 bg-black/70 lg:hidden"
-          onClick={() => setGavetaAberta(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu"
+          className="fixed inset-0 z-40 flex flex-col bg-base lg:hidden"
         >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menu"
-            className="h-full w-60 max-w-[85vw] overflow-y-auto border-r border-edge bg-panel"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-3 py-3">
-              {marca}
-              <button
-                onClick={() => setGavetaAberta(false)}
-                aria-label="Fechar menu"
-                className="transicao shrink-0 rounded px-2 py-1 text-inkDim hover:bg-panelHover hover:text-ink"
-              >
-                ✕
-              </button>
-            </div>
-            <Navegacao totais={totais} aoNavegar={() => setGavetaAberta(false)} />
+          {/* Mesma altura da barra de topo, para o menu abrir e fechar sem
+              nada saltar de lugar na tela. */}
+          <div className="flex items-center gap-2 border-b border-edge bg-panel px-2 py-2">
+            <button
+              onClick={() => setGavetaAberta(false)}
+              aria-label="Fechar menu"
+              className="transicao shrink-0 rounded border border-edge px-2.5 py-1.5 text-ink hover:bg-panelHover"
+            >
+              <span aria-hidden className="block text-[13px] leading-none">✕</span>
+            </button>
+            <div className="min-w-0 flex-1">{marca}</div>
+            {botaoBuscar}
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto pt-2">
+            <Navegacao
+              totais={totais}
+              variante="cheia"
+              aoNavegar={() => setGavetaAberta(false)}
+            />
           </div>
         </div>
       )}
