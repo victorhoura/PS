@@ -7,12 +7,13 @@
  * "restaurar" é apagar esse override. Apagar um original grava uma lápide,
  * não remove nada — por isso dá para voltar atrás em qualquer momento.
  *
- * LIMITE CONHECIDO: a camada mora no localStorage deste navegador. Não
- * atravessa computadores nem sobrevive a uma limpeza de dados do navegador.
- * Por isso existe exportar()/importar(), e por isso o Supabase entra na v2.
+ * A camada é espelhada na nuvem: o localStorage passa a ser cache de leitura
+ * rápida e de funcionamento offline, e o Supabase é onde o dado realmente
+ * mora. Abrir o app em outro computador traz tudo junto.
  */
 
 import { CATEGORIAS, SNIPPETS } from "@/data/snippets";
+import { comEspera, gravarNaNuvem, lerDaNuvem } from "./nuvem";
 import type { CategoriaSlug, Snippet } from "./types";
 
 const CHAVE = "ps-japa:textos:v1";
@@ -58,10 +59,14 @@ function lerCamada(): Camada {
   return camadaCache;
 }
 
+const empurrar = comEspera<Camada>("textos");
+
 function gravarCamada(c: Camada): boolean {
   camadaCache = c;
   listaCache = null;
   resumoCache = null;
+  // A nuvem recebe a camada inteira; é pequena e evita lógica de diferença.
+  empurrar(() => c);
   try {
     localStorage.setItem(CHAVE, JSON.stringify(c));
     avisar();
@@ -260,6 +265,48 @@ export function resumoNoServidor(): Resumo {
 
 export function limparTudo(): boolean {
   return gravarCamada(VAZIA);
+}
+
+// ------------------------------------------------------------ nuvem
+
+let jaSincronizou = false;
+
+/**
+ * Puxa a camada da nuvem uma vez por carregamento. A nuvem ganha da cópia
+ * local: é o que faz o app "já estar lá" em outro computador. Se a nuvem
+ * estiver vazia e existir algo local, sobe o local — assim a primeira vez
+ * depois de ligar a sincronização não perde nada.
+ */
+export async function sincronizarTextos(): Promise<void> {
+  if (jaSincronizou) return;
+  jaSincronizou = true;
+
+  const resposta = await lerDaNuvem<Camada>("textos");
+  if (!resposta) return;
+
+  if (resposta.conteudo) {
+    const vinda = resposta.conteudo;
+    camadaCache = {
+      versao: 1,
+      editados: vinda.editados ?? {},
+      removidos: Array.isArray(vinda.removidos) ? vinda.removidos : [],
+      novos: Array.isArray(vinda.novos) ? vinda.novos : [],
+    };
+    listaCache = null;
+    resumoCache = null;
+    try {
+      localStorage.setItem(CHAVE, JSON.stringify(camadaCache));
+    } catch {
+      // cache local indisponível: a nuvem segue sendo a fonte
+    }
+    avisar();
+    return;
+  }
+
+  const local = lerCamada();
+  if (local.novos.length || local.removidos.length || Object.keys(local.editados).length) {
+    void gravarNaNuvem("textos", local);
+  }
 }
 
 // ------------------------------------------------------- notificação

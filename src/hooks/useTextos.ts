@@ -1,10 +1,11 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import {
   inscrever,
   resumoCamada,
   resumoNoServidor,
+  sincronizarTextos,
   todos,
   todosNoServidor,
 } from "@/lib/repositorio";
@@ -18,6 +19,11 @@ import {
  * do cliente divergiriam.
  */
 export function useTextos() {
+  // Uma vez por carregamento; a função se protege de chamadas repetidas.
+  useEffect(() => {
+    void sincronizarTextos();
+  }, []);
+
   return useSyncExternalStore(inscrever, todos, todosNoServidor);
 }
 

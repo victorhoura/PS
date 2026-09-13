@@ -34,13 +34,28 @@ descartar; o cabeçalho marca "não salvo" enquanto houver alteração pendente.
 
 ### Onde isso é guardado
 
-No `localStorage` **deste navegador**. Não atravessa computadores e não
-sobrevive a uma limpeza de dados do navegador. A tela **BACKUP** exporta e
-importa um JSON com tudo que é seu — é assim que você leva seus textos para o
-computador do plantão.
+No Supabase, com o `localStorage` como cache de leitura e de uso offline. Abrir
+o app em outro computador traz tudo junto. A tela **BACKUP** continua existindo
+como rede de segurança.
 
-Quando o Supabase entrar, essa camada passa a sincronizar sozinha e o backup
-vira só uma rede de segurança.
+## Nuvem
+
+| Peça | Papel |
+|---|---|
+| `src/lib/supabase.ts` | acesso ao banco, **só do servidor** — a chave de serviço nunca vai ao navegador |
+| `src/app/api/nuvem/[chave]/route.ts` | `GET`/`PUT` de `cofre` e `textos`, atrás da sessão do app |
+| `src/lib/nuvem.ts` | cliente do navegador; falha em silêncio e cai no cache local |
+
+Variáveis na Vercel (server-only, sem `NEXT_PUBLIC_`):
+
+| Nome | Valor |
+|---|---|
+| `SUPABASE_URL` | URL do projeto |
+| `SUPABASE_SERVICE_ROLE_KEY` | chave de serviço |
+
+Sem elas a rota devolve 503 e o app funciona local, como antes. Na carga a
+nuvem ganha do cache; toda escrita grava local primeiro e empurra depois.
+Conflito é o último que escreve vence — basta para um usuário só.
 
 ## Tema
 
@@ -73,9 +88,11 @@ tranca junto (o componente desmonta e a chave em memória some).
 A chave dinâmica aceita `3A`, `a3` ou `3 a`, e o valor vai direto para a área
 de transferência — nunca é desenhado na tela.
 
-**EXPORTAR** baixa o blob cifrado para levar a outro computador; sem a
-senha-mestra o arquivo é inútil. **Importar** exige digitar a senha-mestra
-antes: o arquivo só substitui o cofre atual depois de provar que decifra.
+O cofre sincroniza com a nuvem: sobe e desce **cifrado**, então nem a rota de
+API nem o Supabase têm como lê-lo. A senha-mestra não sai do navegador.
+
+**EXPORTAR** baixa o blob cifrado, como rede de segurança. **Importar** exige a
+senha-mestra antes: o arquivo só substitui o cofre depois de provar que decifra.
 
 ## Bloquear
 

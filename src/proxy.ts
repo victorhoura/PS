@@ -30,6 +30,13 @@ export async function proxy(req: NextRequest) {
     return resposta;
   }
 
+  // Uma chamada de API sem sessão precisa de 401, não de um redirecionamento:
+  // o fetch seguiria o redirect e receberia o HTML da tela de entrada como se
+  // fosse resposta válida, e o cliente engoliria isso como dado.
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.json({ erro: "sem_sessao" }, { status: 401 });
+  }
+
   const destino = req.nextUrl.clone();
   destino.pathname = "/entrar";
   destino.searchParams.set("de", pathname);

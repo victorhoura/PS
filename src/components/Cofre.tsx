@@ -16,6 +16,7 @@ import {
   novaCredencial,
   type ConteudoCofre,
 } from "@/lib/cofre";
+import { gravarNaNuvem, lerDaNuvem } from "@/lib/nuvem";
 import { copiar } from "@/lib/clipboard";
 import { avisarCopia } from "./AvisoCopia";
 import { IconeCadeado, IconeCopiar, IconeMais, IconeFechar } from "./Icones";
@@ -51,7 +52,31 @@ export function Cofre() {
   }, []);
 
   useEffect(() => {
-    setEstado({ modo: existeCofre() ? "trancado" : "sem-cofre" });
+    let vivo = true;
+
+    (async () => {
+      // O que sobe e desce é o blob CIFRADO. Nem a rota nem o Supabase têm
+      // como lê-lo: a senha-mestra não sai deste navegador.
+      const resposta = await lerDaNuvem<string>("cofre");
+      if (!vivo) return;
+
+      if (typeof resposta?.conteudo === "string" && resposta.conteudo) {
+        gravarBlob(resposta.conteudo);
+        setEstado({ modo: "trancado" });
+        return;
+      }
+
+      // Nuvem vazia e cofre local existente: sobe o local, para a primeira
+      // sincronização não descartar o que já estava aqui.
+      const local = lerBlob();
+      if (resposta && !resposta.conteudo && local) void gravarNaNuvem("cofre", local);
+
+      setEstado({ modo: existeCofre() ? "trancado" : "sem-cofre" });
+    })();
+
+    return () => {
+      vivo = false;
+    };
   }, []);
 
   // Tranca sozinho depois de um tempo parado: é um computador compartilhado.
@@ -79,7 +104,9 @@ export function Cofre() {
     if (senha !== senha2) return setErro("As duas senhas não conferem.");
 
     setOcupado(true);
-    const ok = gravarBlob(await cifrar(COFRE_VAZIO, senha));
+    const blob = await cifrar(COFRE_VAZIO, senha);
+    const ok = gravarBlob(blob);
+    void gravarNaNuvem("cofre", blob);
     setOcupado(false);
     if (!ok) return setErro("O navegador recusou gravar.");
 
@@ -115,9 +142,14 @@ export function Cofre() {
     if (!mestra) return trancar();
 
     setOcupado(true);
-    const ok = gravarBlob(await cifrar(conteudo, mestra));
+    const blob = await cifrar(conteudo, mestra);
+    const ok = gravarBlob(blob);
+    const naNuvem = await gravarNaNuvem("cofre", blob);
     setOcupado(false);
-    avisarCopia(ok ? "Cofre salvo." : "O navegador recusou gravar.", ok);
+    avisarCopia(
+      naNuvem ? "Cofre salvo na nuvem." : ok ? "Cofre salvo neste navegador." : "Não foi possível gravar.",
+      ok || naNuvem,
+    );
     setEstado({ modo: "aberto", conteudo, editando: false });
   }
 
@@ -153,6 +185,7 @@ export function Cofre() {
       setErro("O navegador recusou gravar.");
       return;
     }
+    void gravarNaNuvem("cofre", conteudoArquivo);
     mestraRef.current = senha;
     setSenha("");
     setErro("");
