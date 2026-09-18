@@ -2,16 +2,33 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { BotaoTema } from "@/components/BotaoTema";
 import { IconeCadeado } from "@/components/Icones";
+import { conferirOffline, destrancarCache, guardarVerificador, temVerificador } from "@/lib/tranca";
 
 export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada: boolean }) {
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
   const [enviando, setEnviando] = useState(false);
-  const router = useRouter();
   const params = useSearchParams();
+
+  /** "//outro.site" também começa com "/" — e levaria para fora do app. */
+  function destino(): string {
+    const de = params.get("de");
+    return de && de.startsWith("/") && !de.startsWith("//") ? de : "/";
+  }
+
+  /**
+   * Entrar é uma navegação de verdade, não do roteador: o documento é pedido
+   * outra vez, o proxy confere o cookie novo e o service worker guarda a
+   * página já autenticada. Sem rede é ainda mais necessário — o roteador
+   * tentaria buscar o payload RSC e não teria de quem.
+   */
+  async function abrir() {
+    await destrancarCache();
+    window.location.replace(destino());
+  }
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
@@ -24,16 +41,27 @@ export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada
         body: JSON.stringify({ senha }),
       });
       if (r.ok) {
-        const de = params.get("de");
-        router.replace(de && de.startsWith("/") ? de : "/");
-        router.refresh();
+        // Único momento em que se sabe que esta senha é a senha do app: é
+        // aqui que se grava o verificador que vai valer no plantão sem rede.
+        await guardarVerificador(senha);
+        await abrir();
       } else {
         setErro(r.status === 503 ? "Senha não configurada no servidor." : "Senha incorreta.");
         setSenha("");
+        setEnviando(false);
       }
     } catch {
-      setErro("Sem conexão. Se o app já estiver instalado, abra pelo ícone.");
-    } finally {
+      // Sem rede: confere pelo verificador gravado da última entrada online.
+      if (await conferirOffline(senha)) {
+        await abrir();
+        return;
+      }
+      setErro(
+        temVerificador()
+          ? "Senha incorreta."
+          : "Sem conexão, e esta senha nunca foi conferida neste navegador.",
+      );
+      setSenha("");
       setEnviando(false);
     }
   }
