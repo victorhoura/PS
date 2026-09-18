@@ -42,28 +42,33 @@ describe("base intocada", () => {
   });
 });
 
+/** Acha pelo nome: a posição na lista depende da ordem da categoria. */
+function achar<T extends { nome: string }>(lista: T[], nome: string): T | undefined {
+  return lista.find((s) => s.nome === nome);
+}
+
 describe("criar", () => {
-  it("acrescenta o texto na categoria e no topo da lista", async () => {
+  it("acrescenta o texto na categoria", async () => {
     const r = await carregarModulo();
     expect(r.criar(CATEGORIA, "MINHA RECEITA", "tomar 1 cp")).toBe(true);
 
-    const daCat = r.daCategoria(CATEGORIA);
-    expect(daCat[0].nome).toBe("MINHA RECEITA");
-    expect(daCat[0].texto).toBe("tomar 1 cp");
-    expect(r.ehNovo(daCat[0].id)).toBe(true);
+    const criado = achar(r.daCategoria(CATEGORIA), "MINHA RECEITA")!;
+    expect(criado.texto).toBe("tomar 1 cp");
+    expect(r.ehNovo(criado.id)).toBe(true);
   });
 
   it("apara espaços sobrando", async () => {
     const r = await carregarModulo();
     r.criar(CATEGORIA, "  NOME  ", "  corpo  ");
-    expect(r.daCategoria(CATEGORIA)[0]).toMatchObject({ nome: "NOME", texto: "corpo" });
+    expect(achar(r.daCategoria(CATEGORIA), "NOME")).toMatchObject({ texto: "corpo" });
   });
 
   it("gera ids distintos", async () => {
     const r = await carregarModulo();
     r.criar(CATEGORIA, "A", "a");
     r.criar(CATEGORIA, "B", "b");
-    const ids = r.daCategoria(CATEGORIA).slice(0, 2).map((s) => s.id);
+    const ids = r.daCategoria(CATEGORIA).filter((s) => r.ehNovo(s.id)).map((s) => s.id);
+    expect(ids).toHaveLength(2);
     expect(new Set(ids).size).toBe(2);
   });
 });
@@ -84,11 +89,11 @@ describe("editar", () => {
   it("edita um texto seu no lugar", async () => {
     const r = await carregarModulo();
     r.criar(CATEGORIA, "ANTES", "x");
-    const id = r.daCategoria(CATEGORIA)[0].id;
+    const id = achar(r.daCategoria(CATEGORIA), "ANTES")!.id;
 
     r.editar(id, "DEPOIS", "y");
 
-    expect(r.daCategoria(CATEGORIA)[0]).toMatchObject({ nome: "DEPOIS", texto: "y" });
+    expect(achar(r.daCategoria(CATEGORIA), "DEPOIS")).toMatchObject({ id, texto: "y" });
     expect(r.daCategoria(CATEGORIA).filter((s) => r.ehNovo(s.id))).toHaveLength(1);
   });
 });
@@ -120,12 +125,81 @@ describe("remover e restaurar", () => {
   it("apaga um texto seu de vez", async () => {
     const r = await carregarModulo();
     r.criar(CATEGORIA, "TEMP", "x");
-    const id = r.daCategoria(CATEGORIA)[0].id;
+    const id = achar(r.daCategoria(CATEGORIA), "TEMP")!.id;
 
     r.remover(id);
 
     expect(r.todos().find((s) => s.id === id)).toBeUndefined();
     expect(r.resumoCamada().novos).toBe(0);
+  });
+});
+
+describe("ordem da lista", () => {
+  const EM_ORDEM = ["anamnese", "cid", "receitas", "farmacos", "notas"] as const;
+  const COMO_NO_PS = ["exame-fisico", "condutas", "reavaliacao", "encaminhamento"] as const;
+
+  /** Mesma colação da lista: pt-BR e numérica, para "ALLEGRA 60" < "ALLEGRA 120". */
+  const colar = (a: string, b: string) =>
+    new Intl.Collator("pt-BR", { numeric: true }).compare(a, b);
+
+  it.each(EM_ORDEM)("%s sai em ordem alfabética", async (cat) => {
+    const r = await carregarModulo();
+    const nomes = r.daCategoria(cat).map((s: { nome: string }) => s.nome);
+
+    expect(nomes.length).toBeGreaterThan(0);
+    expect(nomes).toEqual([...nomes].sort(colar));
+  });
+
+  it("dose maior não vem antes da menor: ALLEGRA 60 antes de ALLEGRA 120", async () => {
+    const r = await carregarModulo();
+    const nomes = r.daCategoria("farmacos").map((s: { nome: string }) => s.nome);
+    expect(nomes.indexOf("ALLEGRA 60")).toBeLessThan(nomes.indexOf("ALLEGRA 120"));
+  });
+
+  it.each(COMO_NO_PS)("%s mantém a ordem do PS.py", async (cat) => {
+    const r = await carregarModulo();
+    const ordens = r.daCategoria(cat).map((s: { ordem: number }) => s.ordem);
+    expect(ordens).toEqual([...ordens].sort((a, b) => a - b));
+  });
+
+  it("CEFALEIA vem antes de CERVICALGIA, que no PS.py estava trocado", async () => {
+    const r = await carregarModulo();
+    const nomes = r.daCategoria("cid").map((s: { nome: string }) => s.nome);
+    expect(nomes.indexOf("CEFALEIA")).toBeLessThan(nomes.indexOf("CERVICALGIA"));
+  });
+
+  it("texto seu entra na ordem, não no topo", async () => {
+    const r = await carregarModulo();
+    r.criar(CATEGORIA, "ZZZ ULTIMA", "x");
+    r.criar(CATEGORIA, "AAA PRIMEIRA", "y");
+
+    const nomes = r.daCategoria(CATEGORIA).map((s: { nome: string }) => s.nome);
+    expect(nomes[0]).toBe("AAA PRIMEIRA");
+    expect(nomes[nomes.length - 1]).toBe("ZZZ ULTIMA");
+  });
+
+  it("renomear move o texto para o lugar certo", async () => {
+    const r = await carregarModulo();
+    r.criar(CATEGORIA, "AAA PRIMEIRA", "x");
+    const id = achar(r.daCategoria(CATEGORIA), "AAA PRIMEIRA")!.id;
+
+    r.editar(id, "ZZZ ULTIMA", "x");
+
+    const nomes = r.daCategoria(CATEGORIA).map((s: { nome: string }) => s.nome);
+    expect(nomes[nomes.length - 1]).toBe("ZZZ ULTIMA");
+  });
+
+  it("acento não joga o texto para o fim: ÓRQUITE fica entre os O", async () => {
+    const r = await carregarModulo();
+    r.criar("cid", "OBSTIPACAO ZZZ", "x");
+    r.criar("cid", "ÓRQUITE", "y");
+    r.criar("cid", "OTITE ZZZ", "z");
+
+    const nomes = r.daCategoria("cid").map((s: { nome: string }) => s.nome);
+    // Comparação de bytes mandaria "Ó" (U+00D3) para depois de todo o Z.
+    expect(nomes.indexOf("OBSTIPACAO ZZZ")).toBeLessThan(nomes.indexOf("ÓRQUITE"));
+    expect(nomes.indexOf("ÓRQUITE")).toBeLessThan(nomes.indexOf("OTITE ZZZ"));
+    expect(nomes.indexOf("ÓRQUITE")).toBeLessThan(nomes.length - 1);
   });
 });
 
@@ -191,7 +265,7 @@ describe("armazenamento indisponível", () => {
 
     // Devolve false para a tela avisar, mas a edição vale nesta sessão.
     expect(r.criar(CATEGORIA, "A", "a")).toBe(false);
-    expect(r.daCategoria(CATEGORIA)[0].nome).toBe("A");
+    expect(achar(r.daCategoria(CATEGORIA), "A")).toBeDefined();
   });
 
   it("ignora camada corrompida e mantém a base", async () => {

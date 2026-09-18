@@ -101,8 +101,35 @@ export function todosNoServidor(): Snippet[] {
   return SNIPPETS;
 }
 
+/**
+ * Categorias que a lista desenha em ordem alfabética.
+ *
+ * São as grandes, onde o que importa é achar o nome: em 110 fármacos a ordem
+ * em que os textos foram escritos no PS.py não ajuda ninguém. As outras
+ * quatro ficam como estão porque ali a ordem quer dizer alguma coisa —
+ * condutas, reavaliação e encaminhamento seguem a sequência do atendimento.
+ */
+const ALFABETICAS = new Set<CategoriaSlug>([
+  "anamnese",
+  "cid",
+  "receitas",
+  "farmacos",
+  "notas",
+]);
+
+/**
+ * Colação pt-BR, não comparação de bytes: assim "ÓRQUITE" cai junto do O e
+ * não no fim da lista, e "CEFALEIA" vem antes de "CERVICALGIA".
+ */
+const COLACAO = new Intl.Collator("pt-BR", { numeric: true });
+
 export function daCategoria(slug: CategoriaSlug, lista = todos()): Snippet[] {
-  return lista.filter((s) => s.categoria === slug);
+  // filter já devolve um array novo, então ordenar aqui não mexe no cache.
+  const itens = lista.filter((s) => s.categoria === slug);
+  if (!ALFABETICAS.has(slug)) return itens;
+  // O que você criou entra na ordem junto com o resto: meia lista alfabética
+  // não é alfabética, e o ponto colorido ao lado do nome já diz o que é seu.
+  return itens.sort((a, b) => COLACAO.compare(a.nome, b.nome));
 }
 
 export function ehNovo(id: string): boolean {

@@ -14,7 +14,7 @@
  * VERSAO muda a cada deploy para descartar o cache velho.
  */
 
-const VERSAO = "20260918153255";
+const VERSAO = "20260918232144";
 const CACHE = `ps-japa-${VERSAO}`;
 const CACHE_ESTADO = "ps-japa-estado";
 const MARCA_TRANCA = "/__ps-tranca";
