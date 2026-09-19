@@ -1,19 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { gerarApac, LINHAS_JUSTIFICATIVA, quantidadeValida, type DadosApac } from "@/lib/apac";
 import {
   emMaiusculas,
   emMaiusculasMultilinha,
-  gerarApac,
   hoje,
-  LINHAS_JUSTIFICATIVA,
-  nomeDoArquivo,
-  quantidadeValida,
+  nomeDeArquivo,
   validarData,
-  type DadosApac,
-} from "@/lib/apac";
+} from "@/lib/pdf";
 import { MODELOS_APAC } from "@/data/apac-modelos";
 import { avisarCopia } from "@/components/AvisoCopia";
+import { Bloco, Campo, Erro } from "@/components/FormularioPdf";
 
 const CHAVE_MEDICO = "ps-japa:apac:medico";
 const MEDICO_PADRAO = "VICTOR M. HOURA";
@@ -154,7 +152,7 @@ export default function GeradorApac() {
       const blob = new Blob([laudo.pdf as BlobPart], { type: "application/pdf" });
 
       if (pdf) URL.revokeObjectURL(pdf.url);
-      setPdf({ url: URL.createObjectURL(blob), nome: nomeDoArquivo(dados.paciente, dados.solicitacao) });
+      setPdf({ url: URL.createObjectURL(blob), nome: nomeDeArquivo("APAC", dados.paciente, dados.solicitacao) });
       setSobra(laudo.sobra);
 
       try {
@@ -252,7 +250,7 @@ export default function GeradorApac() {
 
           <Bloco titulo="PACIENTE">
             <Campo
-              campo="paciente"
+              id="apac-paciente"
               rotulo="NOME DO PACIENTE"
               largura={4}
               valor={campos.paciente}
@@ -261,7 +259,7 @@ export default function GeradorApac() {
               autoFocus
             />
             <Campo
-              campo="nascimento"
+              id="apac-nascimento"
               rotulo="NASCIMENTO"
               largura={2}
               dica="DD/MM/AAAA"
@@ -274,7 +272,7 @@ export default function GeradorApac() {
 
           <Bloco titulo="PROCEDIMENTOS">
             <Campo
-              campo="exame"
+              id="apac-exame"
               rotulo="EXAME PRINCIPAL"
               largura={5}
               valor={campos.exame}
@@ -282,7 +280,7 @@ export default function GeradorApac() {
               aoMudar={(v) => mudar("exame", v.toUpperCase())}
             />
             <Campo
-              campo="quantidade"
+              id="apac-quantidade"
               rotulo="QTDE."
               largura={1}
               inputMode="numeric"
@@ -292,7 +290,7 @@ export default function GeradorApac() {
             />
 
             <Campo
-              campo="exameSec1"
+              id="apac-exameSec1"
               rotulo="SECUNDÁRIO 1"
               largura={5}
               dica="opcional"
@@ -306,7 +304,7 @@ export default function GeradorApac() {
               }}
             />
             <Campo
-              campo="quantidadeSec1"
+              id="apac-quantidadeSec1"
               rotulo="QTDE."
               largura={1}
               inputMode="numeric"
@@ -316,7 +314,7 @@ export default function GeradorApac() {
             />
 
             <Campo
-              campo="exameSec2"
+              id="apac-exameSec2"
               rotulo="SECUNDÁRIO 2"
               largura={5}
               dica="opcional"
@@ -328,7 +326,7 @@ export default function GeradorApac() {
               }}
             />
             <Campo
-              campo="quantidadeSec2"
+              id="apac-quantidadeSec2"
               rotulo="QTDE."
               largura={1}
               inputMode="numeric"
@@ -340,7 +338,7 @@ export default function GeradorApac() {
 
           <Bloco titulo="DIAGNÓSTICO">
             <Campo
-              campo="diagnostico"
+              id="apac-diagnostico"
               rotulo="DESCRIÇÃO"
               largura={3}
               valor={campos.diagnostico}
@@ -348,7 +346,7 @@ export default function GeradorApac() {
               aoMudar={(v) => mudar("diagnostico", v.toUpperCase())}
             />
             <Campo
-              campo="cid"
+              id="apac-cid"
               rotulo="CID PRINCIPAL"
               largura={1}
               valor={campos.cid}
@@ -356,7 +354,7 @@ export default function GeradorApac() {
               aoMudar={(v) => mudar("cid", v.toUpperCase())}
             />
             <Campo
-              campo="cidSecundario"
+              id="apac-cidSecundario"
               rotulo="CID ASSOCIADO"
               largura={2}
               dica="opcional"
@@ -398,7 +396,7 @@ export default function GeradorApac() {
 
           <Bloco titulo="SOLICITANTE">
             <Campo
-              campo="medico"
+              id="apac-medico"
               rotulo="MÉDICO"
               largura={4}
               valor={campos.medico}
@@ -406,7 +404,7 @@ export default function GeradorApac() {
               aoMudar={(v) => mudar("medico", v.toUpperCase())}
             />
             <Campo
-              campo="solicitacao"
+              id="apac-solicitacao"
               rotulo="DATA DA SOLICITAÇÃO"
               largura={2}
               dica="DD/MM/AAAA"
@@ -501,87 +499,5 @@ export default function GeradorApac() {
         </div>
       </div>
     </div>
-  );
-}
-
-// ------------------------------------------------------------------ peças
-
-function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {
-  return (
-    <fieldset className="rounded-lg border border-edge bg-panel/40 p-3">
-      <legend className="px-1 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">
-        {titulo}
-      </legend>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-6">{children}</div>
-    </fieldset>
-  );
-}
-
-/** Quantas das seis colunas o campo ocupa a partir de 640px. */
-const COLUNAS: Record<number, string> = {
-  1: "sm:col-span-1",
-  2: "sm:col-span-2",
-  3: "sm:col-span-3",
-  4: "sm:col-span-4",
-  5: "sm:col-span-5",
-  6: "sm:col-span-6",
-};
-
-function Campo({
-  campo,
-  rotulo,
-  valor,
-  aoMudar,
-  largura = 6,
-  dica,
-  erro,
-  inputMode,
-  autoFocus,
-}: {
-  /** Chave do dado: vira o id do input, único por construção. Tirar isto faz
-      os tres "QTDE." dividirem o mesmo id e o rotulo focar o campo errado. */
-  campo: keyof DadosApac;
-  rotulo: string;
-  valor: string;
-  aoMudar: (v: string) => void;
-  largura?: number;
-  dica?: string;
-  erro?: string;
-  inputMode?: "numeric";
-  autoFocus?: boolean;
-}) {
-  const id = `apac-${campo}`;
-  return (
-    <div className={COLUNAS[largura]}>
-      <label
-        htmlFor={id}
-        className="mb-1 block font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim"
-      >
-        {rotulo}
-        {dica && <span className="ml-1.5 font-normal normal-case tracking-normal text-inkDim/60">{dica}</span>}
-      </label>
-      <input
-        id={id}
-        value={valor}
-        onChange={(e) => aoMudar(e.target.value)}
-        inputMode={inputMode}
-        autoFocus={autoFocus}
-        autoComplete="off"
-        spellCheck={false}
-        aria-invalid={Boolean(erro)}
-        className={`h-9 w-full rounded-lg border bg-panel px-3 text-[12px] text-ink outline-none transition-colors ${
-          erro ? "border-danger" : "border-edge focus:border-accent"
-        }`}
-      />
-      {erro && <Erro texto={erro} />}
-    </div>
-  );
-}
-
-function Erro({ texto }: { texto: string }) {
-  return (
-    <p role="alert" className="mt-1 text-[10px] text-danger">
-      {texto}
-    </p>
   );
 }

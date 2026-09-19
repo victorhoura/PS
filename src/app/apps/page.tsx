@@ -3,6 +3,7 @@ import { CALCULADORAS } from "@/lib/calculadoras";
 
 const FERRAMENTAS = [
   { href: "/apps/apac", nome: "GERADOR DE APAC", nota: "preenche o laudo oficial e devolve o PDF" },
+  { href: "/apps/sadt", nome: "GERADOR DE SADT", nota: "requisição de exames do HMU, pronta para imprimir" },
   { href: "/apps/labs", nome: "FORMATADOR DE EXAMES", nota: "laudo do SHIFT vira linha de prontuário" },
   { href: "/apps/texto", nome: "CONVERSOR DE LETRAS", nota: "maiúsculas, minúsculas, primeira letra" },
   { href: "/apps/contador", nome: "CONTADOR", nota: "contagem de atendimentos do plantão" },

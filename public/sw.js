@@ -14,7 +14,7 @@
  * VERSAO muda a cada deploy para descartar o cache velho.
  */
 
-const VERSAO = "20260919170901";
+const VERSAO = "20260919183657";
 const CACHE = `ps-japa-${VERSAO}`;
 const CACHE_ESTADO = "ps-japa-estado";
 const MARCA_TRANCA = "/__ps-tranca";
@@ -26,6 +26,7 @@ const ROTAS = [
   "/links",
   "/backup",
   "/apps/apac",
+  "/apps/sadt",
   "/apps/labs",
   "/apps/texto",
   "/apps/contador",
@@ -45,10 +46,11 @@ const ROTAS = [
   "/apps/wells-tvp"
 ];
 /**
- * O formulário em branco da APAC. Fica fora de ESTATICOS de propósito: é
+ * Os formulários em branco da APAC e da SADT. Ficam fora de ESTATICOS de
+ * propósito: são
  * conteúdo do app, não ícone, e trancado não deve sair do cache.
  */
-const ARQUIVOS = ["/APAC.pdf"];
+const ARQUIVOS = ["/APAC.pdf", "/SADT.pdf"];
 
 const ESTATICOS = [
   "/manifest.webmanifest",

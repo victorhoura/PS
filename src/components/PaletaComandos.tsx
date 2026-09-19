@@ -42,6 +42,13 @@ const FERRAMENTAS: Resultado[] = [
     peso: 1,
   },
   {
+    chave: "t:sadt",
+    titulo: "GERADOR DE SADT",
+    contexto: "FERRAMENTA",
+    acao: { tipo: "ir" as const, href: "/apps/sadt" },
+    peso: 1,
+  },
+  {
     chave: "t:labs",
     titulo: "FORMATADOR DE EXAMES",
     contexto: "FERRAMENTA",
