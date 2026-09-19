@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatarLabs, paraNumero, formatarNumero, milhar, dataCurta } from "../labs";
+import { formatarLabs, paraNumero, formatarNumero, milhar, dataDaColeta } from "../labs";
 
 /**
  * Laudos sintéticos no formato SHIFT/AFIP. Nenhum dado real de paciente.
@@ -241,9 +241,9 @@ describe("helpers numéricos pt-BR", () => {
   });
 
   it("acha a data de coleta nos dois formatos", () => {
-    expect(dataCurta("COLETA: 14/03/2025 - 08:12:00")).toBe("14/03/25");
-    expect(dataCurta("20/06/2025 - 10:00:00")).toBe("20/06/25");
-    expect(dataCurta("sem data nenhuma")).toBe("__/__/__");
+    expect(dataDaColeta("COLETA: 14/03/2025 - 08:12:00")).toBe("14/03/2025");
+    expect(dataDaColeta("20/06/2025 - 10:00:00")).toBe("20/06/2025");
+    expect(dataDaColeta("sem data nenhuma")).toBe("__/__/____");
   });
 });
 
@@ -257,7 +257,7 @@ describe("formatarLabs", () => {
 
   it("monta a linha de um laudo completo", () => {
     expect(formatarLabs(HEMOGRAMA_COMPLETO)).toBe(
-      "LABS 14/03/25: HB 13,4 / HT 40,2 / PLAQ 322.000 / LEUC 12.500 / NEUT 78 / BAST 4 / UR 38 / CR 1,12 / NA 138 / K 4,2 / PCR 48,7",
+      "LABS 14/03/2025: HB 13,4 | HT 40,2 | PLAQ 322.000 | LEUC 12.500 | NEUT 78 | BAST 4 | UR 38 | CR 1,12 | NA 138 | K 4,2 | PCR 48,7",
     );
   });
 
@@ -275,7 +275,7 @@ describe("formatarLabs", () => {
 
   it("REGRESSÃO: não duplica creatinina quando o laudo traz 'Resultado'", () => {
     const saida = formatarLabs(CREATININA_COM_RESULTADO);
-    expect(saida).toBe("LABS 01/02/25: UR 52 / CR 1,45");
+    expect(saida).toBe("LABS 01/02/2025: UR 52 | CR 1,45");
     expect(saida.match(/\bCR\b/g)).toHaveLength(1);
   });
 
@@ -285,7 +285,7 @@ describe("formatarLabs", () => {
 
   it("REGRESSÃO: não inventa leucograma a partir da leucocitúria", () => {
     const saida = formatarLabs(SO_URINA);
-    expect(saida).toBe("LABS 03/03/25: UR1 PH 5,5 LEUC 25000");
+    expect(saida).toBe("LABS 03/03/2025: UR1 PH 5,5 LEUC 25000");
     expect(saida).not.toContain("SEM DESVIO");
   });
 
@@ -328,18 +328,18 @@ ALBUMINA
 Resultado
 3,2
 `);
-    expect(saida).toBe("LABS 09/09/25: TGO 88 / TGP 102 / BT 3,4 / ALB 3,2");
+    expect(saida).toBe("LABS 09/09/2025: TGO 88 | TGP 102 | BT 3,4 | ALB 3,2");
   });
 
   it("usa placeholder quando não acha a data", () => {
-    expect(formatarLabs("HEMOGRAMA\nHemoglobina\n11,0\n")).toContain("LABS __/__/__:");
+    expect(formatarLabs("HEMOGRAMA\nHemoglobina\n11,0\n")).toContain("LABS __/__/____:");
   });
 });
 
 describe("página real do SHIFT/AFIP", () => {
   it("transcreve o laudo inteiro", () => {
     expect(formatarLabs(AFIP_REAL)).toBe(
-      "LABS 19/09/26: HB 12,9 / HT 37,5 / PLAQ 233.000 / LEUC 15.640 SEM DESVIO / UR 65,0 / " +
+      "LABS 19/09/2026: HB 12,9 | HT 37,5 | PLAQ 233.000 | LEUC 15.640 SEM DESVIO | UR 65,0 | " +
         "UR1 PH 5,0 PROT + LEUC 14.000 BACT 2,0 a 5,0",
     );
   });
@@ -377,7 +377,7 @@ describe("página real do SHIFT/AFIP", () => {
 
   it("sedimento alterado sai inteiro", () => {
     expect(formatarLabs(AFIP_URINA_ALTERADA)).toBe(
-      "LABS 19/09/26: HB 12,9 / HT 37,5 / PLAQ 233.000 / LEUC 15.640 SEM DESVIO / UR 65,0 / " +
+      "LABS 19/09/2026: HB 12,9 | HT 37,5 | PLAQ 233.000 | LEUC 15.640 SEM DESVIO | UR 65,0 | " +
         "UR1 PH 5,0 PROT +++ CET + SANG ++ NITRITO POSITIVO LEUC 250.000 HEM 180.000 BACT 2,0 a 5,0",
     );
   });

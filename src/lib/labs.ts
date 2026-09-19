@@ -2,7 +2,7 @@
  * Formatador de laudos laboratoriais — porte do `formatar_labs` do PS.py.
  *
  * Recebe o texto bruto colado do SHIFT/AFIP e devolve a linha compacta
- * "LABS dd/mm/aa: HB 13,4 / HT 40 / PLAQ 322.000 / ...".
+ * "LABS dd/mm/aaaa: HB 13,4 | HT 40 | PLAQ 322.000 | ...".
  *
  * O porte é fiel ao original, com uma correção: no Python a creatinina era
  * adicionada duas vezes (uma no bloco específico, outra no bloco de
@@ -42,12 +42,15 @@ export function milhar(n: number): string {
   return Math.round(n).toLocaleString("pt-BR", { maximumFractionDigits: 0 });
 }
 
-/** Acha a data da coleta e devolve dd/mm/aa. */
-export function dataCurta(texto: string): string {
+/**
+ * Data da COLETA, com o ano inteiro — é ela que abre a linha, não a data em
+ * que o laudo foi liberado nem a de hoje.
+ */
+export function dataDaColeta(texto: string): string {
   let m = texto.match(/COLETA:\s*(\d{2})\/(\d{2})\/(\d{4})/i);
   if (!m) m = texto.match(/(\d{2})\/(\d{2})\/(\d{4})\s*-\s*\d{2}:\d{2}:\d{2}/);
-  if (!m) return "__/__/__";
-  return `${m[1]}/${m[2]}/${m[3].slice(2)}`;
+  if (!m) return "__/__/____";
+  return `${m[1]}/${m[2]}/${m[3]}`;
 }
 
 function buscar(texto: string, padrao: string, flags = "is"): RegExpMatchArray | null {
@@ -170,7 +173,7 @@ export function formatarLabs(textoBruto: string | null | undefined): string {
   if (!textoBruto || !textoBruto.trim()) return "";
 
   const t = textoBruto.toUpperCase();
-  const data = dataCurta(t);
+  const data = dataDaColeta(t);
 
   // O hemograma é lido de um texto SEM a seção de urina. Sem isso, um laudo
   // só de urina gerava leucograma fantasma a partir da leucocitúria.
@@ -327,5 +330,7 @@ export function formatarLabs(textoBruto: string | null | undefined): string {
   if (ur1.length) partes.push(`UR1 ${ur1.join(" ")}`);
 
   if (!partes.length) return "";
-  return `LABS ${data}: ${partes.join(" / ")}`;
+  // Separador "|" e não "/": as datas e as unidades do laudo já têm barra, e
+  // "UR 65,0 / CR 1,20" ficava ambíguo na leitura corrida do prontuário.
+  return `LABS ${data}: ${partes.join(" | ")}`;
 }
