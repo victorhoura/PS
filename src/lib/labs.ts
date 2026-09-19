@@ -63,17 +63,53 @@ function extrairNumero(texto: string, rotulos: string[]): string | null {
   return null;
 }
 
-const QUALITATIVOS = String.raw`NEGATIV[OA]|POSITIV[OA]|TRACOS?|TRACE|AUSENTE|PRESENTE|\+{1,4}`;
+/**
+ * O valor que vem depois de um rótulo, na mesma linha ou na primeira linha
+ * com conteúdo abaixo dele.
+ *
+ * É assim que o SHIFT monta a tabela — rótulo numa linha, resultado na
+ * seguinte, referência mais abaixo — e ler exatamente isso é o que impede de
+ * cair na coluna de referência. Procurar "o primeiro qualitativo depois do
+ * rótulo" não bastava: com "Proteína / + / Valor de referência: Negativo",
+ * o "+" era pulado e o NEGATIVO da referência entrava no lugar.
+ */
+function valorDoRotulo(texto: string, rotulo: string): string | null {
+  const m = buscar(texto, `^(.*?${rotulo}[^\\S\\r\\n]*:?[^\\S\\r\\n]*)(.*)$`, "im");
+  if (!m || m.index === undefined) return null;
+
+  const limpar = (l: string) => l.replace(/\u00a0/g, " ").trim();
+
+  const mesmaLinha = limpar(m[2]);
+  if (mesmaLinha) return mesmaLinha;
+
+  for (const linha of texto.slice(m.index + m[0].length).split(/\r?\n/)) {
+    const v = limpar(linha);
+    if (v) return v;
+  }
+  return null;
+}
+
+/**
+ * Cruzes com ou sem espaço entre elas: o laudo escreve "+", "++" e também
+ * "+ +" dependendo de como a página é copiada.
+ */
+const CRUZES = String.raw`\+(?:\s*\+){0,3}`;
+const QUALITATIVOS = String.raw`NEGATIV[OA]|POSITIV[OA]|TRACOS?|TRACE|AUSENTE|PRESENTE|${CRUZES}`;
 
 function extrairQualitativo(texto: string, rotulos: string[]): string | null {
   for (const r of rotulos) {
-    const m = buscar(
-      texto,
-      `${r}(?:\\s*[:\\-])?\\s*[\\r\\n]+[\\s\\S]*?\\b(${QUALITATIVOS})\\b`,
-    );
-    if (m) {
-      return m[1].toUpperCase().replace("TRACE", "TRACO").replace("TRACOS", "TRACO");
-    }
+    const valor = valorDoRotulo(texto, r);
+    if (!valor) continue;
+
+    // Ancorado no começo do valor: é o resultado, não algo mais à frente.
+    const m = valor.match(new RegExp(`^(${QUALITATIVOS})`, "i"));
+    if (!m) continue;
+
+    return m[1]
+      .toUpperCase()
+      .replace(/\s+/g, "")
+      .replace("TRACE", "TRACO")
+      .replace("TRACOS", "TRACO");
   }
   return null;
 }
@@ -235,21 +271,33 @@ export function formatarLabs(textoBruto: string | null | undefined): string {
   // ===== URINA I — pH sempre, o resto só se alterado =====
   const ur1: string[] = [];
 
-  const ur1Num = (rotulo: string): string | null => {
-    const m = buscar(tUr, `${rotulo}\\s*[\\r\\n]+[\\s\\S]*?(${NUM})`);
-    return m ? m[1] : null;
+  /**
+   * O valor do sedimento como o laboratório escreveu, mais o número que serve
+   * para decidir se é alterado.
+   *
+   * O laudo nem sempre traz um número solto: "2,0 a 5,0" é uma faixa, e
+   * "SUPERIOR A 1.000.000" é um limite. Transcrever só o primeiro número
+   * dessas formas ("BACT 2,0") diz uma coisa diferente do que o laboratório
+   * reportou, então o texto vai inteiro e a comparação usa o menor valor.
+   */
+  const ur1Valor = (rotulo: string): { texto: string; numero: number } | null => {
+    const valor = valorDoRotulo(tUr, rotulo);
+    if (!valor) return null;
+
+    const faixa = valor.match(new RegExp(`^(${NUM})\\s+A\\s+(${NUM})\\b`, "i"));
+    if (faixa) return { texto: `${faixa[1]} a ${faixa[2]}`, numero: paraNumero(faixa[1]) };
+
+    const limite = valor.match(new RegExp(`^(?:SUPERIOR\\s+A|MAIOR\\s+QUE|>)\\s*(${NUM})`, "i"));
+    if (limite) return { texto: `>${limite[1]}`, numero: paraNumero(limite[1]) };
+
+    const simples = valor.match(new RegExp(`^(${NUM})`));
+    if (simples) return { texto: simples[1], numero: paraNumero(simples[1]) };
+
+    return null;
   };
 
-  const ur1TextoEspecial = (rotulo: string): string | null => {
-    const m = buscar(tUr, `${rotulo}\\s*[\\r\\n]+(SUPERIOR\\s+A\\s+${NUM})`, "i");
-    return m ? m[1].toUpperCase().replace("SUPERIOR A ", ">") : null;
-  };
-
-  const ph = ur1Num(String.raw`\bPH\b`);
-  if (ph) {
-    const v = paraNumero(ph);
-    if (!Number.isNaN(v)) ur1.push(`PH ${formatarNumero(ph, v)}`);
-  }
+  const ph = ur1Valor(String.raw`\bPH\b`);
+  if (ph && !Number.isNaN(ph.numero)) ur1.push(`PH ${ph.texto}`);
 
   const qualis: [string, string[]][] = [
     ["PROT", [String.raw`\bPROTE[ÍI]NA\b`]],
@@ -262,29 +310,16 @@ export function formatarLabs(textoBruto: string | null | undefined): string {
     if (qualitativoAlterado(v)) ur1.push(`${rotulo} ${v}`);
   }
 
-  const leuUr = ur1Num(String.raw`\bLEUC[ÓO]CITOS\b`);
-  if (leuUr) {
-    const v = paraNumero(leuUr);
-    ur1.push(`LEUC ${Number.isNaN(v) ? leuUr : formatarNumero(leuUr, v)}`);
-  }
+  const leuUr = ur1Valor(String.raw`\bLEUC[ÓO]CITOS\b`);
+  if (leuUr) ur1.push(`LEUC ${leuUr.texto}`);
 
-  // Hemácias: texto "> 1.000.000" ou numérico, e aí só se realmente alterado.
-  const hemTxt = ur1TextoEspecial(String.raw`\bHEM[ÁA]CIAS\b`);
-  if (hemTxt) {
-    ur1.push(`HEM ${hemTxt}`);
-  } else {
-    const hemUr = ur1Num(String.raw`\bHEM[ÁA]CIAS\b`);
-    if (hemUr && paraNumero(hemUr) > 20000) ur1.push(`HEM ${hemUr}`);
-  }
+  // Hemácias: só quando passa da referência do laudo (até 20.000/mL).
+  const hemUr = ur1Valor(String.raw`\bHEM[ÁA]CIAS\b`);
+  if (hemUr && hemUr.numero > 20000) ur1.push(`HEM ${hemUr.texto}`);
 
   // Bactérias: só a partir de 1,0.
-  const bactTxt = ur1TextoEspecial(String.raw`\bBACT[ÉE]RIAS\b`);
-  if (bactTxt) {
-    ur1.push(`BACT ${bactTxt}`);
-  } else {
-    const bactUr = ur1Num(String.raw`\bBACT[ÉE]RIAS\b`);
-    if (bactUr && paraNumero(bactUr) >= 1.0) ur1.push(`BACT ${bactUr}`);
-  }
+  const bactUr = ur1Valor(String.raw`\bBACT[ÉE]RIAS\b`);
+  if (bactUr && bactUr.numero >= 1.0) ur1.push(`BACT ${bactUr.texto}`);
 
   const lev = extrairQualitativo(tUr, [String.raw`\bLEVEDURAS\b`]);
   if (qualitativoAlterado(lev)) ur1.push(`LEVED ${lev}`);

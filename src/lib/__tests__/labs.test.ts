@@ -69,6 +69,140 @@ Leveduras
 AUSENTE
 `;
 
+/**
+ * Layout real da página de resultados do SHIFT/AFIP, como ele chega pelo
+ * Ctrl+C: rótulo numa linha, resultado na seguinte, unidade e referência
+ * abaixo, com espaços não separáveis (\u00a0) entre as colunas. Os valores
+ * são inventados; o que importa aqui é a forma da página.
+ */
+const AFIP_REAL = [
+  "Hemograma Completo",
+  "\u00a0",
+  "Material:",
+  "Sangue total (EDTA)",
+  "Coleta:",
+  "19/09/2026 - 07:50:47",
+  "Liberação:",
+  "19/09/2026 - 08:32:09",
+  "Eritrograma",
+  "Valores Encontrados",
+  "Valores de Referência",
+  "Hemoglobina",
+  "12,9",
+  "\u00a0",
+  "g/dL",
+  "\u00a0 12,0 - 15,0 g/dL",
+  "Hematócrito",
+  "37,5",
+  "\u00a0",
+  "%",
+  "36,0 - 46,0 %",
+  "Plaquetas",
+  "233",
+  "\u00a0",
+  "Mil/mm3",
+  "150 - \u00a0400 Mil/mm3",
+  "Leucograma",
+  "Valores Encontrados",
+  "Leucócitos",
+  "15,64",
+  "4,5 - 11,0",
+  "Bastonetes",
+  "0,0",
+  "0,00",
+  "0 - 0,7",
+  "Ureia, sérica",
+  "Coleta:",
+  "19/09/2026 - 07:50:47",
+  "Resultado",
+  "65,0",
+  "\u00a0",
+  "mg/dL",
+  "Valor de referência:",
+  "Adultos",
+  "Feminino \u00a0: 15 a 36 mg/dL",
+  "Urina I",
+  "\u00a0",
+  "Material:",
+  "Urina (jato médio)",
+  "Coleta:",
+  "19/09/2026 - 07:50:47",
+  "\u00a0",
+  "Valor de Referência",
+  "Densidade",
+  "1020",
+  "\u00a0",
+  "1005 até 1030",
+  "pH",
+  "5,0",
+  "\u00a0",
+  "5,0\u00a0até\u00a06,0",
+  "\u00a0",
+  "Proteína",
+  "+",
+  "\u00a0",
+  "Valor de referência :",
+  "Negativo",
+  "\u00a0+ Equivale a aproximadamente\u00a030 mg/dL",
+  "+ + Equivale a aproximadamente 100 mg/dL",
+  "Glicose",
+  "Negativo",
+  "\u00a0",
+  "Negativo",
+  "\u00a0",
+  "Cetona",
+  "Negativo",
+  "\u00a0",
+  "Negativo",
+  "\u00a0",
+  "Sangue",
+  "Negativo",
+  "\u00a0",
+  "Negativo",
+  "\u00a0",
+  "Nitrito",
+  "Negativo",
+  "\u00a0",
+  "Negativo",
+  "\u00a0",
+  "Células epiteliais",
+  "Algumas",
+  "\u00a0",
+  "Raras",
+  "\u00a0",
+  "Leucócitos",
+  "14.000",
+  "\u00a0",
+  "/mL",
+  "Até 20.000 /mL",
+  "\u00a0",
+  "Hemácias",
+  "7.000",
+  "\u00a0",
+  "/mL",
+  "Até 20.000 /mL",
+  "\u00a0",
+  "Cristais",
+  "Ausentes",
+  "\u00a0",
+  "Ausentes",
+  "\u00a0",
+  "Bactérias",
+  "2,0 a 5,0",
+  "\u00a0",
+  "/mL",
+  "\u00a0",
+  "Inferior a 1,0 /mL",
+].join("\n");
+
+/** O mesmo layout, com o sedimento francamente alterado. */
+const AFIP_URINA_ALTERADA = AFIP_REAL.replace("Proteína\n+\n", "Proteína\n+++\n")
+  .replace("Cetona\nNegativo", "Cetona\n+")
+  .replace("Sangue\nNegativo", "Sangue\n++")
+  .replace("Nitrito\nNegativo", "Nitrito\nPositivo")
+  .replace("Leucócitos\n14.000", "Leucócitos\n250.000")
+  .replace("Hemácias\n7.000", "Hemácias\n180.000");
+
 const CREATININA_COM_RESULTADO = `
 COLETA: 01/02/2025
 CREATININA
@@ -199,5 +333,57 @@ Resultado
 
   it("usa placeholder quando não acha a data", () => {
     expect(formatarLabs("HEMOGRAMA\nHemoglobina\n11,0\n")).toContain("LABS __/__/__:");
+  });
+});
+
+describe("página real do SHIFT/AFIP", () => {
+  it("transcreve o laudo inteiro", () => {
+    expect(formatarLabs(AFIP_REAL)).toBe(
+      "LABS 19/09/26: HB 12,9 / HT 37,5 / PLAQ 233.000 / LEUC 15.640 SEM DESVIO / UR 65,0 / " +
+        "UR1 PH 5,0 PROT + LEUC 14.000 BACT 2,0 a 5,0",
+    );
+  });
+
+  it("REGRESSÃO: lê a cruz do resultado, não o 'Negativo' da referência", () => {
+    // O layout é "Proteína / + / Valor de referência : / Negativo". O \b antes
+    // do "+" nunca casava, a busca seguia em frente e trazia o NEGATIVO da
+    // coluna de referência — uma proteinúria +++ saía do laudo como se fosse
+    // normal, calada.
+    const saida = formatarLabs(AFIP_URINA_ALTERADA);
+    expect(saida).toContain("PROT +++");
+    expect(saida).toContain("CET +");
+    expect(saida).toContain("SANG ++");
+    expect(saida).toContain("NITRITO POSITIVO");
+  });
+
+  it("REGRESSÃO: faixa de bactérias não vira só o primeiro número", () => {
+    // "2,0 a 5,0" virava "BACT 2,0", que é outro resultado.
+    expect(formatarLabs(AFIP_REAL)).toContain("BACT 2,0 a 5,0");
+  });
+
+  it("REGRESSÃO: leucocitúria mantém o ponto de milhar do laudo", () => {
+    expect(formatarLabs(AFIP_REAL)).toContain("LEUC 14.000");
+    expect(formatarLabs(AFIP_REAL)).not.toContain("LEUC 14000");
+  });
+
+  it("qualitativo negativo continua fora, e hemácias normais também", () => {
+    const saida = formatarLabs(AFIP_REAL);
+    expect(saida).not.toContain("CET");
+    expect(saida).not.toContain("SANG");
+    expect(saida).not.toContain("NITRITO");
+    // 7.000/mL com referência até 20.000 não é achado.
+    expect(saida).not.toContain("HEM ");
+  });
+
+  it("sedimento alterado sai inteiro", () => {
+    expect(formatarLabs(AFIP_URINA_ALTERADA)).toBe(
+      "LABS 19/09/26: HB 12,9 / HT 37,5 / PLAQ 233.000 / LEUC 15.640 SEM DESVIO / UR 65,0 / " +
+        "UR1 PH 5,0 PROT +++ CET + SANG ++ NITRITO POSITIVO LEUC 250.000 HEM 180.000 BACT 2,0 a 5,0",
+    );
+  });
+
+  it("cruzes separadas por espaço contam como uma marcação só", () => {
+    const saida = formatarLabs(AFIP_REAL.replace("Proteína\n+\n", "Proteína\n+ +\n"));
+    expect(saida).toContain("PROT ++");
   });
 });
