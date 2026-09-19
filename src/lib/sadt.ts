@@ -36,16 +36,25 @@ const RECUO = 4;
  */
 const TAMANHO_DATA = 9;
 
+/** Os campos de assinalar do formulário. "" quer dizer nenhum marcado. */
+export type Sexo = "" | "F" | "M";
+export type Prioridade = "" | "P0" | "P1" | "P2";
+export type UnidadeIdade = "" | "a" | "m" | "d";
+
 export interface DadosSadt {
   requisitante: string;
   cartaoSus: string;
   paciente: string;
   nascimento: string;
+  idade: string;
+  idadeUnidade: UnidadeIdade;
+  sexo: Sexo;
   mae: string;
   endereco: string;
   municipio: string;
   hd: string;
   cid: string;
+  prioridade: Prioridade;
   historia: string;
   data: string;
   /** Até cinco, uma por linha da tabela; a primeira é obrigatória. */
@@ -88,6 +97,23 @@ const NASCIMENTO = {
     { esquerda: 123.2, direita: 145.5 },
     { esquerda: 150.3, direita: 172.5 },
   ],
+} as const;
+
+/** O "____" depois de "Idade:", na mesma linha da data de nascimento. */
+const IDADE = { y: 512.0, esquerda: 250.75, direita: 272.99 } as const;
+
+/**
+ * Os "(  )" que se assinala com X. O valor é o centro do vão entre os
+ * parênteses; o X é centralizado ali, como se tivesse sido feito à mão.
+ *
+ * As posições saem da mesma conta dos outros campos — largura do rótulo em
+ * negrito até cada parêntese — e batem com onde ele marcou no exemplo: Fem
+ * em 429,75 contra 430,22 calculado, P1 em 248,25 contra 248,21.
+ */
+const MARCAS = {
+  idadeUnidade: { y: 512.0, centros: { a: 281.88, m: 302.44, d: 326.33 } },
+  sexo: { y: 512.0, centros: { F: 430.22, M: 468.56 } },
+  prioridade: { y: 404.1, centros: { P0: 128.21, P1: 248.21, P2: 391.71 } },
 } as const;
 
 /**
@@ -190,6 +216,7 @@ export async function gerarSadt(dados: DadosSadt, modelo: ArrayBuffer): Promise<
 
   /** Centraliza numa das casas da data de nascimento. */
   const centralizar = (texto: string, casa: { esquerda: number; direita: number }, y: number) => {
+    if (!texto) return;
     const tamanho = ajustarTamanho(medir, texto, casa.direita - casa.esquerda, TAMANHO_DATA);
     const x = (casa.esquerda + casa.direita) / 2 - medir(texto, tamanho) / 2;
     escrever(texto, x, y, tamanho);
@@ -208,6 +235,18 @@ export async function gerarSadt(dados: DadosSadt, modelo: ArrayBuffer): Promise<
   dados.nascimento
     .split("/")
     .forEach((parte, i) => centralizar(parte, NASCIMENTO.casas[i], NASCIMENTO.y));
+
+  centralizar(dados.idade, IDADE, IDADE.y);
+
+  /** O X no meio de um "(  )". Sem opção escolhida não marca nada. */
+  const assinalar = (centro: number | undefined, y: number) => {
+    if (centro === undefined) return;
+    escrever("X", centro - medir("X", TAMANHO) / 2, y, TAMANHO);
+  };
+
+  assinalar(MARCAS.idadeUnidade.centros[dados.idadeUnidade as "a"], MARCAS.idadeUnidade.y);
+  assinalar(MARCAS.sexo.centros[dados.sexo as "F"], MARCAS.sexo.y);
+  assinalar(MARCAS.prioridade.centros[dados.prioridade as "P0"], MARCAS.prioridade.y);
 
   const historia = medirHistoria(medir, dados.historia);
   historia.linhas.forEach((linha, i) =>

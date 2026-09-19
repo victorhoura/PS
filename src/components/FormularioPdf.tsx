@@ -87,3 +87,61 @@ export function Erro({ texto }: { texto: string }) {
     </p>
   );
 }
+
+/**
+ * Campo de assinalar: os "(  )" do formulário viram botões.
+ *
+ * Clicar no que já está escolhido desmarca — são campos opcionais, e sem isso
+ * não haveria como voltar atrás depois de marcar por engano.
+ */
+export function Opcoes<T extends string>({
+  rotulo,
+  valor,
+  opcoes,
+  aoMudar,
+  largura = 6,
+}: {
+  rotulo: string;
+  valor: T | "";
+  opcoes: readonly { valor: T; texto: string }[];
+  aoMudar: (v: T | "") => void;
+  largura?: number;
+}) {
+  return (
+    <div className={COLUNAS[largura]}>
+      <span
+        id={`rot-${rotulo.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+        className="mb-1 block font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim"
+      >
+        {rotulo}
+        <span className="ml-1.5 font-normal normal-case tracking-normal text-inkDim/60">
+          opcional
+        </span>
+      </span>
+      <div
+        role="group"
+        aria-labelledby={`rot-${rotulo.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+        className="flex flex-wrap gap-1.5"
+      >
+        {opcoes.map((o) => {
+          const escolhido = valor === o.valor;
+          return (
+            <button
+              key={o.valor}
+              type="button"
+              aria-pressed={escolhido}
+              onClick={() => aoMudar(escolhido ? "" : o.valor)}
+              className={`transicao h-9 flex-1 rounded-lg border px-3 text-[11px] font-bold tracking-wide ${
+                escolhido
+                  ? "border-accent bg-accent/15 text-accent"
+                  : "border-edge bg-panel text-inkDim hover:bg-panelHover hover:text-ink"
+              }`}
+            >
+              {o.texto}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

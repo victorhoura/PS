@@ -6,29 +6,61 @@ import {
   LINHAS_HISTORIA,
   LINHAS_PROCEDIMENTO,
   type DadosSadt,
+  type Prioridade,
+  type Sexo,
+  type UnidadeIdade,
 } from "@/lib/sadt";
 import { emMaiusculas, hoje, nomeDeArquivo, validarData } from "@/lib/pdf";
 import { avisarCopia } from "@/components/AvisoCopia";
-import { Bloco, Campo, Erro } from "@/components/FormularioPdf";
+import { Bloco, Campo, Erro, Opcoes } from "@/components/FormularioPdf";
+
+const SEXOS = [
+  { valor: "F", texto: "FEM" },
+  { valor: "M", texto: "MASC" },
+] as const satisfies readonly { valor: Sexo; texto: string }[];
+
+const PRIORIDADES = [
+  { valor: "P0", texto: "P0 URGENTE" },
+  { valor: "P1", texto: "P1 PRIORIDADE" },
+  { valor: "P2", texto: "P2 ROTINA" },
+] as const satisfies readonly { valor: Prioridade; texto: string }[];
+
+const UNIDADES = [
+  { valor: "a", texto: "ANOS" },
+  { valor: "m", texto: "MESES" },
+  { valor: "d", texto: "DIAS" },
+] as const satisfies readonly { valor: UnidadeIdade; texto: string }[];
 
 const CHAVE_PADROES = "ps-japa:sadt:padroes";
 const REQUISITANTE_PADRAO = "HMU";
 const MUNICIPIO_PADRAO = "GUARULHOS";
 
-/** Os campos de texto simples; os procedimentos são uma lista à parte. */
-type Simples = Exclude<keyof DadosSadt, "procedimentos">;
-type Campos = Record<Simples, string> & { procedimentos: string[] };
+/** Os campos de texto simples; assinalar e procedimentos são à parte. */
+type Simples = Exclude<
+  keyof DadosSadt,
+  "procedimentos" | "sexo" | "prioridade" | "idadeUnidade"
+>;
+type Campos = Record<Simples, string> & {
+  sexo: Sexo;
+  prioridade: Prioridade;
+  idadeUnidade: UnidadeIdade;
+  procedimentos: string[];
+};
 
 const VAZIO: Campos = {
   requisitante: REQUISITANTE_PADRAO,
   cartaoSus: "",
   paciente: "",
   nascimento: "",
+  idade: "",
+  idadeUnidade: "",
+  sexo: "",
   mae: "",
   endereco: "",
   municipio: MUNICIPIO_PADRAO,
   hd: "",
   cid: "",
+  prioridade: "",
   historia: "",
   data: "",
   procedimentos: [""],
@@ -85,11 +117,15 @@ export default function GeradorSadt() {
       cartaoSus: emMaiusculas(campos.cartaoSus),
       paciente: emMaiusculas(campos.paciente),
       nascimento: campos.nascimento.trim(),
+      idade: campos.idade.trim(),
+      idadeUnidade: campos.idadeUnidade,
+      sexo: campos.sexo,
       mae: emMaiusculas(campos.mae),
       endereco: emMaiusculas(campos.endereco),
       municipio: emMaiusculas(campos.municipio),
       hd: emMaiusculas(campos.hd),
       cid: emMaiusculas(campos.cid),
+      prioridade: campos.prioridade,
       historia: emMaiusculas(campos.historia),
       data: campos.data.trim(),
       procedimentos: campos.procedimentos.map(emMaiusculas).filter(Boolean),
@@ -242,6 +278,30 @@ export default function GeradorSadt() {
               aoMudar={(v) => mudar("nascimento", v)}
             />
             <Campo
+              id="sadt-idade"
+              rotulo="IDADE"
+              largura={1}
+              dica="opcional"
+              inputMode="numeric"
+              valor={campos.idade}
+              aoMudar={(v) => mudar("idade", v.replace(/\D/g, "").slice(0, 3))}
+            />
+            <Opcoes
+              rotulo="UNIDADE"
+              largura={3}
+              valor={campos.idadeUnidade}
+              opcoes={UNIDADES}
+              aoMudar={(v) => setCampos((c) => ({ ...c, idadeUnidade: v }))}
+            />
+            <Opcoes
+              rotulo="SEXO"
+              largura={2}
+              valor={campos.sexo}
+              opcoes={SEXOS}
+              aoMudar={(v) => setCampos((c) => ({ ...c, sexo: v }))}
+            />
+
+            <Campo
               id="sadt-cartaoSus"
               rotulo="CARTÃO SUS"
               largura={3}
@@ -290,6 +350,13 @@ export default function GeradorSadt() {
               valor={campos.cid}
               erro={erros.cid}
               aoMudar={(v) => mudar("cid", v.toUpperCase())}
+            />
+            <Opcoes
+              rotulo="PRIORIDADE"
+              largura={6}
+              valor={campos.prioridade}
+              opcoes={PRIORIDADES}
+              aoMudar={(v) => setCampos((c) => ({ ...c, prioridade: v }))}
             />
             <Campo
               id="sadt-historia"

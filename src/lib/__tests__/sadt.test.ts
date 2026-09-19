@@ -62,17 +62,21 @@ const MODELO = readFileSync("public/SADT.pdf");
 const modeloBuffer = () =>
   MODELO.buffer.slice(MODELO.byteOffset, MODELO.byteOffset + MODELO.byteLength) as ArrayBuffer;
 
-/** O exemplo que ele mandou, campo a campo. */
+/** O primeiro exemplo que ele mandou, campo a campo. */
 const CASO: DadosSadt = {
   requisitante: "HMU",
   cartaoSus: "123",
   paciente: "CAIO JORGE",
   nascimento: "12/12/2001",
+  idade: "",
+  idadeUnidade: "",
+  sexo: "",
   mae: "JOANA SILVA",
   endereco: "RUA ESTELLA",
   municipio: "GUARULHOS",
   hd: "COLELITIASE",
   cid: "K80",
+  prioridade: "",
   historia: "DOR ABD HA 03 DIAS",
   data: "19/09/2026",
   procedimentos: ["US DE ABD TOTAL"],
@@ -187,6 +191,59 @@ describe("PDF gerado", () => {
     const op = feito.find((o) => o[0] === comprido)!;
     expect(op[3]).toBeLessThan(10);
     expect(op[3]).toBeGreaterThanOrEqual(6);
+  });
+
+  it("idade cai centralizada no '____' depois de 'Idade:'", async () => {
+    const feito = desenhos((await gerarSadt({ ...CASO, idade: "24" }, modeloBuffer())).pdf);
+    const op = feito.find((o) => o[0] === "24" && Math.abs(o[2] - 512.0) < 0.1)!;
+    expect(op).toBeDefined();
+    // Mesmo corpo das casas da data de nascimento (9pt), na mesma linha.
+    expect(op[3]).toBe(9);
+    // Ele marcou 255,0 a mão; o centro do vão calculado é 261,9.
+    expect(op[1]).toBeCloseTo(261.87 - 10.008 / 2, 1);
+  });
+
+  it("sexo e prioridade marcam X dentro do parêntese certo", async () => {
+    const feito = desenhos(
+      (await gerarSadt({ ...CASO, sexo: "F", prioridade: "P1" }, modeloBuffer())).pdf,
+    );
+    const xis = feito.filter((o) => o[0] === "X");
+    expect(xis).toHaveLength(2);
+
+    // Centro do vão menos meia letra: Fem em 430,22 e P1 em 248,21.
+    const meio = 6.67 / 2;
+    const sexo = xis.find((o) => Math.abs(o[2] - 512.0) < 0.1)!;
+    const prio = xis.find((o) => Math.abs(o[2] - 404.1) < 0.1)!;
+    expect(sexo[1]).toBeCloseTo(430.22 - meio, 1);
+    expect(prio[1]).toBeCloseTo(248.21 - meio, 1);
+  });
+
+  it("cada opção cai no seu próprio parêntese", async () => {
+    const meio = 6.67 / 2;
+    for (const [sexo, centro] of [["F", 430.22], ["M", 468.56]] as const) {
+      const feito = desenhos((await gerarSadt({ ...CASO, sexo }, modeloBuffer())).pdf);
+      expect(feito.find((o) => o[0] === "X")![1]).toBeCloseTo(centro - meio, 1);
+    }
+    for (const [p, centro] of [["P0", 128.21], ["P1", 248.21], ["P2", 391.71]] as const) {
+      const feito = desenhos((await gerarSadt({ ...CASO, prioridade: p }, modeloBuffer())).pdf);
+      expect(feito.find((o) => o[0] === "X")![1]).toBeCloseTo(centro - meio, 1);
+    }
+    for (const [u, centro] of [["a", 281.88], ["m", 302.44], ["d", 326.33]] as const) {
+      const feito = desenhos((await gerarSadt({ ...CASO, idadeUnidade: u }, modeloBuffer())).pdf);
+      expect(feito.find((o) => o[0] === "X")![1]).toBeCloseTo(centro - meio, 1);
+    }
+  });
+
+  it("sem escolher, nenhum X é desenhado — é campo opcional", async () => {
+    const feito = desenhos((await gerarSadt(CASO, modeloBuffer())).pdf);
+    expect(feito.some((o) => o[0] === "X")).toBe(false);
+    expect(feito.some((o) => Math.abs(o[2] - 404.1) < 0.1)).toBe(false);
+  });
+
+  it("idade em branco não escreve nada na linha", async () => {
+    const semIdade = desenhos((await gerarSadt(CASO, modeloBuffer())).pdf);
+    const comIdade = desenhos((await gerarSadt({ ...CASO, idade: "3" }, modeloBuffer())).pdf);
+    expect(comIdade.length).toBe(semIdade.length + 1);
   });
 
   it("preserva a página do modelo, do tamanho original", async () => {
