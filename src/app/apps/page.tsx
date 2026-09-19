@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CALCULADORAS } from "@/lib/calculadoras";
 
 const FERRAMENTAS = [
+  { href: "/apps/apac", nome: "GERADOR DE APAC", nota: "preenche o laudo oficial e devolve o PDF" },
   { href: "/apps/labs", nome: "FORMATADOR DE EXAMES", nota: "laudo do SHIFT vira linha de prontuário" },
   { href: "/apps/texto", nome: "CONVERSOR DE LETRAS", nota: "maiúsculas, minúsculas, primeira letra" },
   { href: "/apps/contador", nome: "CONTADOR", nota: "contagem de atendimentos do plantão" },

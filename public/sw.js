@@ -14,7 +14,7 @@
  * VERSAO muda a cada deploy para descartar o cache velho.
  */
 
-const VERSAO = "20260918232144";
+const VERSAO = "20260919170901";
 const CACHE = `ps-japa-${VERSAO}`;
 const CACHE_ESTADO = "ps-japa-estado";
 const MARCA_TRANCA = "/__ps-tranca";
@@ -25,6 +25,7 @@ const ROTAS = [
   "/apps",
   "/links",
   "/backup",
+  "/apps/apac",
   "/apps/labs",
   "/apps/texto",
   "/apps/contador",
@@ -43,6 +44,12 @@ const ROTAS = [
   "/apps/qsofa",
   "/apps/wells-tvp"
 ];
+/**
+ * O formulário em branco da APAC. Fica fora de ESTATICOS de propósito: é
+ * conteúdo do app, não ícone, e trancado não deve sair do cache.
+ */
+const ARQUIVOS = ["/APAC.pdf"];
+
 const ESTATICOS = [
   "/manifest.webmanifest",
   "/icone.svg",
@@ -102,7 +109,9 @@ self.addEventListener("install", (evento) => {
       // Falha de uma rota não pode abortar a instalação inteira. Trancado,
       // as rotas do app respondem com redirecionamento e simplesmente não
       // entram no cache — que é o que se quer.
-      await Promise.allSettled([...ROTAS, ...ESTATICOS].map((u) => cache.add(u)));
+      await Promise.allSettled(
+        [...ROTAS, ...ARQUIVOS, ...ESTATICOS].map((u) => cache.add(u)),
+      );
       await self.skipWaiting();
     })(),
   );

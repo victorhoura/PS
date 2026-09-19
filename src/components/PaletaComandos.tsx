@@ -35,6 +35,13 @@ const FERRAMENTAS: Resultado[] = [
     peso: 1,
   })),
   {
+    chave: "t:apac",
+    titulo: "GERADOR DE APAC",
+    contexto: "FERRAMENTA",
+    acao: { tipo: "ir" as const, href: "/apps/apac" },
+    peso: 1,
+  },
+  {
     chave: "t:labs",
     titulo: "FORMATADOR DE EXAMES",
     contexto: "FERRAMENTA",
