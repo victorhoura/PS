@@ -13,7 +13,7 @@
  * basta.
  */
 
-export type ChaveNuvem = "cofre" | "textos" | "preferencias" | "contador";
+export type ChaveNuvem = "cofre" | "textos" | "preferencias";
 
 export interface RespostaNuvem<T> {
   conteudo: T | null;

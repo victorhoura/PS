@@ -9,7 +9,12 @@ import { lerRegistro, gravarRegistro, nuvemConfigurada } from "@/lib/supabase";
  * navegador.
  */
 
-const CHAVES = new Set(["cofre", "textos", "preferencias", "contador"]);
+/**
+ * Precisa bater com a restrição CHECK da coluna `id` no Supabase. Acrescentar
+ * chave aqui sem acrescentar lá faz toda gravação voltar 502 e a tela dizer
+ * "não salvo" — foi exatamente o que aconteceu com "preferencias".
+ */
+const CHAVES = new Set(["cofre", "textos", "preferencias"]);
 
 /** Guarda contra um cliente confuso encher o banco. */
 const LIMITE_BYTES = 512 * 1024;

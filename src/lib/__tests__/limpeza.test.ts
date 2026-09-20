@@ -135,7 +135,7 @@ describe("migração para a nuvem", () => {
     expect(armazenamento.size).toBe(0);
   });
 
-  it("leva as preferências e o contador junto", async () => {
+  it("leva preferências e contador na mesma chave que a tela lê", async () => {
     armazenamento.set("ps-japa:tema", "claro");
     armazenamento.set("ps-japa:apac:medico", "VICTOR M. HOURA");
     armazenamento.set("ps-japa:contador", "17");
@@ -143,10 +143,33 @@ describe("migração para a nuvem", () => {
     const m = await carregar();
     await m.migrarEApagarLocal();
 
-    const prefs = naNuvem.preferencias as { tema: string; medico: string };
+    const prefs = naNuvem.preferencias as { tema: string; medico: string; contador: number };
     expect(prefs.tema).toBe("claro");
     expect(prefs.medico).toBe("VICTOR M. HOURA");
-    expect(naNuvem.contador).toBe(17);
+    // Dentro de "preferencias", que é de onde a tela do contador lê.
+    expect(prefs.contador).toBe(17);
+    expect(naNuvem.contador).toBeUndefined();
+  });
+});
+
+describe("chaves da nuvem", () => {
+  it("só existem as três que o banco aceita", async () => {
+    // O CHECK da coluna `id` no Supabase é
+    //   id in ('cofre', 'textos', 'preferencias')
+    // Acrescentar chave aqui sem acrescentar lá faz toda gravação voltar 502.
+    const rota = await import("../../app/api/nuvem/[chave]/route");
+    expect(typeof rota.GET).toBe("function");
+
+    armazenamento.set("ps-japa:cofre:v1", "x");
+    armazenamento.set("ps-japa:textos:v1", CAMADA);
+    armazenamento.set("ps-japa:tema", "claro");
+
+    const m = await carregar();
+    await m.migrarEApagarLocal();
+
+    for (const chave of gravadas.map((g) => g.chave)) {
+      expect(["cofre", "textos", "preferencias"]).toContain(chave);
+    }
   });
 });
 

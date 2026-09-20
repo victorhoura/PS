@@ -41,7 +41,8 @@ const VAZIO: Campos = {
  * O laudo sai com a sua letra de máquina em cima do formulário oficial, como
  * saía no programa em Python — só que sem instalar nada e sem pasta de saída:
  * o PDF nasce aqui no navegador, você confere na tela e imprime ou baixa.
- * Nada do que é digitado sai deste computador.
+ * Nenhum dado de paciente sai desta máquina — só o nome do médico
+ * solicitante, que fica guardado para a próxima.
  */
 export default function GeradorApac() {
   const [campos, setCampos] = useState<Campos>(VAZIO);
@@ -210,7 +211,8 @@ export default function GeradorApac() {
       <header className="mb-4">
         <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">GERADOR DE APAC</h1>
         <p className="mt-0.5 text-[11px] text-inkDim">
-          Preenche o laudo oficial e devolve o PDF pronto para imprimir. Nada sai deste computador.
+          Preenche o laudo oficial e devolve o PDF pronto para imprimir. Nenhum dado de paciente sai
+          deste computador.
         </p>
       </header>
 
@@ -437,7 +439,7 @@ export default function GeradorApac() {
         <div className="min-w-0">
           <div className="mb-1.5 flex items-baseline justify-between gap-2">
             <span className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim">
-              LAUDO
+              VISUALIZADOR
             </span>
             {pdf && <span className="truncate font-mono text-[10px] text-inkDim/70">{pdf.nome}</span>}
           </div>

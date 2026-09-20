@@ -243,8 +243,8 @@ export default function GeradorSadt() {
       <header className="mb-4">
         <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">GERADOR DE SADT</h1>
         <p className="mt-0.5 text-[11px] text-inkDim">
-          Requisição de serviços de diagnóstico do HMU, pronta para imprimir. Nada sai deste
-          computador.
+          Requisição de serviços de diagnóstico do HMU, pronta para imprimir. Nenhum dado de paciente
+          sai deste computador.
         </p>
       </header>
 
@@ -436,7 +436,7 @@ export default function GeradorSadt() {
         <div className="min-w-0">
           <div className="mb-1.5 flex items-baseline justify-between gap-2">
             <span className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim">
-              REQUISIÇÃO
+              VISUALIZADOR
             </span>
             {pdf && <span className="truncate font-mono text-[10px] text-inkDim/70">{pdf.nome}</span>}
           </div>

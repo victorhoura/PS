@@ -94,15 +94,18 @@ export async function migrarEApagarLocal(): Promise<{ migrou: string[]; falhou: 
   const cofre = ler(COFRE);
   if (cofre) pendentes.push(["cofre", cofre, "cofre"]);
 
-  const contador = ler(CONTADOR);
-  if (contador && Number(contador) > 0) pendentes.push(["contador", Number(contador), "contador"]);
-
+  // Contador e preferências moram na MESMA chave: é de lá que a tela do
+  // contador lê. Subir num registro separado seria subir para o vazio.
+  const contador = Number(ler(CONTADOR));
   const prefs = {
     tema: ler(TEMA) ?? undefined,
     medico: ler(MEDICO) ?? undefined,
     sadt: comoJson<object>(ler(PADROES_SADT)) ?? undefined,
+    contador: Number.isFinite(contador) && contador > 0 ? contador : undefined,
   };
-  if (prefs.tema || prefs.medico || prefs.sadt) pendentes.push(["preferencias", prefs, "preferências"]);
+  if (prefs.tema || prefs.medico || prefs.sadt || prefs.contador) {
+    pendentes.push(["preferencias", prefs, "preferências"]);
+  }
 
   for (const [chave, conteudo, nome] of pendentes) {
     try {
