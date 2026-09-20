@@ -44,12 +44,23 @@ const BASE = pastaDoExecutavel();
 const PERFIL = path.join(BASE, "dados");
 const PDFS = path.join(BASE, "PDFs");
 
+// As pastas precisam existir antes de serem apontadas.
+fs.mkdirSync(PERFIL, { recursive: true });
+fs.mkdirSync(PDFS, { recursive: true });
+
 /**
  * Tem que ser antes do app ficar pronto: depois disso o Electron já abriu o
  * perfil no lugar padrão, que é a pasta do usuário da máquina.
+ *
+ * "downloads" é redundante com o `will-download` mais abaixo, e é de
+ * propósito: o PDF da APAC leva nome de paciente, e é a única coisa aqui que
+ * sobrevive ao fechar a janela. Se um caminho de download escapar do
+ * manipulador, o padrão ainda é o pen drive — não a pasta Downloads da
+ * máquina.
  */
 app.setPath("userData", PERFIL);
 app.setPath("sessionData", PERFIL);
+app.setPath("downloads", PDFS);
 
 /** Duas janelas sobre o mesmo perfil brigam pelo arquivo de sessão. */
 if (!app.requestSingleInstanceLock()) app.quit();

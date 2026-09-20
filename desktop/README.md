@@ -38,6 +38,27 @@ O empacotamento para Windows funciona a partir de Linux e de macOS também — o
 empacotador só baixa o binário do Electron para win32 e copia os arquivos por
 cima.
 
+## Conferir que nada escapa para a máquina
+
+A casca inteira existe por causa de uma afirmação — "o perfil e os PDFs ficam no
+pen drive" — e essa afirmação se verifica rodando, não lendo. Em Linux, com
+`xvfb` e o Electron do npm:
+
+```sh
+cp desktop/main.js desktop/sem-rede.html /tmp/casca/
+sed -i 's|https://ps.victorhoura.com|http://localhost:3222|' /tmp/casca/main.js
+# servir uma página que gera um blob e clica num <a download>, como a APAC faz
+cd /tmp/casca && xvfb-run -a electron --no-sandbox .
+```
+
+O que tem que ser verdade depois:
+
+- `dados/Cookies` e `dados/Cache` existem ao lado do app;
+- o PDF caiu em `PDFs/`, com o nome que a página pediu;
+- `~/.config/Electron` e `~/Downloads` **não** foram criados.
+
+O terceiro item é o que importa. Os dois primeiros só dizem que o app funcionou.
+
 ## Detalhes que não são óbvios
 
 - **`PORTABLE_EXECUTABLE_DIR`** (em `main.js`): empacotadores que geram um
