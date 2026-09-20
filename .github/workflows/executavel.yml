@@ -1,11 +1,18 @@
 name: Executável do pen drive
 
-# Monta a pasta que vai para o pen drive: o .exe do Electron, o lançador .cmd
-# e o leia-me. O .exe tem ~370 MB (é o Chromium), por isso não fica no
-# repositório — sai daqui como artefato para baixar.
+# Monta o que vai para o pen drive, em dois artefatos separados de propósito:
 #
-# Empacotar para Windows a partir do Linux funciona: o empacotador só baixa o
-# binário do Electron para win32 e copia os arquivos do app por cima.
+#   PS-JAPA-pendrive  ~50 KB  o lançador, o .cmd e o leia-me. É o que basta
+#                             em máquina que tenha Chrome ou Edge, que é
+#                             toda máquina com Windows.
+#   PS-JAPA-completo   370 MB a casca Electron, que carrega o próprio
+#                             Chromium. Só serve quando não há navegador
+#                             nenhum ou a rede força a pasta de perfil.
+#
+# Separados porque baixar 370 MB para usar 50 KB é o caminho errado por
+# padrão. Empacotar para Windows a partir do Linux funciona nos dois casos:
+# o empacotador do Electron só baixa o binário de win32, e o lançador sai do
+# mingw.
 
 on:
   push:
@@ -24,23 +31,44 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Instalar o empacotador
+      - name: Instalar o compilador para Windows
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q mingw-w64
+
+      - name: Compilar o lançador
+        working-directory: desktop
+        # -Werror porque um aviso aqui é um executável que abre na mão do
+        # usuário e falha de um jeito que ninguém consegue depurar no plantão.
+        run: |
+          x86_64-w64-mingw32-gcc -municode -mwindows -O2 -s \
+            -Wall -Wextra -Werror -o "PS JAPA.exe" lancador.c
+          ls -la "PS JAPA.exe"
+
+      - name: Instalar o empacotador do Electron
         working-directory: desktop
         run: npm install --no-audit --no-fund
 
-      - name: Empacotar para Windows
+      - name: Empacotar a casca
         working-directory: desktop
         run: npm run empacotar
 
-      - name: Juntar o lançador e o leia-me
+      - name: Montar as duas pastas
         run: |
-          destino="desktop/dist/PS JAPA-win32-x64"
-          cp "desktop/PS JAPA.cmd" "$destino/"
-          cp "desktop/LEIA-ME.txt" "$destino/"
-          ls -la "$destino"
+          mkdir -p entrega/pendrive
+          cp "desktop/PS JAPA.exe" "desktop/PS JAPA.cmd" "desktop/LEIA-ME.txt" entrega/pendrive/
+          mv "desktop/dist/PS JAPA-win32-x64" entrega/completo
+          cp "desktop/LEIA-ME.txt" entrega/completo/
+          ls -la entrega/pendrive
 
       - uses: actions/upload-artifact@v4
         with:
           name: PS-JAPA-pendrive
-          path: "desktop/dist/PS JAPA-win32-x64"
+          path: entrega/pendrive
+          retention-days: 90
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PS-JAPA-completo
+          path: entrega/completo
           retention-days: 30

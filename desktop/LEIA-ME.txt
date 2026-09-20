@@ -11,26 +11,35 @@ Precisa de internet. Não há cópia do app aqui dentro.
 COMO ABRIR
 ----------
 
-Tem duas formas. Tente a primeira; se não abrir, use a segunda.
+Dê duplo clique em "PS JAPA.exe". É só isso.
 
-  1) "PS JAPA.cmd"
-     Não instala nada. Usa o Chrome ou o Edge que já existe na máquina,
-     só que com um perfil separado, guardado nesta pasta. É a forma que
-     mais costuma passar nas máquinas com restrição, porque o programa
-     que abre é o navegador que a TI já aprovou.
+Se ele for bloqueado pela política da rede ou pelo antivírus, tem mais
+duas formas, nesta ordem:
 
-  2) "PS JAPA.exe"
-     A janela própria, sem depender do navegador da máquina. Abre mais
-     devagar da primeira vez (são ~370 MB lidos do pen drive).
+  1) "PS JAPA.exe"  (43 KB)
+     Abre o Chrome ou o Edge que já existe na máquina, numa janela sem
+     barra de endereço, com o perfil e os PDFs aqui nesta pasta. Não
+     carrega navegador junto: usa o que a TI já aprovou. O Edge vem no
+     Windows, então esta forma funciona em máquina sem nada instalado.
 
-Não use as duas ao mesmo tempo: cada uma tem o seu próprio login.
+  2) "PS JAPA.cmd"
+     Exatamente a mesma coisa, em script em vez de programa. Serve para
+     onde executável é bloqueado e script não é.
+
+  3) pasta "completo" (só se você a copiou)
+     Aí sim um navegador próprio, 370 MB. Serve quando não há Chrome nem
+     Edge, ou quando a rede força a pasta de perfil por política e as
+     duas formas acima não conseguem gravar no pen drive. Abre mais
+     devagar da primeira vez.
+
+Não use duas ao mesmo tempo: cada uma tem o seu próprio login.
 
 
 ONDE FICAM AS SUAS COISAS
 -------------------------
 
   PDFs\     as APACs e SADTs que você gerar
-  dados\    perfil do lançador .cmd (cookie, histórico, cache)
+  dados\    perfil do navegador (cookie, histórico, cache)
 
 Pode apagar as duas quando quiser. Apagar "dados" só significa que você
 vai digitar a senha de novo — seus textos, modelos e cofre moram no
@@ -46,10 +55,11 @@ O QUE ISSO RESOLVE
     máquina — vem para "PDFs" aqui.
   - Funciona onde a janela anônima está desligada por política da rede,
     porque isto não é janela anônima: é um perfil separado.
-  - A senha é pedida sempre: nenhuma das duas formas guarda ou preenche
-    senha. No .exe porque ele não tem gerenciador de senhas; no .cmd
-    porque o perfil do pen drive nasce com o gerenciador desligado.
-    Depois de entrar, o login vale 12 horas.
+  - A senha é pedida sempre: nenhuma das três formas guarda ou preenche
+    senha. O .exe e o .cmd porque o perfil do pen drive nasce com o
+    gerenciador de senhas desligado; a pasta "completo" porque ela não
+    tem gerenciador de senhas nenhum. Depois de entrar, o login vale
+    12 horas.
 
 
 O QUE ISSO NÃO RESOLVE
@@ -66,13 +76,15 @@ O QUE ISSO NÃO RESOLVE
 SE NÃO ABRIR
 ------------
 
-  - O .cmd avisa e fecha: não achou Chrome nem Edge. Use o .exe.
-  - O .cmd abre o navegador mas ignora o pen drive: a rede força a pasta
-    de perfil por política. Use o .exe.
+  - Avisa "não encontrei o Chrome nem o Edge": use a pasta "completo".
+  - Abre o navegador mas ignora o pen drive (histórico e PDF indo para a
+    máquina): a rede força a pasta de perfil por política. Use a pasta
+    "completo", que não depende de política de navegador.
   - O .exe é barrado pelo SmartScreen ou pelo antivírus: use o .cmd.
-  - Os PDFs ainda caem em Downloads pelo .cmd: abra o menu do navegador,
+  - O .cmd é barrado: use o .exe.
+  - Os PDFs ainda caem em Downloads: abra o menu do navegador,
     Configurações, Downloads, e aponte para a pasta "PDFs" desta pasta
     aqui. Ele lembra para sempre, porque a configuração fica no pen drive.
-  - Nenhum dos dois abre: o site funciona normalmente em qualquer
+  - Nenhum deles abre: o site funciona normalmente em qualquer
     navegador, em ps.victorhoura.com. Aí lembre de bloquear no botão
     BLOQUEAR quando levantar da mesa.

@@ -5,38 +5,60 @@ O PS JAPA roda em computador de plantão, compartilhado, onde a janela anônima
 guarda cookie, histórico e cache de quem sentou antes — e o PDF da APAC, com
 nome de paciente, cai na pasta Downloads.
 
-Esta pasta resolve isso levando o perfil e os PDFs para o pen drive. São duas
+Esta pasta resolve isso levando o perfil e os PDFs para o pen drive. São três
 formas de abrir o **mesmo site**, porque numa máquina com restrição não dá para
 saber de antemão qual vai passar:
 
-| | o que é | quando serve |
-|---|---|---|
-| `PS JAPA.cmd` | abre o Chrome/Edge da máquina com `--user-data-dir` apontando para o pen drive | quase sempre: o programa que roda é o navegador que a TI já aprovou |
-| `PS JAPA.exe` | casca Electron (`main.js`), janela própria | quando não há Chrome nem Edge, ou quando a política força a pasta de perfil |
+| | o que é | tamanho | quando serve |
+|---|---|---|---|
+| `PS JAPA.exe` | lançador nativo (`lancador.c`): acha o Chrome/Edge da máquina e abre com `--user-data-dir` no pen drive | 43 KB | o padrão — o Edge vem no Windows, então há sempre um navegador para usar |
+| `PS JAPA.cmd` | o mesmo, em script | 2 KB | onde executável é bloqueado e script não é |
+| casca Electron (`main.js`) | janela própria, com um Chromium embutido | 370 MB | sem Chrome nem Edge, ou quando a política da rede força a pasta de perfil e as outras duas não conseguem isolar |
 
-Nenhuma das duas é uma cópia do app: as duas carregam `ps.victorhoura.com` da
-rede. Não há o que atualizar no pen drive quando o site muda.
+Nenhuma das três é cópia do app: todas carregam `ps.victorhoura.com` da rede.
+Não há o que atualizar no pen drive quando o site muda.
 
-## Gerar o executável
+A ordem importa. As duas primeiras não carregam navegador porque **já existe um
+na máquina**, e um navegador instalado é um navegador que a TI já aprovou. A
+casca só ganha quando a premissa das outras duas cai.
 
-O `.exe` tem ~370 MB (é o Chromium do Electron), então não mora no repositório.
+## Gerar
+
 Quem monta é o workflow `.github/workflows/executavel.yml`, a cada push que
-toque em `desktop/`, ou acionado à mão em **Actions → Executável do pen drive →
-Run workflow**. O resultado sai como artefato `PS-JAPA-pendrive`, já com o
-`.cmd` e o `LEIA-ME.txt` dentro: baixar, descompactar, copiar a pasta para o pen
-drive.
+toque em `desktop/`, ou à mão em **Actions → Executável do pen drive → Run
+workflow**. Saem dois artefatos separados de propósito — `PS-JAPA-pendrive`
+(~50 KB) e `PS-JAPA-completo` (370 MB) — porque baixar 370 MB para usar 50 KB
+é o caminho errado por padrão.
 
-Para gerar localmente, com Node instalado:
+Localmente:
 
 ```sh
 cd desktop
-npm install
-npm run empacotar      # dist/PS JAPA-win32-x64/
+x86_64-w64-mingw32-gcc -municode -mwindows -O2 -s \
+  -Wall -Wextra -Werror -o "PS JAPA.exe" lancador.c   # o lançador
+npm install && npm run empacotar                       # a casca
 ```
 
-O empacotamento para Windows funciona a partir de Linux e de macOS também — o
-empacotador só baixa o binário do Electron para win32 e copia os arquivos por
-cima.
+Os dois cruzam de Linux para Windows: o empacotador do Electron só baixa o
+binário de win32, e o lançador sai do mingw. O `-Werror` não é zelo: um aviso
+ali é um executável que falha na mão do usuário, no plantão, de um jeito que
+ninguém consegue depurar.
+
+## Conferir o lançador sem Windows
+
+Com `wine` e `mingw`, dá para exercitar os três caminhos. Compile um
+`chrome.exe` de mentira que grave a própria linha de comando num arquivo,
+ponha-o em `C:\Program Files\Google\Chrome\Application\` do prefixo, e rode o
+lançador de uma pasta qualquer. O que tem que ser verdade:
+
+- nasceram `dados\` e `PDFs\` ao lado do executável;
+- o navegador foi chamado com `--user-data-dir` apontando para `dados\`;
+- `dados\Default\Preferences` saiu com o download no pen drive e
+  `credentials_enable_service` falso;
+- **numa segunda abertura**, um `Preferences` já existente não é sobrescrito —
+  senão a pasta de download que o usuário escolher na mão seria desfeita toda
+  vez;
+- **sem o `chrome.exe` de mentira**, ele avisa e não tenta abrir nada.
 
 ## Conferir que nada escapa para a máquina
 
