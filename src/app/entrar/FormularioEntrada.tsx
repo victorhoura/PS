@@ -5,7 +5,6 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { BotaoTema } from "@/components/BotaoTema";
 import { IconeCadeado } from "@/components/Icones";
-import { conferirOffline, destrancarCache, guardarVerificador, temVerificador } from "@/lib/tranca";
 
 export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada: boolean }) {
   const [senha, setSenha] = useState("");
@@ -21,12 +20,9 @@ export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada
 
   /**
    * Entrar é uma navegação de verdade, não do roteador: o documento é pedido
-   * outra vez, o proxy confere o cookie novo e o service worker guarda a
-   * página já autenticada. Sem rede é ainda mais necessário — o roteador
-   * tentaria buscar o payload RSC e não teria de quem.
+   * outra vez e o proxy confere o cookie novo.
    */
-  async function abrir() {
-    await destrancarCache();
+  function abrir() {
     window.location.replace(destino());
   }
 
@@ -41,26 +37,20 @@ export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada
         body: JSON.stringify({ senha }),
       });
       if (r.ok) {
-        // Único momento em que se sabe que esta senha é a senha do app: é
-        // aqui que se grava o verificador que vai valer no plantão sem rede.
-        await guardarVerificador(senha);
-        await abrir();
+        // NÃO apagar nada aqui. A limpeza do que ficou de versões antigas é
+        // do `migrarEApagarLocal`, que roda depois de entrar e só apaga o que
+        // já subiu para a nuvem. Varrer nesta tela destruía justamente os
+        // dados que ainda eram a única cópia.
+        abrir();
       } else {
         setErro(r.status === 503 ? "Senha não configurada no servidor." : "Senha incorreta.");
         setSenha("");
         setEnviando(false);
       }
     } catch {
-      // Sem rede: confere pelo verificador gravado da última entrada online.
-      if (await conferirOffline(senha)) {
-        await abrir();
-        return;
-      }
-      setErro(
-        temVerificador()
-          ? "Senha incorreta."
-          : "Sem conexão, e esta senha nunca foi conferida neste navegador.",
-      );
+      // O app não guarda nada nesta máquina, então não há como conferir a
+      // senha sem falar com o servidor.
+      setErro("Sem conexão. O app precisa de internet para abrir.");
       setSenha("");
       setEnviando(false);
     }
@@ -134,7 +124,7 @@ export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada
         )}
 
         <p className="mt-6 text-center text-[10px] leading-relaxed text-inkDim/70">
-          A sessão dura 180 dias neste navegador. Depois de entrar uma vez, o app abre sem rede.
+          A sessão dura 12 horas neste navegador. Use BLOQUEAR ao sair da máquina.
         </p>
       </div>
     </div>

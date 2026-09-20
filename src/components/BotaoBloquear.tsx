@@ -1,21 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { trancarCache } from "@/lib/tranca";
+import { apagarTudoDaMaquina } from "@/lib/limpeza";
 import { IconeCadeado } from "./Icones";
 
 /**
  * Bloqueia e volta para a tela de senha.
  *
- * São duas trancas, e as duas precisam ser fechadas:
- *  - o cookie de sessão, que o servidor confere (some com /api/sair);
- *  - o cache do service worker, que responde quando não há rede — sem ele
- *    fechado, bastava ficar offline para o app voltar a abrir.
+ * Numa máquina compartilhada é o botão que importa: apaga o cookie de sessão
+ * no servidor, varre o que por acaso tenha ficado neste navegador e recarrega
+ * o documento do zero.
  *
  * A saída é uma navegação de verdade (location.replace), não do roteador: só
  * assim o documento é pedido outra vez, o proxy roda e nada do que já estava
- * montado em memória sobrevive. O replace ainda impede que o botão "voltar"
- * devolva a tela que acabou de ser trancada.
+ * montado em memória — inclusive o cofre decifrado — sobrevive. O replace
+ * ainda impede que o botão "voltar" devolva a tela que acabou de ser trancada.
  */
 export function BotaoBloquear({ compacto = false }: { compacto?: boolean }) {
   const [saindo, setSaindo] = useState(false);
@@ -25,10 +24,11 @@ export function BotaoBloquear({ compacto = false }: { compacto?: boolean }) {
     try {
       await fetch("/api/sair", { method: "POST" });
     } catch {
-      // Sem rede o cookie continua no navegador, mas a tranca do cache abaixo
-      // já segura o app; o proxy tranca de novo no próximo acesso online.
+      // Sem rede o cookie continua no navegador, mas a navegação abaixo já
+      // descarta tudo que estava em memória e o proxy tranca no próximo
+      // acesso online.
     }
-    await trancarCache();
+    apagarTudoDaMaquina();
     window.location.replace("/entrar");
   }
 

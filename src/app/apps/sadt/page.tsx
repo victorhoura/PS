@@ -11,6 +11,7 @@ import {
   type UnidadeIdade,
 } from "@/lib/sadt";
 import { emMaiusculas, hoje, nomeDeArquivo, validarData } from "@/lib/pdf";
+import { carregarPreferencias, definirPreferencia, preferenciasAtuais } from "@/lib/preferencias";
 import { avisarCopia } from "@/components/AvisoCopia";
 import { Bloco, Campo, Erro, Opcoes } from "@/components/FormularioPdf";
 
@@ -31,7 +32,6 @@ const UNIDADES = [
   { valor: "d", texto: "DIAS" },
 ] as const satisfies readonly { valor: UnidadeIdade; texto: string }[];
 
-const CHAVE_PADROES = "ps-japa:sadt:padroes";
 const REQUISITANTE_PADRAO = "HMU";
 const MUNICIPIO_PADRAO = "GUARULHOS";
 
@@ -84,15 +84,18 @@ export default function GeradorSadt() {
   const quadro = useRef<HTMLIFrameElement>(null);
 
   // Data de hoje e o que ficou da última vez só entram depois da hidratação:
-  // mudam de máquina para máquina e o HTML do servidor não os conhece.
+  // a data vem do relógio e os padrões vêm da nuvem.
   useEffect(() => {
-    let padroes = { requisitante: REQUISITANTE_PADRAO, municipio: MUNICIPIO_PADRAO };
-    try {
-      padroes = { ...padroes, ...JSON.parse(localStorage.getItem(CHAVE_PADROES) || "{}") };
-    } catch {
-      // Sem armazenamento valem os padrões.
-    }
-    setCampos((c) => ({ ...c, ...padroes, data: c.data || hoje() }));
+    setCampos((c) => ({ ...c, data: c.data || hoje() }));
+    void carregarPreferencias().then(() => {
+      const sadt = preferenciasAtuais().sadt;
+      if (!sadt) return;
+      setCampos((c) => ({
+        ...c,
+        requisitante: sadt.requisitante || c.requisitante,
+        municipio: sadt.municipio || c.municipio,
+      }));
+    });
   }, []);
 
   useEffect(() => () => { if (pdf) URL.revokeObjectURL(pdf.url); }, [pdf]);
@@ -179,17 +182,13 @@ export default function GeradorSadt() {
       setPdf({ url: URL.createObjectURL(blob), nome: nomeDeArquivo("SADT", dados.paciente, dados.data) });
       setSobra(req.sobra);
 
-      try {
-        localStorage.setItem(
-          CHAVE_PADROES,
-          JSON.stringify({ requisitante: dados.requisitante, municipio: dados.municipio }),
-        );
-      } catch {
-        // Não vale falhar a geração por causa disso.
-      }
+      definirPreferencia("sadt", {
+        requisitante: dados.requisitante,
+        municipio: dados.municipio,
+      });
     } catch {
       setFalha(
-        "Não deu para montar o PDF. Se for a primeira vez neste computador, abra o app uma vez com internet para o formulário ficar guardado.",
+        "Não deu para montar o PDF: o formulário em branco não chegou. Confira a conexão e tente de novo.",
       );
     } finally {
       setGerando(false);

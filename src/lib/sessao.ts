@@ -8,7 +8,16 @@
  */
 
 const COOKIE = "ps_sessao";
-const DIAS = 180;
+
+/**
+ * Duração da sessão.
+ *
+ * Eram 180 dias, pensando no plantão em que você não quer digitar senha toda
+ * hora. Passou para 12 horas porque o app também roda em computador de uso
+ * compartilhado: ali uma sessão de meio ano é uma porta aberta para quem
+ * sentar depois. 12h cobre um plantão inteiro e morre antes do próximo.
+ */
+const HORAS = 12;
 
 function bytes(s: string): Uint8Array<ArrayBuffer> {
   // encode() devolve Uint8Array<ArrayBufferLike>; o Web Crypto exige o
@@ -48,12 +57,13 @@ export function iguais(a: string, b: string): boolean {
 }
 
 export async function criarCookie(senha: string): Promise<{ nome: string; valor: string; maxAge: number }> {
-  const expira = Date.now() + DIAS * 24 * 60 * 60 * 1000;
+  const segundos = HORAS * 60 * 60;
+  const expira = Date.now() + segundos * 1000;
   const payload = String(expira);
   return {
     nome: COOKIE,
     valor: `${payload}.${await assinar(payload, senha)}`,
-    maxAge: DIAS * 24 * 60 * 60,
+    maxAge: segundos,
   };
 }
 

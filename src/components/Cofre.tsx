@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  apagarCofre,
   buscarNaGrade,
   cifrar,
   COFRE_VAZIO,
@@ -11,7 +10,7 @@ import {
   existeCofre,
   type Grade,
   GRADE_PADRAO,
-  gravarBlob,
+  guardarBlobEmMemoria,
   lerBlob,
   novaCredencial,
   type ConteudoCofre,
@@ -28,7 +27,9 @@ type Estado =
   | { modo: "carregando" }
   | { modo: "sem-cofre" }
   | { modo: "trancado" }
-  | { modo: "aberto"; conteudo: ConteudoCofre; editando: boolean };
+  | { modo: "aberto"; conteudo: ConteudoCofre; editando: boolean }
+  /** O banco não respondeu. Não há cópia local para mostrar no lugar. */
+  | { modo: "erro"; motivo: string };
 
 export function Cofre() {
   const [estado, setEstado] = useState<Estado>({ modo: "carregando" });
@@ -57,21 +58,22 @@ export function Cofre() {
     (async () => {
       // O que sobe e desce é o blob CIFRADO. Nem a rota nem o Supabase têm
       // como lê-lo: a senha-mestra não sai deste navegador.
-      const resposta = await lerDaNuvem<string>("cofre");
-      if (!vivo) return;
+      try {
+        const resposta = await lerDaNuvem<string>("cofre");
+        if (!vivo) return;
 
-      if (typeof resposta?.conteudo === "string" && resposta.conteudo) {
-        gravarBlob(resposta.conteudo);
-        setEstado({ modo: "trancado" });
-        return;
+        const blob = typeof resposta.conteudo === "string" ? resposta.conteudo : "";
+        guardarBlobEmMemoria(blob || null);
+        setEstado({ modo: blob ? "trancado" : "sem-cofre" });
+      } catch (e) {
+        if (!vivo) return;
+        // Sem cópia nesta máquina, não dá para cair de volta em nada: ou o
+        // banco responde, ou a tela diz que não deu.
+        setEstado({
+          modo: "erro",
+          motivo: e instanceof Error ? e.message : "Não foi possível falar com a nuvem.",
+        });
       }
-
-      // Nuvem vazia e cofre local existente: sobe o local, para a primeira
-      // sincronização não descartar o que já estava aqui.
-      const local = lerBlob();
-      if (resposta && !resposta.conteudo && local) void gravarNaNuvem("cofre", local);
-
-      setEstado({ modo: existeCofre() ? "trancado" : "sem-cofre" });
     })();
 
     return () => {
@@ -105,10 +107,10 @@ export function Cofre() {
 
     setOcupado(true);
     const blob = await cifrar(COFRE_VAZIO, senha);
-    const ok = gravarBlob(blob);
-    void gravarNaNuvem("cofre", blob);
+    const ok = await gravarNaNuvem("cofre", blob);
     setOcupado(false);
-    if (!ok) return setErro("O navegador recusou gravar.");
+    if (!ok) return setErro("Não foi possível gravar o cofre na nuvem. Tente de novo.");
+    guardarBlobEmMemoria(blob);
 
     mestraRef.current = senha;
     setSenha("");
@@ -143,14 +145,17 @@ export function Cofre() {
 
     setOcupado(true);
     const blob = await cifrar(conteudo, mestra);
-    const ok = gravarBlob(blob);
     const naNuvem = await gravarNaNuvem("cofre", blob);
     setOcupado(false);
+
+    if (naNuvem) guardarBlobEmMemoria(blob);
     avisarCopia(
-      naNuvem ? "Cofre salvo na nuvem." : ok ? "Cofre salvo neste navegador." : "Não foi possível gravar.",
-      ok || naNuvem,
+      naNuvem ? "Cofre salvo na nuvem." : "NÃO SALVO — a nuvem não respondeu.",
+      naNuvem,
     );
-    setEstado({ modo: "aberto", conteudo, editando: false });
+    // Continua aberto mesmo sem salvar: fechar aqui apagaria da tela o que
+    // ainda não chegou ao banco.
+    setEstado({ modo: "aberto", conteudo, editando: !naNuvem });
   }
 
   /** O que sai é o blob cifrado; sem a senha-mestra o arquivo é inútil. */
@@ -181,11 +186,11 @@ export function Cofre() {
       setErro("Arquivo inválido ou senha-mestra incorreta.");
       return;
     }
-    if (!gravarBlob(conteudoArquivo)) {
-      setErro("O navegador recusou gravar.");
+    if (!(await gravarNaNuvem("cofre", conteudoArquivo))) {
+      setErro("Não foi possível gravar o cofre na nuvem. Tente de novo.");
       return;
     }
-    void gravarNaNuvem("cofre", conteudoArquivo);
+    guardarBlobEmMemoria(conteudoArquivo);
     mestraRef.current = senha;
     setSenha("");
     setErro("");
@@ -196,13 +201,34 @@ export function Cofre() {
     return <Moldura><p className="text-[11px] text-inkDim">…</p></Moldura>;
   }
 
+  if (estado.modo === "erro") {
+    return (
+      <Moldura>
+        <p className="mb-3 text-[11px] leading-relaxed text-danger">
+          Não deu para abrir o cofre: {estado.motivo}
+        </p>
+        <p className="mb-3 text-[11px] leading-relaxed text-inkDim">
+          O cofre mora na nuvem e não fica guardado nesta máquina, então sem conexão com o banco
+          não há o que mostrar. Nada foi perdido.
+        </p>
+        <button
+          onClick={() => location.reload()}
+          className="transicao h-9 rounded-lg border border-edge px-4 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+        >
+          TENTAR DE NOVO
+        </button>
+      </Moldura>
+    );
+  }
+
   if (estado.modo === "sem-cofre") {
     return (
       <Moldura>
         <p className="mb-3 text-[11px] leading-relaxed text-inkDim">
           O cofre guarda login, senha e o cartão de chave dinâmica <strong className="text-ink">
-          cifrados neste navegador</strong>. Nada vai para o servidor nem para o repositório.
-          Escolha uma senha-mestra <strong className="text-ink">diferente</strong> da senha do app.
+          cifrados neste navegador</strong> antes de subir. O servidor recebe o blob já cifrado e
+          não tem como lê-lo; a senha-mestra não sai daqui e não é gravada em lugar nenhum.
+          Escolha uma <strong className="text-ink">diferente</strong> da senha do app.
         </p>
         <form onSubmit={criar} className="flex flex-col gap-2 sm:max-w-xs">
           <input
@@ -603,8 +629,11 @@ function FormularioCofre({
         </button>
         <button
           onClick={() => {
-            apagarCofre();
-            location.reload();
+            // Apagar de verdade é apagar no banco, que é onde o cofre mora.
+            void gravarNaNuvem("cofre", "").then(() => {
+              guardarBlobEmMemoria(null);
+              location.reload();
+            });
           }}
           className="transicao ml-auto rounded-md border border-danger/50 px-3 py-2 text-[11px] font-bold tracking-wide text-danger hover:bg-danger/10"
         >

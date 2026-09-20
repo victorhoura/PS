@@ -9,6 +9,7 @@ import { Navegacao } from "./Navegacao";
 import { PaletaComandos } from "./PaletaComandos";
 import { AvisoCopia } from "./AvisoCopia";
 import { RegistrarSW } from "./RegistrarSW";
+import { EstadoNuvem } from "./EstadoNuvem";
 import { BotaoBloquear } from "./BotaoBloquear";
 import { BotaoTema } from "./BotaoTema";
 import { IconeBusca, IconeFechar, IconeMenu } from "./Icones";
@@ -163,7 +164,10 @@ export function Moldura({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1 lg:h-dvh lg:overflow-y-auto">{children}</main>
+      <main className="flex min-w-0 flex-1 flex-col lg:h-dvh lg:overflow-y-auto">
+        <EstadoNuvem />
+        <div className="min-h-0 flex-1">{children}</div>
+      </main>
 
       <PaletaComandos aberta={paletaAberta} aoFechar={() => setPaletaAberta(false)} />
       <AvisoCopia />

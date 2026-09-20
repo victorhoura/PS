@@ -6,8 +6,9 @@ import { useResumo, useTextos } from "@/hooks/useTextos";
 import { SNIPPETS } from "@/data/snippets";
 
 /**
- * Seus textos moram neste navegador. Esta tela é o que os tira de lá — para
- * levar para outro computador ou para não perder numa limpeza de dados.
+ * Seus textos moram no Supabase, não nesta máquina. Esta tela existe como
+ * rede de segurança: baixar uma cópia em arquivo para o caso de o banco sumir,
+ * e restaurar a partir dela.
  */
 export default function Backup() {
   const textos = useTextos();
@@ -42,8 +43,8 @@ export default function Backup() {
       <h1 className="mb-1 font-mono text-base font-bold tracking-[0.16em] text-ink">BACKUP</h1>
       <p className="mb-6 max-w-2xl text-[11px] leading-relaxed text-inkDim">
         Os {SNIPPETS.length} textos originais vêm dentro do app e não se perdem nunca. O que{" "}
-        <strong className="text-ink">você</strong> cria e edita fica guardado só neste navegador —
-        é isso que esta tela salva e restaura.
+        <strong className="text-ink">você</strong> cria e edita fica guardado na nuvem e acompanha
+        você em qualquer computador — é isso que esta tela salva em arquivo e restaura.
       </p>
 
       <div className="mb-6 grid grid-cols-3 gap-2 sm:max-w-md">
@@ -84,8 +85,9 @@ export default function Backup() {
       <section className="mb-6 max-w-2xl rounded-lg border border-edge bg-panel p-4">
         <h2 className="mb-1.5 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">RESTAURAR</h2>
         <p className="mb-3 text-[11px] leading-relaxed text-inkDim">
-          Carrega um backup neste navegador — é assim que você leva seus textos para o computador
-          do plantão. <strong className="text-warn">Substitui</strong> o que estiver aqui agora.
+          Carrega um backup e o envia para a nuvem.{" "}
+          <strong className="text-warn">Substitui</strong> o que estiver lá agora, em todos os
+          computadores.
         </p>
         <input
           ref={arquivoRef}
@@ -135,8 +137,8 @@ export default function Backup() {
       </section>
 
       <p className="mt-6 max-w-2xl text-[10px] leading-relaxed text-inkDim/70">
-        Total no app agora: {textos.length} textos. Quando o Supabase entrar, isso passa a
-        sincronizar sozinho entre seus computadores e esta tela vira só uma rede de segurança.
+        Total no app agora: {textos.length} textos. A sincronização entre computadores é
+        automática pela nuvem; o arquivo daqui é a cópia que sobra se o banco falhar.
       </p>
     </div>
   );

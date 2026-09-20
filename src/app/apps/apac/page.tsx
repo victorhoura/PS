@@ -10,10 +10,10 @@ import {
   validarData,
 } from "@/lib/pdf";
 import { MODELOS_APAC } from "@/data/apac-modelos";
+import { carregarPreferencias, definirPreferencia, preferenciasAtuais } from "@/lib/preferencias";
 import { avisarCopia } from "@/components/AvisoCopia";
 import { Bloco, Campo, Erro } from "@/components/FormularioPdf";
 
-const CHAVE_MEDICO = "ps-japa:apac:medico";
 const MEDICO_PADRAO = "VICTOR M. HOURA";
 
 type Campos = Record<keyof DadosApac, string>;
@@ -52,16 +52,15 @@ export default function GeradorApac() {
   const [falha, setFalha] = useState("");
   const quadro = useRef<HTMLIFrameElement>(null);
 
-  // Data de hoje e médico ficam para depois da hidratação: os dois mudam de
-  // máquina para máquina e o HTML do servidor não os conhece.
+  // Data de hoje e médico ficam para depois da hidratação: a data depende do
+  // relógio e o médico vem da nuvem, e o HTML do servidor não conhece nenhum
+  // dos dois.
   useEffect(() => {
-    let medico = MEDICO_PADRAO;
-    try {
-      medico = localStorage.getItem(CHAVE_MEDICO) || MEDICO_PADRAO;
-    } catch {
-      // Sem armazenamento vale o padrão.
-    }
-    setCampos((c) => ({ ...c, solicitacao: c.solicitacao || hoje(), medico }));
+    setCampos((c) => ({ ...c, solicitacao: c.solicitacao || hoje() }));
+    void carregarPreferencias().then(() => {
+      const medico = preferenciasAtuais().medico;
+      if (medico) setCampos((c) => ({ ...c, medico }));
+    });
   }, []);
 
   // Um PDF antigo na memória é um object URL vazando; some junto com a página.
@@ -155,14 +154,10 @@ export default function GeradorApac() {
       setPdf({ url: URL.createObjectURL(blob), nome: nomeDeArquivo("APAC", dados.paciente, dados.solicitacao) });
       setSobra(laudo.sobra);
 
-      try {
-        localStorage.setItem(CHAVE_MEDICO, dados.medico);
-      } catch {
-        // Não vale falhar a geração por causa disso.
-      }
+      definirPreferencia("medico", dados.medico);
     } catch {
       setFalha(
-        "Não deu para montar o PDF. Se for a primeira vez neste computador, abra o app uma vez com internet para o formulário ficar guardado.",
+        "Não deu para montar o PDF: o formulário em branco não chegou. Confira a conexão e tente de novo.",
       );
     } finally {
       setGerando(false);

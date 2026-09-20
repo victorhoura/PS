@@ -1,34 +1,40 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const CHAVE = "ps-japa:contador";
+import {
+  carregarPreferencias,
+  definirPreferencia,
+  preferenciasAtuais,
+} from "@/lib/preferencias";
 
 /**
  * Contador de atendimentos. O original zerava ao fechar a janela; aqui o valor
  * sobrevive a recarregar a página, que é o que faz sentido num plantão de 12h.
+ *
+ * Fica na nuvem, não na máquina: o app roda em computador compartilhado e não
+ * grava nada no disco. De quebra, o plantão continua do mesmo número se você
+ * trocar de computador no meio.
  */
 export default function Contador() {
   const [n, setN] = useState(0);
   const [carregado, setCarregado] = useState(false);
 
   useEffect(() => {
-    try {
-      const salvo = localStorage.getItem(CHAVE);
-      if (salvo) setN(Number(salvo) || 0);
-    } catch {
-      // localStorage bloqueado (janela anônima): segue com o valor em memória.
-    }
-    setCarregado(true);
+    let vivo = true;
+    void carregarPreferencias().then(() => {
+      if (!vivo) return;
+      setN(preferenciasAtuais().contador ?? 0);
+      setCarregado(true);
+    });
+    return () => {
+      vivo = false;
+    };
   }, []);
 
   useEffect(() => {
+    // Só depois de carregar: senão o zero inicial sobrescreve o valor do banco.
     if (!carregado) return;
-    try {
-      localStorage.setItem(CHAVE, String(n));
-    } catch {
-      // idem
-    }
+    definirPreferencia("contador", n);
   }, [n, carregado]);
 
   return (

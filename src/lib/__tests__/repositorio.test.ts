@@ -1,19 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-/** localStorage de mentira: o repositório só precisa de get/set/remove. */
-function instalarArmazenamento(falhar = false) {
-  const dados = new Map<string, string>();
-  vi.stubGlobal("localStorage", {
-    getItem: (k: string) => dados.get(k) ?? null,
-    setItem: (k: string, v: string) => {
-      if (falhar) throw new DOMException("QuotaExceededError");
-      dados.set(k, v);
-    },
-    removeItem: (k: string) => dados.delete(k),
-    clear: () => dados.clear(),
+/**
+ * O repositório não grava mais nada na máquina: a camada mora no Supabase e
+ * em memória. O que se finge aqui é a rede, não o localStorage.
+ */
+type Resposta = { conteudo: unknown; atualizadoEm: string | null };
+
+let respostaDaNuvem: Resposta | Error = { conteudo: null, atualizadoEm: null };
+let gravacoes: { chave: string; conteudo: unknown }[] = [];
+
+function instalarNuvem() {
+  gravacoes = [];
+  vi.stubGlobal("fetch", async (url: string, init?: { method?: string; body?: string }) => {
+    const chave = String(url).split("/").pop() ?? "";
+    if (init?.method === "PUT") {
+      gravacoes.push({ chave, conteudo: JSON.parse(init.body ?? "{}").conteudo });
+      return { ok: true, status: 200, json: async () => ({}) };
+    }
+    if (respostaDaNuvem instanceof Error) return { ok: false, status: 502, json: async () => ({}) };
+    return { ok: true, status: 200, json: async () => respostaDaNuvem };
   });
-  vi.stubGlobal("window", { addEventListener() {}, removeEventListener() {} });
-  return dados;
 }
 
 async function carregarModulo() {
@@ -25,7 +31,9 @@ const CATEGORIA = "receitas" as const;
 
 beforeEach(() => {
   vi.unstubAllGlobals();
-  instalarArmazenamento();
+  vi.useRealTimers();
+  respostaDaNuvem = { conteudo: null, atualizadoEm: null };
+  instalarNuvem();
 });
 
 describe("base intocada", () => {
@@ -257,21 +265,84 @@ describe("backup", () => {
   });
 });
 
-describe("armazenamento indisponível", () => {
-  it("não derruba o app quando o navegador recusa gravar", async () => {
-    vi.unstubAllGlobals();
-    instalarArmazenamento(true);
+describe("a nuvem é a única cópia", () => {
+  it("antes de sincronizar só existe a base — e o estado diz 'carregando'", async () => {
     const r = await carregarModulo();
-
-    // Devolve false para a tela avisar, mas a edição vale nesta sessão.
-    expect(r.criar(CATEGORIA, "A", "a")).toBe(false);
-    expect(achar(r.daCategoria(CATEGORIA), "A")).toBeDefined();
+    expect(r.estadoDosTextos()).toBe("carregando");
+    expect(r.todos()).toHaveLength(311);
+    expect(r.resumoCamada()).toEqual({ novos: 0, editados: 0, removidos: 0 });
   });
 
-  it("ignora camada corrompida e mantém a base", async () => {
-    const dados = instalarArmazenamento();
-    dados.set("ps-japa:textos:v1", "{isso nao e json");
+  it("sincronizar traz a camada do banco", async () => {
+    respostaDaNuvem = {
+      conteudo: {
+        versao: 1,
+        editados: {},
+        removidos: [],
+        novos: [
+          { id: "novo:receitas:x", categoria: "receitas", nome: "DA NUVEM", texto: "t", ordem: 0 },
+        ],
+      },
+      atualizadoEm: null,
+    };
+
     const r = await carregarModulo();
+    await r.sincronizarTextos();
+
+    expect(r.estadoDosTextos()).toBe("pronto");
+    expect(achar(r.daCategoria(CATEGORIA), "DA NUVEM")).toBeDefined();
+    expect(r.todos()).toHaveLength(312);
+  });
+
+  it("banco fora vira estado de erro, não uma lista silenciosamente vazia", async () => {
+    respostaDaNuvem = new Error("502");
+    const r = await carregarModulo();
+    await r.sincronizarTextos();
+
+    expect(r.estadoDosTextos()).toBe("erro");
+    expect(r.motivoDoErro()).not.toBe("");
+    // A base continua servindo; o que não aparece é a camada.
     expect(r.todos()).toHaveLength(311);
+  });
+
+  it("recarregar tenta de novo depois do erro", async () => {
+    respostaDaNuvem = new Error("502");
+    const r = await carregarModulo();
+    await r.sincronizarTextos();
+    expect(r.estadoDosTextos()).toBe("erro");
+
+    respostaDaNuvem = { conteudo: null, atualizadoEm: null };
+    await r.recarregarTextos();
+    expect(r.estadoDosTextos()).toBe("pronto");
+  });
+
+  it("criar empurra a camada para o banco", async () => {
+    vi.useFakeTimers();
+    const r = await carregarModulo();
+    r.criar(CATEGORIA, "MINHA", "corpo");
+
+    await vi.advanceTimersByTimeAsync(2000);
+    vi.useRealTimers();
+
+    const ultima = gravacoes.at(-1);
+    expect(ultima?.chave).toBe("textos");
+    expect((ultima?.conteudo as { novos: { nome: string }[] }).novos[0].nome).toBe("MINHA");
+  });
+
+  it("não grava nada no armazenamento da máquina", async () => {
+    const escritas: string[] = [];
+    vi.stubGlobal("localStorage", {
+      getItem: () => null,
+      setItem: (k: string) => escritas.push(k),
+      removeItem: () => {},
+    });
+    instalarNuvem();
+
+    const r = await carregarModulo();
+    r.criar(CATEGORIA, "A", "a");
+    r.editar(r.daCategoria(CATEGORIA).find((x) => !r.ehNovo(x.id))!.id, "B", "b");
+    r.limparTudo();
+
+    expect(escritas).toEqual([]);
   });
 });

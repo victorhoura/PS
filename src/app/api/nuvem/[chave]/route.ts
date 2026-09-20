@@ -9,7 +9,7 @@ import { lerRegistro, gravarRegistro, nuvemConfigurada } from "@/lib/supabase";
  * navegador.
  */
 
-const CHAVES = new Set(["cofre", "textos"]);
+const CHAVES = new Set(["cofre", "textos", "preferencias", "contador"]);
 
 /** Guarda contra um cliente confuso encher o banco. */
 const LIMITE_BYTES = 512 * 1024;

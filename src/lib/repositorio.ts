@@ -7,16 +7,20 @@
  * "restaurar" é apagar esse override. Apagar um original grava uma lápide,
  * não remove nada — por isso dá para voltar atrás em qualquer momento.
  *
- * A camada é espelhada na nuvem: o localStorage passa a ser cache de leitura
- * rápida e de funcionamento offline, e o Supabase é onde o dado realmente
- * mora. Abrir o app em outro computador traz tudo junto.
+ * A camada mora SÓ no Supabase. Nada é gravado nesta máquina: o app roda
+ * também em computador de uso compartilhado, e ali qualquer coisa deixada no
+ * disco é rastro para quem sentar depois. Em memória existe um cache de
+ * leitura que vive enquanto a aba estiver aberta e morre com ela.
+ *
+ * Consequência que o resto do código precisa respeitar: a camada começa
+ * VAZIA e só existe depois que `sincronizarTextos` responde. Enquanto isso o
+ * estado é "carregando", não "você não tem nada" — a diferença entre as duas
+ * coisas é a diferença entre esperar e achar que seus textos sumiram.
  */
 
 import { CATEGORIAS, SNIPPETS } from "@/data/snippets";
 import { comEspera, gravarNaNuvem, lerDaNuvem } from "./nuvem";
 import type { CategoriaSlug, Snippet } from "./types";
-
-const CHAVE = "ps-japa:textos:v1";
 
 interface Camada {
   versao: 1;
@@ -36,47 +40,39 @@ let camadaCache: Camada | null = null;
 let listaCache: Snippet[] | null = null;
 let resumoCache: Resumo | null = null;
 
+/** Só memória: enquanto a nuvem não respondeu, a camada é a vazia. */
 function lerCamada(): Camada {
-  if (camadaCache) return camadaCache;
-  if (typeof window === "undefined") return VAZIA;
+  return camadaCache ?? VAZIA;
+}
 
-  try {
-    const bruto = localStorage.getItem(CHAVE);
-    if (!bruto) return (camadaCache = VAZIA);
-
-    const lido = JSON.parse(bruto) as Partial<Camada>;
-    camadaCache = {
-      versao: 1,
-      editados: lido.editados ?? {},
-      removidos: Array.isArray(lido.removidos) ? lido.removidos : [],
-      novos: Array.isArray(lido.novos) ? lido.novos : [],
-    };
-  } catch {
-    // JSON corrompido ou localStorage bloqueado: segue com a base limpa em
-    // vez de derrubar o app. Nada se perde — o arquivo continua lá.
-    camadaCache = VAZIA;
-  }
-  return camadaCache;
+/** Normaliza o que veio do banco — o conteúdo é dado, não contrato. */
+function comoCamada(bruto: Partial<Camada> | null | undefined): Camada {
+  if (!bruto) return VAZIA;
+  return {
+    versao: 1,
+    editados: bruto.editados ?? {},
+    removidos: Array.isArray(bruto.removidos) ? bruto.removidos : [],
+    novos: Array.isArray(bruto.novos) ? bruto.novos : [],
+  };
 }
 
 const empurrar = comEspera<Camada>("textos");
 
+/**
+ * Aplica na memória e empurra para a nuvem.
+ *
+ * Devolve true porque a edição já vale na tela; se a gravação no banco não
+ * chegar, quem avisa é o indicador de nuvem na moldura — aqui não dá para
+ * saber ainda, a escrita é agrupada e sai depois.
+ */
 function gravarCamada(c: Camada): boolean {
   camadaCache = c;
   listaCache = null;
   resumoCache = null;
   // A nuvem recebe a camada inteira; é pequena e evita lógica de diferença.
   empurrar(() => c);
-  try {
-    localStorage.setItem(CHAVE, JSON.stringify(c));
-    avisar();
-    return true;
-  } catch {
-    // Cota estourada ou modo restrito: a edição vale nesta sessão, mas não
-    // sobrevive ao recarregar. Quem chamou avisa na tela.
-    avisar();
-    return false;
-  }
+  avisar();
+  return true;
 }
 
 /** Base + camada, já na ordem em que a lista desenha. */
@@ -296,44 +292,52 @@ export function limparTudo(): boolean {
 
 // ------------------------------------------------------------ nuvem
 
+/** Como está a carga da camada vinda do banco. */
+export type EstadoTextos = "carregando" | "pronto" | "erro";
+
+let estadoTextos: EstadoTextos = "carregando";
+let motivoErro = "";
+
+export function estadoDosTextos(): EstadoTextos {
+  return estadoTextos;
+}
+export function estadoNoServidor(): EstadoTextos {
+  return "carregando";
+}
+export function motivoDoErro(): string {
+  return motivoErro;
+}
+
 let jaSincronizou = false;
 
 /**
- * Puxa a camada da nuvem uma vez por carregamento. A nuvem ganha da cópia
- * local: é o que faz o app "já estar lá" em outro computador. Se a nuvem
- * estiver vazia e existir algo local, sobe o local — assim a primeira vez
- * depois de ligar a sincronização não perde nada.
+ * Traz a camada do banco. É a única fonte: não há cópia nesta máquina para
+ * cair de volta, então falhar aqui é um estado de erro visível, não um
+ * silêncio que passa por "você não tem textos seus".
  */
 export async function sincronizarTextos(): Promise<void> {
   if (jaSincronizou) return;
   jaSincronizou = true;
 
-  const resposta = await lerDaNuvem<Camada>("textos");
-  if (!resposta) return;
-
-  if (resposta.conteudo) {
-    const vinda = resposta.conteudo;
-    camadaCache = {
-      versao: 1,
-      editados: vinda.editados ?? {},
-      removidos: Array.isArray(vinda.removidos) ? vinda.removidos : [],
-      novos: Array.isArray(vinda.novos) ? vinda.novos : [],
-    };
+  try {
+    const resposta = await lerDaNuvem<Partial<Camada>>("textos");
+    camadaCache = comoCamada(resposta.conteudo);
     listaCache = null;
     resumoCache = null;
-    try {
-      localStorage.setItem(CHAVE, JSON.stringify(camadaCache));
-    } catch {
-      // cache local indisponível: a nuvem segue sendo a fonte
-    }
-    avisar();
-    return;
+    estadoTextos = "pronto";
+  } catch (e) {
+    estadoTextos = "erro";
+    motivoErro = e instanceof Error ? e.message : "Não foi possível falar com a nuvem.";
   }
+  avisar();
+}
 
-  const local = lerCamada();
-  if (local.novos.length || local.removidos.length || Object.keys(local.editados).length) {
-    void gravarNaNuvem("textos", local);
-  }
+/** Tenta de novo depois de um erro — o botão da faixa de aviso chama isto. */
+export async function recarregarTextos(): Promise<void> {
+  jaSincronizou = false;
+  estadoTextos = "carregando";
+  avisar();
+  await sincronizarTextos();
 }
 
 // ------------------------------------------------------- notificação
@@ -344,22 +348,14 @@ function avisar() {
   for (const fn of ouvintes) fn();
 }
 
+/**
+ * O evento "storage", que antes avisava as outras abas, morreu junto com o
+ * localStorage. Cada aba agora tem a sua própria cópia em memória e as duas
+ * falam com o banco; a última escrita vence, como já era a regra.
+ */
 export function inscrever(fn: () => void): () => void {
   ouvintes.add(fn);
-
-  // Outra aba do mesmo app editou: invalida o cache e redesenha.
-  const onStorage = (e: StorageEvent) => {
-    if (e.key === CHAVE) {
-      camadaCache = null;
-      listaCache = null;
-      resumoCache = null;
-      fn();
-    }
-  };
-  window.addEventListener("storage", onStorage);
-
   return () => {
     ouvintes.delete(fn);
-    window.removeEventListener("storage", onStorage);
   };
 }

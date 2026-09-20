@@ -9,15 +9,14 @@
  *    torna cada tentativa de adivinhação cara;
  *  - o conteúdo é cifrado com AES-GCM, que além de esconder também detecta
  *    adulteração — mexer no blob faz a decifragem falhar, não devolver lixo;
- *  - o resultado mora no localStorage deste navegador e nada é enviado para
- *    nenhum servidor: não há endpoint, não há variável de ambiente, não há
- *    nada disso no repositório (que é público).
+ *  - o blob cifrado vai para o Supabase e fica na memória enquanto a aba
+ *    estiver aberta; nada é gravado nesta máquina. O servidor recebe o blob
+ *    já cifrado e não tem como lê-lo — a senha-mestra não sai do navegador.
  *
  * A senha do app (PS_SENHA) NÃO abre o cofre. São segredos separados de
  * propósito: quem passar da porta do app ainda não chega nas credenciais.
  */
 
-const CHAVE = "ps-japa:cofre:v1";
 const ITERACOES = 250_000;
 
 export interface Credencial {
@@ -139,33 +138,24 @@ export async function decifrar(
 
 // ------------------------------------------------------------ armazenamento
 
+/**
+ * O blob cifrado vive só na memória desta aba e no Supabase. Nada vai para o
+ * disco desta máquina — em computador de uso compartilhado, um cofre cifrado
+ * esquecido no localStorage ainda é um alvo parado para atacar offline, com
+ * todo o tempo do mundo para tentar a senha-mestra.
+ */
+let blobEmMemoria: string | null = null;
+
 export function lerBlob(): string | null {
-  try {
-    return localStorage.getItem(CHAVE);
-  } catch {
-    return null;
-  }
+  return blobEmMemoria;
 }
 
-export function gravarBlob(blob: string): boolean {
-  try {
-    localStorage.setItem(CHAVE, blob);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-export function apagarCofre(): void {
-  try {
-    localStorage.removeItem(CHAVE);
-  } catch {
-    // nada a fazer
-  }
+export function guardarBlobEmMemoria(blob: string | null): void {
+  blobEmMemoria = blob;
 }
 
 export function existeCofre(): boolean {
-  return lerBlob() !== null;
+  return blobEmMemoria !== null;
 }
 
 // ------------------------------------------------------------ chave dinâmica

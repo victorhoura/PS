@@ -51,8 +51,14 @@ describe("cookie de sessão", () => {
     expect(await cookieValido(forjado, SENHA)).toBe(false);
   });
 
-  it("dura 180 dias", async () => {
+  it("dura 12 horas — um plantão, não meio ano", async () => {
     const c = await criarCookie(SENHA);
-    expect(c.maxAge).toBe(180 * 24 * 3600);
+    expect(c.maxAge).toBe(12 * 3600);
+
+    // A validade assinada dentro do cookie acompanha o maxAge; se só o maxAge
+    // encolhesse, o cookie continuaria valendo para quem o copiasse.
+    const expira = Number(c.valor.split(".")[0]);
+    expect(expira - Date.now()).toBeGreaterThan(11.9 * 3600 * 1000);
+    expect(expira - Date.now()).toBeLessThanOrEqual(12 * 3600 * 1000);
   });
 });
