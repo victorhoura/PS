@@ -14,6 +14,8 @@ import { emMaiusculas, hoje, nomeDeArquivo, validarData } from "@/lib/pdf";
 import { carregarPreferencias, definirPreferencia, preferenciasAtuais } from "@/lib/preferencias";
 import { avisarCopia } from "@/components/AvisoCopia";
 import { Bloco, Campo, Erro, Opcoes } from "@/components/FormularioPdf";
+import { useModelosSadt } from "@/hooks/useModelos";
+import { GerenciadorModelos } from "@/components/GerenciadorModelos";
 
 const SEXOS = [
   { valor: "F", texto: "FEM" },
@@ -81,6 +83,8 @@ export default function GeradorSadt() {
   const [sobra, setSobra] = useState<string[]>([]);
   const [gerando, setGerando] = useState(false);
   const [falha, setFalha] = useState("");
+  const [gerenciando, setGerenciando] = useState(false);
+  const modelos = useModelosSadt();
   const quadro = useRef<HTMLIFrameElement>(null);
 
   // Data de hoje e o que ficou da última vez só entram depois da hidratação:
@@ -103,6 +107,21 @@ export default function GeradorSadt() {
   function mudar(campo: Simples, valor: string) {
     setCampos((c) => ({ ...c, [campo]: valor }));
     setErros((e) => (e[campo] ? { ...e, [campo]: undefined } : e));
+  }
+
+  /** Preenche HD, CID, história e procedimentos; o paciente fica como está. */
+  function aplicarModelo(id: string) {
+    const m = modelos.find((x) => x.id === id);
+    if (!m) return;
+    setCampos((c) => ({
+      ...c,
+      hd: m.hd,
+      cid: m.cid,
+      historia: m.historia,
+      // Prioridade não vem do modelo: é juízo sobre o paciente da vez.
+      procedimentos: m.procedimentos.length ? [...m.procedimentos] : [""],
+    }));
+    setErros({});
   }
 
   function mudarProcedimento(i: number, valor: string) {
@@ -256,6 +275,35 @@ export default function GeradorSadt() {
           }}
           className="min-w-0 space-y-5"
         >
+          <Bloco titulo="MODELO PRONTO">
+            <div className="flex gap-2 sm:col-span-6">
+              <select
+                aria-label="Modelo pronto"
+                value=""
+                onChange={(e) => aplicarModelo(e.target.value)}
+                className="h-9 min-w-0 flex-1 rounded-lg border border-edge bg-panel px-2 text-[12px] text-ink outline-none focus:border-accent"
+              >
+                <option value="">
+                  {modelos.length
+                    ? "Escolha para preencher HD, CID, história e procedimentos…"
+                    : "Nenhum modelo — use GERENCIAR para criar o primeiro"}
+                </option>
+                {modelos.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.nome}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => setGerenciando(true)}
+                className="transicao shrink-0 rounded-lg border border-edge bg-panel px-3 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+              >
+                GERENCIAR
+              </button>
+            </div>
+          </Bloco>
+
           <Bloco titulo="PACIENTE">
             <Campo
               id="sadt-paciente"
@@ -492,6 +540,10 @@ export default function GeradorSadt() {
           )}
         </div>
       </div>
+
+      {gerenciando && (
+        <GerenciadorModelos tipo="sadt" modelos={modelos} aoFechar={() => setGerenciando(false)} />
+      )}
     </div>
   );
 }

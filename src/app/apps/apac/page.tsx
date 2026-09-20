@@ -9,7 +9,8 @@ import {
   nomeDeArquivo,
   validarData,
 } from "@/lib/pdf";
-import { MODELOS_APAC } from "@/data/apac-modelos";
+import { useModelosApac } from "@/hooks/useModelos";
+import { GerenciadorModelos } from "@/components/GerenciadorModelos";
 import { carregarPreferencias, definirPreferencia, preferenciasAtuais } from "@/lib/preferencias";
 import { avisarCopia } from "@/components/AvisoCopia";
 import { Bloco, Campo, Erro } from "@/components/FormularioPdf";
@@ -51,6 +52,8 @@ export default function GeradorApac() {
   const [sobra, setSobra] = useState<string[]>([]);
   const [gerando, setGerando] = useState(false);
   const [falha, setFalha] = useState("");
+  const [gerenciando, setGerenciando] = useState(false);
+  const modelos = useModelosApac();
   const quadro = useRef<HTMLIFrameElement>(null);
 
   // Data de hoje e médico ficam para depois da hidratação: a data depende do
@@ -72,8 +75,8 @@ export default function GeradorApac() {
     setErros((e) => (e[campo] ? { ...e, [campo]: undefined } : e));
   }
 
-  function aplicarModelo(nome: string) {
-    const m = MODELOS_APAC.find((x) => x.nome === nome);
+  function aplicarModelo(id: string) {
+    const m = modelos.find((x) => x.id === id);
     if (!m) return;
     setCampos((c) => ({
       ...c,
@@ -225,23 +228,31 @@ export default function GeradorApac() {
           className="min-w-0 space-y-5"
         >
           <Bloco titulo="MODELO PRONTO">
-            <div className="sm:col-span-6">
+            <div className="flex gap-2 sm:col-span-6">
               <select
                 aria-label="Modelo pronto"
-                defaultValue=""
-                onChange={(e) => {
-                  aplicarModelo(e.target.value);
-                  e.target.value = "";
-                }}
-                className="h-9 w-full rounded-lg border border-edge bg-panel px-2 text-[12px] text-ink outline-none focus:border-accent"
+                value=""
+                onChange={(e) => aplicarModelo(e.target.value)}
+                className="h-9 min-w-0 flex-1 rounded-lg border border-edge bg-panel px-2 text-[12px] text-ink outline-none focus:border-accent"
               >
-                <option value="">Escolha para preencher exame, diagnóstico, CID e justificativa…</option>
-                {MODELOS_APAC.map((m) => (
-                  <option key={m.nome} value={m.nome}>
+                <option value="">
+                  {modelos.length
+                    ? "Escolha para preencher exame, diagnóstico, CID e justificativa…"
+                    : "Nenhum modelo — use GERENCIAR para criar o primeiro"}
+                </option>
+                {modelos.map((m) => (
+                  <option key={m.id} value={m.id}>
                     {m.nome}
                   </option>
                 ))}
               </select>
+              <button
+                type="button"
+                onClick={() => setGerenciando(true)}
+                className="transicao shrink-0 rounded-lg border border-edge bg-panel px-3 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+              >
+                GERENCIAR
+              </button>
             </div>
           </Bloco>
 
@@ -495,6 +506,10 @@ export default function GeradorApac() {
           )}
         </div>
       </div>
+
+      {gerenciando && (
+        <GerenciadorModelos tipo="apac" modelos={modelos} aoFechar={() => setGerenciando(false)} />
+      )}
     </div>
   );
 }
