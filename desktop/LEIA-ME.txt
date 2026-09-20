@@ -1,0 +1,74 @@
+PS JAPA — no pen drive
+======================
+
+Esta pasta abre o PS JAPA sem deixar nada no computador. O app continua
+sendo o site de sempre (ps.victorhoura.com): o que muda é onde ficam o
+cookie, o histórico, o cache e os PDFs — tudo aqui, no pen drive.
+
+Precisa de internet. Não há cópia do app aqui dentro.
+
+
+COMO ABRIR
+----------
+
+Tem duas formas. Tente a primeira; se não abrir, use a segunda.
+
+  1) "PS JAPA.cmd"
+     Não instala nada. Usa o Chrome ou o Edge que já existe na máquina,
+     só que com um perfil separado, guardado nesta pasta. É a forma que
+     mais costuma passar nas máquinas com restrição, porque o programa
+     que abre é o navegador que a TI já aprovou.
+
+  2) "PS JAPA.exe"
+     A janela própria, sem depender do navegador da máquina. Abre mais
+     devagar da primeira vez (são ~370 MB lidos do pen drive).
+
+Não use as duas ao mesmo tempo: cada uma tem o seu próprio login.
+
+
+ONDE FICAM AS SUAS COISAS
+-------------------------
+
+  PDFs\     as APACs e SADTs que você gerar
+  dados\    perfil do lançador .cmd (cookie, histórico, cache)
+
+Pode apagar as duas quando quiser. Apagar "dados" só significa que você
+vai digitar a senha de novo — seus textos, modelos e cofre moram no
+Supabase, não aqui.
+
+
+O QUE ISSO RESOLVE
+------------------
+
+  - Nada entra no navegador do computador: nem histórico, nem cookie,
+    nem cache, nem senha salva.
+  - O PDF com nome de paciente não cai mais na pasta Downloads da
+    máquina — vem para "PDFs" aqui.
+  - Funciona onde a janela anônima está desligada por política da rede,
+    porque isto não é janela anônima: é um perfil separado.
+
+
+O QUE ISSO NÃO RESOLVE
+----------------------
+
+  - O Windows registra, por conta própria, que um programa foi executado
+    e que um disco removível foi plugado (com o número de série do pen
+    drive). Nenhum programa apaga isso.
+  - Se você imprimir, o trabalho passa pela fila de impressão da máquina.
+  - Pen drive perdido é pen drive perdido. O cofre de senhas continua
+    cifrado, mas apague a pasta "PDFs" quando não precisar mais dela.
+
+
+SE NÃO ABRIR
+------------
+
+  - O .cmd avisa e fecha: não achou Chrome nem Edge. Use o .exe.
+  - O .cmd abre o navegador mas ignora o pen drive: a rede força a pasta
+    de perfil por política. Use o .exe.
+  - O .exe é barrado pelo SmartScreen ou pelo antivírus: use o .cmd.
+  - Os PDFs ainda caem em Downloads pelo .cmd: abra o menu do navegador,
+    Configurações, Downloads, e aponte para a pasta "PDFs" desta pasta
+    aqui. Ele lembra para sempre, porque a configuração fica no pen drive.
+  - Nenhum dos dois abre: o site funciona normalmente em qualquer
+    navegador, em ps.victorhoura.com. Aí lembre de bloquear no botão
+    BLOQUEAR quando levantar da mesa.

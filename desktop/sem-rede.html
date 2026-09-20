@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>PS JAPA</title>
+    <!--
+      O app mora na rede: esta casca não tem cópia dele para mostrar offline.
+      A página se recarrega sozinha a cada 10s, então assim que a internet
+      voltar o app entra de novo sem precisar fechar e abrir.
+    -->
+    <meta http-equiv="refresh" content="10;url=https://ps.victorhoura.com" />
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        display: flex;
+        height: 100vh;
+        align-items: center;
+        justify-content: center;
+        background: #0b0f14;
+        color: #e6edf3;
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        text-align: center;
+      }
+      .caixa {
+        max-width: 30rem;
+        padding: 2rem;
+      }
+      h1 {
+        margin: 0 0 0.75rem;
+        font-size: 0.95rem;
+        letter-spacing: 0.16em;
+      }
+      p {
+        margin: 0 0 0.5rem;
+        font-size: 0.8rem;
+        line-height: 1.7;
+        color: #8b98a5;
+      }
+      strong {
+        color: #e6edf3;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="caixa">
+      <h1>SEM CONEXÃO</h1>
+      <p>
+        O <strong>PS JAPA</strong> roda na internet. Esta janela é só o atalho — ela não
+        guarda o app na máquina, por isso não abre offline.
+      </p>
+      <p>Confira a rede do computador. Assim que voltar, o app entra sozinho.</p>
+    </div>
+  </body>
+</html>

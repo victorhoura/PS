@@ -1,0 +1,13 @@
+{
+  "name": "ps-japa-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Casca de desktop do PS JAPA, para rodar o site a partir do pen drive",
+  "main": "main.js",
+  "scripts": {
+    "empacotar": "electron-packager . \"PS JAPA\" --platform=win32 --arch=x64 --out=dist --overwrite --electron-version=44.4.3 --ignore=\"^/(dist|node_modules|\\.github)($|/)\""
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.3.0"
+  }
+}

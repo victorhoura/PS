@@ -1,0 +1,4 @@
+# O cmd.exe engasga com arquivo de lote em quebra de linha do Unix: o
+# lançador do pen drive precisa sair com CRLF em qualquer máquina.
+*.cmd text eol=crlf
+*.bat text eol=crlf
