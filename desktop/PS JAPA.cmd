@@ -42,9 +42,12 @@ if not defined NAVEGADOR (
   exit /b 1
 )
 
-rem Na primeira vez ja deixa os downloads apontados para o pen drive, para o
-rem navegador nao salvar o PDF na pasta Downloads da maquina. Depois disso o
-rem proprio perfil lembra, e este arquivo nao e mais tocado.
+rem Na primeira vez ja deixa o perfil do jeito que este uso pede. Depois disso
+rem o proprio perfil lembra, e este arquivo nao e mais tocado:
+rem
+rem   - download vai para o pen drive, e nao para a pasta Downloads da maquina
+rem   - gerenciador de senhas desligado: o app tem que pedir a senha toda vez,
+rem     e senha guardada num pen drive que se perde e senha perdida junto
 if not exist "%PERFIL%\Default\Preferences" (
   mkdir "%PERFIL%\Default" 2>nul
   set "DESTINO=%PDFS:\=\\%"
@@ -57,5 +60,5 @@ exit /b 0
 rem Subrotina porque dentro de um bloco "if (...)" o %DESTINO% seria lido
 rem antes de existir - o cmd expande a linha toda de uma vez, na leitura.
 :gravar_preferencias
-> "%PERFIL%\Default\Preferences" echo {"download":{"default_directory":"%DESTINO%","prompt_for_download":false}}
+> "%PERFIL%\Default\Preferences" echo {"download":{"default_directory":"%DESTINO%","prompt_for_download":false},"credentials_enable_service":false,"credentials_enable_autosignin":false,"autofill":{"profile_enabled":false,"credit_card_enabled":false}}
 exit /b 0

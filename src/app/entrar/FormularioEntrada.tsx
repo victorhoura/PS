@@ -103,7 +103,12 @@ export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               autoFocus
-              autoComplete="current-password"
+              // Senha preenchida sozinha é senha que a próxima pessoa a sentar
+              // também recebe. O "off" declara a intenção mas não garante — o
+              // Chrome o despreza em campo de senha quando quer ajudar o
+              // gerenciador dele. Quem garante é o perfil do pen drive, onde o
+              // gerenciador está desligado (ver desktop/PS JAPA.cmd).
+              autoComplete="off"
               className="w-full rounded-lg border border-edge bg-panel px-3 py-3 text-center font-mono text-lg tracking-[0.35em] text-ink outline-none transition-colors focus:border-accent"
             />
 

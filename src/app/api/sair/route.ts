@@ -6,8 +6,8 @@ import { NOME_COOKIE } from "@/lib/sessao";
  * navegação para /entrar no próximo pedido.
  *
  * Existe para o computador compartilhado do plantão — você levanta da mesa e
- * bloqueia, em vez de deixar a sessão aberta por 180 dias para quem sentar
- * depois.
+ * bloqueia, em vez de deixar a sessão aberta as 12 horas restantes para quem
+ * sentar depois.
  */
 export async function POST() {
   const resposta = NextResponse.json({ ok: true });

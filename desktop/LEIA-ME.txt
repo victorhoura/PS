@@ -46,6 +46,10 @@ O QUE ISSO RESOLVE
     máquina — vem para "PDFs" aqui.
   - Funciona onde a janela anônima está desligada por política da rede,
     porque isto não é janela anônima: é um perfil separado.
+  - A senha é pedida sempre: nenhuma das duas formas guarda ou preenche
+    senha. No .exe porque ele não tem gerenciador de senhas; no .cmd
+    porque o perfil do pen drive nasce com o gerenciador desligado.
+    Depois de entrar, o login vale 12 horas.
 
 
 O QUE ISSO NÃO RESOLVE
