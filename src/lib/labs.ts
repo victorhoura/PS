@@ -4,10 +4,23 @@
  * Recebe o texto bruto colado do SHIFT/AFIP e devolve a linha compacta
  * "LABS dd/mm/aaaa: HB 13,4 | HT 40 | PLAQ 322.000 | ...".
  *
- * O porte é fiel ao original, com uma correção: no Python a creatinina era
- * adicionada duas vezes (uma no bloco específico, outra no bloco de
- * bioquímica), então saía duplicada na linha final. Aqui cada rótulo entra
- * uma vez só — ver `adicionar`.
+ * COMO O LAUDO É LIDO
+ *
+ * A página da AFIP tem uma forma só, repetida exame a exame: um título de
+ * seção, um cabeçalho (Material / Coleta / Método / Liberação), e então as
+ * linhas de valor — rótulo numa linha, resultado na seguinte, unidade e
+ * referência abaixo. O que muda é o rótulo do valor: exames de um analito só
+ * escrevem "Resultado", e os demais escrevem o nome do próprio analito
+ * ("Bilirrubina Total", "Primeira hora", "Proteínas", "Base Exces").
+ *
+ * Este arquivo lê as duas formas. Antes lia só a primeira, e por isso
+ * bilirrubinas, albumina, proteínas, VHS e a gasometria inteira sumiam do
+ * prontuário sem avisar — some calado é o pior jeito de errar num laudo.
+ *
+ * A leitura é sempre em duas etapas: recortar o bloco daquele exame e só
+ * então procurar o rótulo dentro dele. Sem o recorte, um "Resultado" do exame
+ * seguinte responde pelo anterior, e o pH da gasometria e o da urina se
+ * confundem.
  */
 
 /**
@@ -26,17 +39,6 @@ export function paraNumero(s: string): number {
   return parseFloat(limpo.replace(/\./g, ""));
 }
 
-/** Reformata mantendo as casas decimais que vieram no laudo. */
-export function formatarNumero(original: string, valor: number): string {
-  if (original.includes(",")) {
-    const casas = original.split(",")[1].length;
-    return valor.toFixed(casas).replace(".", ",");
-  }
-  return Number.isInteger(valor)
-    ? String(valor)
-    : String(valor).replace(".", ",");
-}
-
 /** 322000 -> "322.000" */
 export function milhar(n: number): string {
   return Math.round(n).toLocaleString("pt-BR", { maximumFractionDigits: 0 });
@@ -53,43 +55,121 @@ export function dataDaColeta(texto: string): string {
   return `${m[1]}/${m[2]}/${m[3]}`;
 }
 
-function buscar(texto: string, padrao: string, flags = "is"): RegExpMatchArray | null {
-  return texto.match(new RegExp(padrao, flags));
+// ------------------------------------------------------------ valores
+
+/** Um resultado como ele entra no prontuário, mais o número que o compara. */
+export interface Valor {
+  /** Texto transcrito: pode ser ">90" ou "2,0 a 5,0", não só um número. */
+  texto: string;
+  /** Para comparar com um limiar. Numa faixa, é o menor valor. */
+  numero: number;
 }
 
-/** Número que aparece logo depois do rótulo (SHIFT quebra a linha no meio). */
-function extrairNumero(texto: string, rotulos: string[]): string | null {
-  for (const r of rotulos) {
-    const m = buscar(texto, `${r}(?:\\s*[:\\-])?\\s*[\\r\\n]+[\\s\\S]*?(${NUM})`);
-    if (m) return m[1];
+function limpar(linha: string): string {
+  return linha.replace(/ /g, " ").trim();
+}
+
+/**
+ * Interpreta uma célula do laudo.
+ *
+ * O laboratório nem sempre devolve um número solto: "Superior a 90" é um
+ * limite e "2,0 a 5,0" é uma faixa. Transcrever só o primeiro número dessas
+ * formas diz outra coisa — "TFG 90" é o piso do normal, "TFG >90" é normal —
+ * então o texto vai inteiro e a comparação usa o menor valor.
+ *
+ * O sinal faz parte do número: sem ele o "Base Exces -0,6" da gasometria
+ * sairia como 0,6 e uma acidose seria lida como normal.
+ */
+function lerValor(bruto: string): Valor | null {
+  const v = limpar(bruto);
+  if (!v) return null;
+
+  // Uma data não é resultado de nada — corta antes de "19/09/2026" virar 19.
+  if (/^\d{1,2}\/\d{1,2}\/\d{2,4}/.test(v)) return null;
+  // "1,8 - 7,70" é intervalo de referência, não valor encontrado.
+  if (new RegExp(`^${NUM}\\s*-\\s*${NUM}`).test(v)) return null;
+
+  const faixa = v.match(new RegExp(`^(${NUM})\\s+A\\s+(${NUM})\\b`, "i"));
+  if (faixa) return { texto: `${faixa[1]} a ${faixa[2]}`, numero: paraNumero(faixa[1]) };
+
+  const acima = v.match(new RegExp(`^(?:SUPERIOR\\s+A|MAIOR\\s+QUE|ACIMA\\s+DE|>)\\s*(${NUM})`, "i"));
+  if (acima) return { texto: `>${acima[1]}`, numero: paraNumero(acima[1]) };
+
+  const abaixo = v.match(
+    new RegExp(`^(?:INFERIOR\\s+A|MENOR\\s+QUE|ABAIXO\\s+DE|<)\\s*(${NUM})`, "i"),
+  );
+  if (abaixo) return { texto: `<${abaixo[1]}`, numero: paraNumero(abaixo[1]) };
+
+  const simples = v.match(new RegExp(`^(-?${NUM})`));
+  if (!simples) return null;
+  const n = paraNumero(simples[1]);
+  if (Number.isNaN(n)) return null;
+  // O texto vai como o laudo escreveu: é o que preserva "0,70" e "14.000".
+  return { texto: simples[1], numero: n };
+}
+
+/**
+ * Os valores que podem pertencer a um rótulo: o que sobra na própria linha e
+ * a primeira linha com conteúdo abaixo dela. Ler exatamente isso é o que
+ * impede de cair na coluna de referência, que vem logo em seguida.
+ *
+ * Percorre TODAS as ocorrências do rótulo porque o título da seção costuma
+ * repetir o nome do exame — "Dosagem sérica de Creatinina" e depois
+ * "Creatinina / 0,70". A primeira ocorrência não tem valor; a segunda tem.
+ * E a linha do rótulo às vezes continua com algo que não é o resultado
+ * ("Bicarbonato(HCO3)"), daí valerem as duas posições.
+ *
+ * O rótulo precisa ABRIR a linha. Sem essa âncora, a nota de rodapé do
+ * potássio — "concentracoes elevadas de potassio" — era lida como rótulo, e
+ * o valor vinha da série do gráfico logo abaixo: 5,3 no lugar de 3,8. Rótulo
+ * de verdade começa a linha; nome no meio de uma frase é texto corrido.
+ */
+function* candidatos(texto: string, rotulo: string): Generator<string> {
+  const re = new RegExp(`^([^\\S\\r\\n]*${rotulo}[^\\S\\r\\n]*:?[^\\S\\r\\n]*)(.*)$`, "gim");
+  for (const m of texto.matchAll(re)) {
+    if (m.index === undefined) continue;
+
+    const resto = limpar(m[2]);
+    if (resto) yield resto;
+
+    for (const linha of texto.slice(m.index + m[0].length).split(/\r?\n/)) {
+      const v = limpar(linha);
+      if (v) {
+        yield v;
+        break;
+      }
+    }
+  }
+}
+
+function valorDoRotulo(texto: string, rotulo: string): Valor | null {
+  for (const c of candidatos(texto, rotulo)) {
+    const v = lerValor(c);
+    if (v) return v;
   }
   return null;
 }
 
 /**
- * O valor que vem depois de um rótulo, na mesma linha ou na primeira linha
- * com conteúdo abaixo dele.
+ * As colunas numéricas que seguem um rótulo, uma por linha.
  *
- * É assim que o SHIFT monta a tabela — rótulo numa linha, resultado na
- * seguinte, referência mais abaixo — e ler exatamente isso é o que impede de
- * cair na coluna de referência. Procurar "o primeiro qualitativo depois do
- * rótulo" não bastava: com "Proteína / + / Valor de referência: Negativo",
- * o "+" era pulado e o NEGATIVO da referência entrava no lugar.
+ * O leucograma da AFIP imprime o diferencial em duas: porcentagem e valor
+ * absoluto em Mil/mm3. A referência vem logo depois e nunca é um número
+ * sozinho ("1,8 - 7,70") — é isso que delimita a leitura.
  */
-function valorDoRotulo(texto: string, rotulo: string): string | null {
-  const m = buscar(texto, `^(.*?${rotulo}[^\\S\\r\\n]*:?[^\\S\\r\\n]*)(.*)$`, "im");
-  if (!m || m.index === undefined) return null;
+function colunas(texto: string, rotulo: string): string[] {
+  const m = texto.match(new RegExp(`^[^\\S\\r\\n]*${rotulo}[^\\S\\r\\n]*:?[^\\S\\r\\n]*$`, "im"));
+  if (!m || m.index === undefined) return [];
 
-  const limpar = (l: string) => l.replace(/\u00a0/g, " ").trim();
-
-  const mesmaLinha = limpar(m[2]);
-  if (mesmaLinha) return mesmaLinha;
-
+  const saida: string[] = [];
+  const soNumero = new RegExp(`^-?${NUM}$`);
   for (const linha of texto.slice(m.index + m[0].length).split(/\r?\n/)) {
     const v = limpar(linha);
-    if (v) return v;
+    if (!v) continue;
+    if (!soNumero.test(v)) break;
+    saida.push(v);
   }
-  return null;
+  return saida;
 }
 
 /**
@@ -101,18 +181,17 @@ const QUALITATIVOS = String.raw`NEGATIV[OA]|POSITIV[OA]|TRACOS?|TRACE|AUSENTE|PR
 
 function extrairQualitativo(texto: string, rotulos: string[]): string | null {
   for (const r of rotulos) {
-    const valor = valorDoRotulo(texto, r);
-    if (!valor) continue;
+    for (const c of candidatos(texto, r)) {
+      // Ancorado no começo do valor: é o resultado, não algo mais à frente.
+      const m = c.match(new RegExp(`^(${QUALITATIVOS})`, "i"));
+      if (!m) continue;
 
-    // Ancorado no começo do valor: é o resultado, não algo mais à frente.
-    const m = valor.match(new RegExp(`^(${QUALITATIVOS})`, "i"));
-    if (!m) continue;
-
-    return m[1]
-      .toUpperCase()
-      .replace(/\s+/g, "")
-      .replace("TRACE", "TRACO")
-      .replace("TRACOS", "TRACO");
+      return m[1]
+        .toUpperCase()
+        .replace(/\s+/g, "")
+        .replace("TRACE", "TRACO")
+        .replace("TRACOS", "TRACO");
+    }
   }
   return null;
 }
@@ -125,28 +204,97 @@ export function qualitativoAlterado(v: string | null): boolean {
   return true;
 }
 
-/** Títulos que marcam o começo de outro exame — usados para cortar o bloco. */
-const PROXIMO_EXAME = String.raw`\n(?:HEMOGRAMA|URINA I|UREIA|CREATININA|TFG\s*-|S[ÓO]DIO|POT[ÁA]SSIO|PROTE[ÍI]NA C REATIVA|TGO\/AST|TGP\/ALT|TROPONINA|BILIRRUBINA|ALBUMINA|FOSFATASE|GGT|DHL|TP\b|INR\b|TTPA\b)\b`;
+// ------------------------------------------------------------- blocos
 
 /**
- * Pega o número que vem depois da palavra RESULTADO *dentro* do bloco daquele
- * exame. É o que evita capturar valor de exame antigo ou eixo de gráfico.
+ * O que encerra o bloco de um exame.
+ *
+ * Duas famílias. As marcas de estrutura (a régua de sublinhados, a
+ * assinatura, o "Observações gerais") fecham a seção inteira e valem para
+ * qualquer exame, inclusive os que ainda não conhecemos. Os títulos servem
+ * para separar analitos que dividem a mesma seção — as três bilirrubinas, ou
+ * proteínas / albumina / globulina / relação.
  */
-function resultadoPorTitulo(texto: string, titulos: string[]): string | null {
+const TITULOS_DE_CORTE = [
+  String.raw`HEMOGRAMA`,
+  String.raw`URINA I`,
+  String.raw`RETICUL[ÓO]CITOS`,
+  String.raw`VELOCIDADE\s+DE\s+HEMOSSEDIMENTA`,
+  String.raw`GASOMETRIA`,
+  String.raw`UR[EÉ]IA`,
+  String.raw`CREATININA`,
+  String.raw`TFG\s*-`,
+  String.raw`[ÁA]CIDO\s+[ÚU]RICO`,
+  String.raw`S[ÓO]DIO`,
+  String.raw`POT[ÁA]SSIO`,
+  String.raw`CLORETOS?`,
+  String.raw`MAGN[ÉE]SIO`,
+  String.raw`F[ÓO]SFORO`,
+  String.raw`C[ÁA]LCIO\s+I[ÔO]NICO`,
+  String.raw`C[ÁA]LCIO\s+IONIZADO`,
+  String.raw`PROTE[ÍI]NA C REATIVA`,
+  String.raw`PROCALCITONINA`,
+  String.raw`PROTE[ÍI]NA\s+TOTAL`,
+  String.raw`GLOBULINA`,
+  String.raw`RELA[ÇC][ÃA]O`,
+  String.raw`TGO\/AST`,
+  String.raw`TGP\/ALT`,
+  String.raw`TROPONINA`,
+  String.raw`BILIRRUBINA`,
+  String.raw`ALBUMINA`,
+  String.raw`FOSFATASE`,
+  String.raw`GGT\b`,
+  String.raw`DHL\b`,
+  String.raw`TP\b`,
+  String.raw`INR\b`,
+  String.raw`TTPA\b`,
+  String.raw`FIBRINOG[ÊE]NIO`,
+  String.raw`D-?D[ÍI]MERO`,
+  String.raw`\bBNP\b`,
+  String.raw`NT-?PRO\s*BNP`,
+];
+
+/** Marcas de estrutura: valem para qualquer exame, inclusive os desconhecidos. */
+const FIM_ESTRUTURAL = String.raw`_{5,}|OBSERVA[ÇC][ÃAÕO]|EXAME\s+ASSINADO|LIBERADO\s+POR`;
+
+function fimDoBloco(titulos: string[]): RegExp {
+  return new RegExp(`\\n[^\\S\\r\\n]*(?:${FIM_ESTRUTURAL}|${titulos.join("|")})`, "i");
+}
+
+/** Do título do exame até onde ele acaba. Inclui o título: às vezes é ele que rotula o valor. */
+function blocoDoExame(texto: string, titulo: string): string | null {
+  const m = texto.match(new RegExp(titulo, "i"));
+  if (!m || m.index === undefined) return null;
+
+  /**
+   * O nome do próprio exame não pode encerrar o bloco dele. A AFIP intitula
+   * a seção "Dosagem sérica de Creatinina" e só depois rotula a linha do
+   * valor com "Creatinina": cortar ali deixava o bloco com o cabeçalho e
+   * nenhum resultado, e a creatinina sumia da transcrição.
+   */
+  const corte = fimDoBloco(
+    TITULOS_DE_CORTE.filter((p) => !new RegExp(`^(?:${p})$`, "i").test(m[0])),
+  );
+
+  const depois = texto.slice(m.index + m[0].length);
+  const fim = depois.match(corte);
+  return m[0] + (fim && fim.index !== undefined ? depois.slice(0, fim.index) : depois);
+}
+
+/**
+ * O valor de um exame: acha o bloco pelo título e procura o rótulo dentro
+ * dele. Os rótulos explícitos vêm primeiro, depois o próprio título (é o que
+ * resolve "Bilirrubina Total / 0,40") e só então "Resultado".
+ */
+function valorDoExame(texto: string, titulos: string[], rotulos: string[] = []): Valor | null {
   for (const titulo of titulos) {
-    const m = buscar(texto, `(${titulo})([\\s\\S]{0,6000})`);
-    if (!m) continue;
+    const bloco = blocoDoExame(texto, titulo);
+    if (!bloco) continue;
 
-    let bloco = m[2];
-    const corte = bloco.match(new RegExp(PROXIMO_EXAME, "i"));
-    if (corte && corte.index !== undefined) bloco = bloco.slice(0, corte.index);
-
-    const r = bloco.match(new RegExp(`\\bRESULTADO\\b\\s*[\\r\\n]+?\\s*(${NUM})\\b`, "i"));
-    if (r) return r[1];
-
-    // Alguns laudos não destacam a palavra RESULTADO na própria linha.
-    const r2 = bloco.match(new RegExp(`\\bRESULTADO\\b[\\s\\S]*?(${NUM})`, "i"));
-    if (r2) return r2[1];
+    for (const r of [...rotulos, titulo, String.raw`RESULTADO`]) {
+      const v = valorDoRotulo(bloco, r);
+      if (v) return v;
+    }
   }
   return null;
 }
@@ -169,6 +317,37 @@ function blocoUrina1(texto: string): string {
   return texto.slice(ini, fim);
 }
 
+// --------------------------------------------------------- gasometria
+
+/**
+ * A gasometria não tem "Resultado": cada gás é rotulado pelo próprio nome, e
+ * o bicarbonato vem como "Bicarbonato(HCO3)", com a sigla grudada no rótulo.
+ * Sai agrupada numa parte só, como a urina, porque seis números soltos no
+ * meio da linha não se leem como gasometria.
+ */
+const GASOMETRIA: [string, string][] = [
+  ["PH", String.raw`\bPH\b`],
+  ["PO2", String.raw`\bPO2\b`],
+  ["PCO2", String.raw`\bPCO2\b`],
+  ["HCO3", String.raw`BICARBONATO|\bHCO3\b`],
+  ["BE", String.raw`BASE\s*EXCES|\bBE\b`],
+  ["SAT", String.raw`SATURA[ÇC][ÃA]O\s*(?:DE\s*)?O2|\bSAT\s*O2\b`],
+];
+
+function lerGasometria(texto: string, titulo: string): string | null {
+  const bloco = blocoDoExame(texto, titulo);
+  if (!bloco) return null;
+
+  const itens: string[] = [];
+  for (const [rotulo, padrao] of GASOMETRIA) {
+    const v = valorDoRotulo(bloco, padrao);
+    if (v) itens.push(`${rotulo} ${v.texto}`);
+  }
+  return itens.length ? itens.join(" ") : null;
+}
+
+// ---------------------------------------------------------- formatação
+
 export function formatarLabs(textoBruto: string | null | undefined): string {
   if (!textoBruto || !textoBruto.trim()) return "";
 
@@ -176,131 +355,151 @@ export function formatarLabs(textoBruto: string | null | undefined): string {
   const data = dataDaColeta(t);
 
   // O hemograma é lido de um texto SEM a seção de urina. Sem isso, um laudo
-  // só de urina gerava leucograma fantasma a partir da leucocitúria.
+  // só de urina gerava leucograma fantasma a partir da leucocitúria — e o pH
+  // da gasometria seria lido do sedimento.
   const tUr = blocoUrina1(t);
   const tSangue = tUr ? t.replace(tUr, "\n") : t;
   const partes: string[] = [];
   const jaAdicionado = new Set<string>();
 
   /** Cada rótulo entra uma vez só — corrige a duplicação de CR do original. */
-  function adicionar(rotulo: string, valorStr: string | null) {
-    if (!valorStr || jaAdicionado.has(rotulo)) return;
-    const n = paraNumero(valorStr);
-    if (Number.isNaN(n)) return;
+  function adicionar(rotulo: string, v: Valor | null) {
+    if (!v || jaAdicionado.has(rotulo)) return;
     jaAdicionado.add(rotulo);
-    partes.push(`${rotulo} ${formatarNumero(valorStr, n)}`);
+    partes.push(`${rotulo} ${v.texto}`);
   }
 
+  const exame = (rotulo: string, titulos: string[], rotulos: string[] = []) =>
+    adicionar(rotulo, valorDoExame(tSangue, titulos, rotulos));
+
   // ===== HEMOGRAMA =====
-  const hb = extrairNumero(tSangue, [String.raw`HEMOGLOBINA`]);
-  const ht = extrairNumero(tSangue, [String.raw`HEMAT[ÓO]CRITO`]);
-  const plaq = extrairNumero(tSangue, [String.raw`PLAQUETAS`]);
-  const leuc = extrairNumero(tSangue, [String.raw`LEUC[ÓO]CITOS`]);
-  const neut = extrairNumero(tSangue, [String.raw`NEUTR[ÓO]FILOS`]);
-  const bast = extrairNumero(tSangue, [String.raw`BASTONETES`]);
+  const hb = valorDoRotulo(tSangue, String.raw`HEMOGLOBINA(?!\s*CORPUSCULAR)`);
+  const ht = valorDoRotulo(tSangue, String.raw`HEMAT[ÓO]CRITO`);
+  const plaq = valorDoRotulo(tSangue, String.raw`PLAQUETAS`);
+  const leuc = valorDoRotulo(tSangue, String.raw`LEUC[ÓO]CITOS`);
 
   adicionar("HB", hb);
   adicionar("HT", ht);
 
   if (plaq) {
-    // SHIFT informa em Mil/mm3 ("322"), que vira 322.000.
-    const v = paraNumero(plaq);
-    if (!Number.isNaN(v)) {
-      jaAdicionado.add("PLAQ");
-      partes.push(`PLAQ ${milhar(v * 1000)}`);
-    }
+    // SHIFT informa em Mil/mm3 ("322"), que vira 322.000. Laudo que já traz o
+    // valor absoluto passa direto — multiplicar de novo daria 322 milhões.
+    jaAdicionado.add("PLAQ");
+    partes.push(`PLAQ ${milhar(plaq.numero < 1000 ? plaq.numero * 1000 : plaq.numero)}`);
   }
 
   if (leuc) {
-    const v = paraNumero(leuc);
-    if (!Number.isNaN(v)) {
-      const total = v < 100 ? v * 1000 : v;
-      const bastN = bast ? paraNumero(bast) : NaN;
-      const temDesvio = !Number.isNaN(bastN) && bastN > 0;
+    const total = leuc.numero < 100 ? leuc.numero * 1000 : leuc.numero;
 
-      partes.push(`LEUC ${milhar(total)}${temDesvio ? "" : " SEM DESVIO"}`);
-      jaAdicionado.add("LEUC");
+    /**
+     * O diferencial da AFIP vem em duas colunas — porcentagem e absoluto em
+     * Mil/mm3 — e ler a errada troca 68,7% por 7,72 mil neutrófilos. Só
+     * tratamos como duas quando o próprio laudo declara as colunas.
+     */
+    const duasColunas = /\(%\)/.test(tSangue) && /MIL\/MM3/.test(tSangue);
+    const celulas = (rotulo: string): string | null => {
+      const cols = colunas(tSangue, rotulo);
+      if (duasColunas && cols.length >= 2) return `${cols[1]} (${cols[0]}%)`;
+      if (cols.length) return cols[0];
+      return valorDoRotulo(tSangue, rotulo)?.texto ?? null;
+    };
 
-      if (temDesvio) {
-        adicionar("NEUT", neut);
-        partes.push(`BAST ${formatarNumero(bast!, bastN)}`);
-        jaAdicionado.add("BAST");
+    const bastCols = colunas(tSangue, String.raw`BASTONETES`);
+    const bastBruto = bastCols[0] ?? valorDoRotulo(tSangue, String.raw`BASTONETES`)?.texto ?? null;
+    const temDesvio = bastBruto !== null && paraNumero(bastBruto) > 0;
+
+    partes.push(`LEUC ${milhar(total)}${temDesvio ? "" : " SEM DESVIO"}`);
+    jaAdicionado.add("LEUC");
+
+    if (temDesvio) {
+      const neut = celulas(String.raw`NEUTR[ÓO]FILOS`);
+      if (neut) {
+        partes.push(`NEUT ${neut}`);
+        jaAdicionado.add("NEUT");
       }
+      partes.push(`BAST ${celulas(String.raw`BASTONETES`)}`);
+      jaAdicionado.add("BAST");
     }
   }
 
+  exame("RETIC", [String.raw`RETICUL[ÓO]CITOS`]);
+
   // ===== BIOQUÍMICA / ELETRÓLITOS =====
-  // A creatinina tem um padrão próprio no SHIFT: título, depois a linha repetida.
-  const mcr = buscar(t, String.raw`\bCREATININA\b[\s\S]{0,1200}?\n\s*CREATININA\s*[\r\n]+?\s*(\d+(?:,\d+)?)\b`);
-  adicionar("UR", resultadoPorTitulo(t, [String.raw`\bUR[EÉ]IA\b`]));
-  adicionar("CR", mcr ? mcr[1] : resultadoPorTitulo(t, [String.raw`\bCREATININA\b`]));
-  adicionar("TFG", resultadoPorTitulo(t, [String.raw`\bTFG\b`, String.raw`FILTRA[ÇC][ÃA]O\s*GLOMERULAR`]));
-  adicionar("NA", resultadoPorTitulo(t, [String.raw`\bS[ÓO]DIO\b`]));
-  adicionar("K", resultadoPorTitulo(t, [String.raw`\bPOT[ÁA]SSIO\b`]));
-  adicionar("GLI", resultadoPorTitulo(t, [String.raw`\bGLICOSE\b`]));
-  adicionar("CA", resultadoPorTitulo(t, [String.raw`\bC[ÁA]LCIO\b`]));
-  adicionar("MG", resultadoPorTitulo(t, [String.raw`\bMAGN[ÉE]SIO\b`]));
-  adicionar("P", resultadoPorTitulo(t, [String.raw`\bF[ÓO]SFORO\b`, String.raw`\bFOSFATO\b`]));
+  exame("UR", [String.raw`\bUR[EÉ]IA\b`]);
+  exame("CR", [String.raw`\bCREATININA\b`]);
+  exame("TFG", [String.raw`\bTFG\b`, String.raw`FILTRA[ÇC][ÃA]O\s*GLOMERULAR`]);
+  exame("AU", [String.raw`[ÁA]CIDO\s+[ÚU]RICO`]);
+  exame("NA", [String.raw`\bS[ÓO]DIO\b`]);
+  exame("K", [String.raw`\bPOT[ÁA]SSIO\b`]);
+  exame("CL", [String.raw`\bCLORETOS?\b`, String.raw`\bCLORO\b`]);
+  exame("GLI", [String.raw`\bGLICOSE\b`]);
+  // O cálcio total não pode casar com o iônico: são valores e faixas diferentes.
+  exame("CA", [
+    String.raw`C[ÁA]LCIO\s+TOTAL`,
+    String.raw`\bC[ÁA]LCIO\b(?!\s*(?:I[ÔO]NICO|IONIZADO))`,
+  ]);
+  exame("CAI", [String.raw`C[ÁA]LCIO\s+I[ÔO]NICO`, String.raw`C[ÁA]LCIO\s+IONIZADO`]);
+  exame("MG", [String.raw`\bMAGN[ÉE]SIO\b`]);
+  exame("P", [String.raw`\bF[ÓO]SFORO\b`, String.raw`\bFOSFATO\b`]);
 
   // ===== HEPÁTICA / ENZIMAS / INFLAMAÇÃO =====
-  adicionar("PCR", resultadoPorTitulo(t, [String.raw`PROTE[ÍI]NA\s*C\s*REATIVA\s*-\s*PCR`, String.raw`\bPCR\b`]));
-  adicionar("TGO", resultadoPorTitulo(t, [String.raw`TGO\/AST`, String.raw`\bAST\b`]));
-  adicionar("TGP", resultadoPorTitulo(t, [String.raw`TGP\/ALT`, String.raw`\bALT\b`]));
-  adicionar("FA", resultadoPorTitulo(t, [String.raw`FOSFATASE\s+ALCALINA`, String.raw`\bFA\b`]));
-  adicionar("GGT", resultadoPorTitulo(t, [String.raw`\bGGT\b`, String.raw`GAMA\s*GT`, String.raw`GAMAGT`]));
-  adicionar("DHL", resultadoPorTitulo(t, [String.raw`\bDHL\b`, String.raw`DESIDROGENASE\s+L[ÁA]CTICA`]));
-  adicionar("BT", resultadoPorTitulo(t, [String.raw`BILIRRUBINA\s*TOTAL`]));
-  adicionar("BD", resultadoPorTitulo(t, [String.raw`BILIRRUBINA\s*DIRETA`]));
-  adicionar("BI", resultadoPorTitulo(t, [String.raw`BILIRRUBINA\s*INDIRETA`]));
-  adicionar("ALB", resultadoPorTitulo(t, [String.raw`\bALBUMINA\b`]));
+  exame("PCR", [String.raw`PROTE[ÍI]NA\s*C\s*REATIVA\s*-\s*PCR`, String.raw`\bPCR\b`]);
+  // O VHS rotula o valor de "Primeira hora" — nunca de "Resultado".
+  exame(
+    "VHS",
+    [String.raw`VELOCIDADE\s+DE\s+HEMOSSEDIMENTA[ÇC][ÃA]O`, String.raw`\bVHS\b`],
+    [String.raw`PRIMEIRA\s+HORA`],
+  );
+  exame("PCT", [String.raw`\bPROCALCITONINA\b`]);
+  exame("TGO", [String.raw`TGO\/AST`, String.raw`\bAST\b`]);
+  exame("TGP", [String.raw`TGP\/ALT`, String.raw`\bALT\b`]);
+  exame("FA", [String.raw`FOSFATASE\s+ALCALINA`, String.raw`\bFA\b`]);
+  exame("GGT", [String.raw`\bGGT\b`, String.raw`GAMA\s*GT`, String.raw`GAMAGT`]);
+  exame("DHL", [String.raw`\bDHL\b`, String.raw`DESIDROGENASE\s+L[ÁA]CTICA`]);
+  exame("BT", [String.raw`BILIRRUBINA\s*TOTAL`]);
+  exame("BD", [String.raw`BILIRRUBINA\s*DIRETA`]);
+  exame("BI", [String.raw`BILIRRUBINA\s*INDIRETA`]);
+  exame("ALB", [String.raw`\bALBUMINA\b`]);
+  exame("PTOT", [String.raw`PROTE[ÍI]NA\s+TOTAL`], [String.raw`PROTE[ÍI]NAS\b`]);
+  exame("GLOB", [String.raw`\bGLOBULINA\b`]);
+  exame("A/G", [String.raw`RELA[ÇC][ÃA]O\s+ALBUMINA`]);
 
   // ===== COAGULAÇÃO =====
-  adicionar("TP", resultadoPorTitulo(t, [String.raw`\bTP\b`, String.raw`TEMPO\s+DE\s+PROTROMBINA`]));
-  adicionar("INR", resultadoPorTitulo(t, [String.raw`\bINR\b`]));
-  adicionar("TTPA", resultadoPorTitulo(t, [String.raw`\bTTPA\b`, String.raw`TEMPO\s+DE\s+TROMBOPLASTINA`]));
+  exame("TP", [String.raw`\bTP\b`, String.raw`TEMPO\s+DE\s+PROTROMBINA`]);
+  exame("INR", [String.raw`\bINR\b`]);
+  exame("TTPA", [String.raw`\bTTPA\b`, String.raw`TEMPO\s+DE\s+TROMBOPLASTINA`]);
+  exame("FIB", [String.raw`\bFIBRINOG[ÊE]NIO\b`]);
+  exame("DDIM", [String.raw`\bD-?\s?D[ÍI]MERO\b`]);
 
   // ===== OUTROS =====
-  adicionar("AMIL", resultadoPorTitulo(t, [String.raw`\bAMILASE\b`]));
-  adicionar("LIPA", resultadoPorTitulo(t, [String.raw`\bLIPASE\b`]));
-  adicionar("CK", resultadoPorTitulo(t, [String.raw`\bCK\b`, String.raw`CREATINOQUINASE`]));
-  adicionar("CKMB", resultadoPorTitulo(t, [String.raw`\bCKMB\b`, String.raw`CK-MB`]));
-  adicionar("LAC", resultadoPorTitulo(t, [String.raw`\bLACTATO\b`]));
-  adicionar("TROP", resultadoPorTitulo(t, [
+  exame("AMIL", [String.raw`\bAMILASE\b`]);
+  exame("LIPA", [String.raw`\bLIPASE\b`]);
+  // A CK não pode casar com a CK-MB: "\bCK\b" pega o CK de "CK-MB", porque o
+  // hífen também fecha palavra, e a massa total sairia com o valor da fração.
+  exame("CK", [String.raw`\bCK\b(?!\s*-?\s*MB)`, String.raw`CREATINOQUINASE`]);
+  exame("CKMB", [String.raw`\bCKMB\b`, String.raw`CK\s*-\s*MB`]);
+  // "NT-proBNP" não tem fronteira de palavra antes do B, então \bBNP\b já
+  // distingue os dois sem precisar de lookbehind.
+  exame("NTPROBNP", [String.raw`NT-?\s?PRO-?\s?BNP`]);
+  exame("BNP", [String.raw`\bBNP\b`]);
+  exame("LAC", [String.raw`\bLACTATO\b`]);
+  exame("TROP", [
     String.raw`TROPONINA\s+I[\s\S]{0,40}ALTA\s+SENSIBILIDADE`,
     String.raw`\bHS\s*TNI\b`,
     String.raw`\bTNI\b`,
-  ]));
+  ]);
+
+  // ===== GASOMETRIA =====
+  const gasoArt = lerGasometria(tSangue, String.raw`GASOMETRIA\s+ARTERIAL`);
+  if (gasoArt) partes.push(`GASART ${gasoArt}`);
+  const gasoVen = lerGasometria(tSangue, String.raw`GASOMETRIA\s+VENOSA`);
+  if (gasoVen) partes.push(`GASVEN ${gasoVen}`);
 
   // ===== URINA I — pH sempre, o resto só se alterado =====
   const ur1: string[] = [];
 
-  /**
-   * O valor do sedimento como o laboratório escreveu, mais o número que serve
-   * para decidir se é alterado.
-   *
-   * O laudo nem sempre traz um número solto: "2,0 a 5,0" é uma faixa, e
-   * "SUPERIOR A 1.000.000" é um limite. Transcrever só o primeiro número
-   * dessas formas ("BACT 2,0") diz uma coisa diferente do que o laboratório
-   * reportou, então o texto vai inteiro e a comparação usa o menor valor.
-   */
-  const ur1Valor = (rotulo: string): { texto: string; numero: number } | null => {
-    const valor = valorDoRotulo(tUr, rotulo);
-    if (!valor) return null;
-
-    const faixa = valor.match(new RegExp(`^(${NUM})\\s+A\\s+(${NUM})\\b`, "i"));
-    if (faixa) return { texto: `${faixa[1]} a ${faixa[2]}`, numero: paraNumero(faixa[1]) };
-
-    const limite = valor.match(new RegExp(`^(?:SUPERIOR\\s+A|MAIOR\\s+QUE|>)\\s*(${NUM})`, "i"));
-    if (limite) return { texto: `>${limite[1]}`, numero: paraNumero(limite[1]) };
-
-    const simples = valor.match(new RegExp(`^(${NUM})`));
-    if (simples) return { texto: simples[1], numero: paraNumero(simples[1]) };
-
-    return null;
-  };
-
-  const ph = ur1Valor(String.raw`\bPH\b`);
-  if (ph && !Number.isNaN(ph.numero)) ur1.push(`PH ${ph.texto}`);
+  const ph = valorDoRotulo(tUr, String.raw`\bPH\b`);
+  if (ph) ur1.push(`PH ${ph.texto}`);
 
   const qualis: [string, string[]][] = [
     ["PROT", [String.raw`\bPROTE[ÍI]NA\b`]],
@@ -313,15 +512,15 @@ export function formatarLabs(textoBruto: string | null | undefined): string {
     if (qualitativoAlterado(v)) ur1.push(`${rotulo} ${v}`);
   }
 
-  const leuUr = ur1Valor(String.raw`\bLEUC[ÓO]CITOS\b`);
+  const leuUr = valorDoRotulo(tUr, String.raw`\bLEUC[ÓO]CITOS\b`);
   if (leuUr) ur1.push(`LEUC ${leuUr.texto}`);
 
   // Hemácias: só quando passa da referência do laudo (até 20.000/mL).
-  const hemUr = ur1Valor(String.raw`\bHEM[ÁA]CIAS\b`);
+  const hemUr = valorDoRotulo(tUr, String.raw`\bHEM[ÁA]CIAS\b`);
   if (hemUr && hemUr.numero > 20000) ur1.push(`HEM ${hemUr.texto}`);
 
   // Bactérias: só a partir de 1,0.
-  const bactUr = ur1Valor(String.raw`\bBACT[ÉE]RIAS\b`);
+  const bactUr = valorDoRotulo(tUr, String.raw`\bBACT[ÉE]RIAS\b`);
   if (bactUr && bactUr.numero >= 1.0) ur1.push(`BACT ${bactUr.texto}`);
 
   const lev = extrairQualitativo(tUr, [String.raw`\bLEVEDURAS\b`]);

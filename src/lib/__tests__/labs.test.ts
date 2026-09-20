@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatarLabs, paraNumero, formatarNumero, milhar, dataDaColeta } from "../labs";
+import { formatarLabs, paraNumero, milhar, dataDaColeta } from "../labs";
 
 /**
  * Laudos sintéticos no formato SHIFT/AFIP. Nenhum dado real de paciente.
@@ -229,12 +229,6 @@ describe("helpers numéricos pt-BR", () => {
     expect(paraNumero("322")).toBe(322);
   });
 
-  it("preserva as casas decimais do laudo", () => {
-    expect(formatarNumero("13,4", 13.4)).toBe("13,4");
-    expect(formatarNumero("1,120", 1.12)).toBe("1,120");
-    expect(formatarNumero("322", 322)).toBe("322");
-  });
-
   it("separa milhar com ponto", () => {
     expect(milhar(322000)).toBe("322.000");
     expect(milhar(12500)).toBe("12.500");
@@ -385,5 +379,548 @@ describe("página real do SHIFT/AFIP", () => {
   it("cruzes separadas por espaço contam como uma marcação só", () => {
     const saida = formatarLabs(AFIP_REAL.replace("Proteína\n+\n", "Proteína\n+ +\n"));
     expect(saida).toContain("PROT ++");
+  });
+});
+
+/**
+ * A outra metade da página da AFIP: os exames que rotulam o valor com o nome
+ * do próprio analito em vez da palavra "Resultado".
+ *
+ * O formato é o da página real — cabeçalho Material/Coleta/Método/Liberação,
+ * valor, unidade, referência, a nota de rodapé e a série do gráfico — com
+ * valores inventados. Nenhum dado de paciente.
+ */
+const AFIP_ROTULO_PROPRIO = `
+Informações da ordem de serviço
+O.S.:
+1440-00000-0000
+-
+20/09/2026 - 02:54:04
+Unidade de coleta:
+Pronto Socorro
+Velocidade de Hemossedimentação - VHS
+ 
+Material:
+Sangue total (EDTA)
+Coleta:
+20/09/2026 - 02:54:04
+Método:
+WESTERGREEN - MANUAL
+ 
+Primeira hora                          
+47
+ 
+mm3/hora
+ 
+Valor de referência:
+Mulheres
+< 50 anos: 0 - 20 mm3/Hora
+ 
+Observações gerais:\tAMOSTRA NÃO COLETADA PELO LABORATÓRIO
+ 
+Exame assinado por Dra. Fulana - CRBM: 00000__________________________________________________
+ 
+Gasometria Arterial
+ 
+Material:
+Sangue total
+Coleta:
+20/09/2026 - 02:54:04
+Método:
+Oximetria
+ 
+PH
+7,210
+ 
+ 
+Valor de referência:
+7,38 ate 7,44
+ 
+PO2
+58,0
+ 
+mmHg
+ 
+Valor de referência:
+80,00 ate 100,00 mmHg
+ 
+PCO2                                    
+61,0
+ 
+mmHg
+ 
+Valor de referência:
+35,00 ate 40,00 mmHg
+ 
+Bicarbonato(HCO3)
+18,7
+ 
+mmol/L
+ 
+Valor de referência:
+22,00 ate 26,00 mmol/L
+ 
+Base Exces
+-8,4
+ 
+ 
+Valor de referência:
+-3,00 ate 3,00
+ 
+Saturação de O2
+88,0
+ 
+%
+ 
+Observação:
+O documento do CLSI C46-A recomenda o uso de seringas plasticas.
+ 
+Liberado por Dr. Fulano - CRBM 00000
+ 
+Dosagem sérica de Creatinina
+ 
+Material:
+Soro
+Coleta:
+20/09/2026 - 02:54:04
+Método:
+Cinético de dois pontos - QS
+ 
+Creatinina
+1,86
+mg/dL
+ 
+Valor de Referência:
+Adultos
+Feminino : 0,52 a 1,04 mg/dL
+ 
+1,31
+0,92
+1,86
+18/06/2615:16:11
+27/08/2614:46:13
+20/09/2602:54:04
+ 
+Observações gerais:\tAMOSTRA NÃO COLETADA PELO LABORATÓRIO
+ 
+Liberado por Dr. Fulano - CRBM 00000
+ 
+TFG - Taxa de Filtração Glomerular
+Método:
+TFG (Cálculo - RFG: CKD-EPI 2021)
+ 
+Resultado
+Superior a 90
+mL/min/1,73 m2
+ 
+Valor de Referência:
+Normal........................: >= 90 mL/min/1,73 m2
+ 
+Observações gerais:\tAMOSTRA NÃO COLETADA PELO LABORATÓRIO
+ 
+Potássio
+ 
+Material:
+Soro
+Coleta:
+20/09/2026 - 02:54:04
+Método:
+Potenciometria eletrodo ion-específico
+ 
+Resultado
+2,9
+ 
+mmol/L
+ 
+Valor de referência:
+3,5 ate 5,1 mmol/L
+ 
+Nota:
+ A pseudo-hiperpotassemia pode ser suspeitada quando nao houver causa aparente para concentracoes elevadas de potassio. Nestes casos, sugerimos nova coleta a criterio medico.
+ 
+5,3
+4,5
+2,9
+18/06/2615:16:11
+27/08/2614:46:13
+20/09/2602:54:04
+ 
+Observações gerais:\tAMOSTRA NÃO COLETADA PELO LABORATÓRIO
+ 
+Exame assinado por Dra. Fulana - CRBM: 00000__________________________________________________
+ 
+Proteína Total e Frações
+ 
+Material:
+Soro
+Coleta:
+20/09/2026 - 02:54:04
+Método:
+Colorimétrico - QS
+ 
+Proteínas
+5,4
+ 
+g/dL
+ 
+Valor de referência:
+Adultos        : 6,3 a 8,2 g/dL
+ 
+Albumina
+2,10
+ 
+g/dL
+ 
+Valor de referência:
+Adultos    : 3,5 a 5,0 g/dL
+ 
+Globulina
+3,3
+ 
+g/dL
+ 
+Valor de referência:
+2,0 ate 3,9 g/dL
+ 
+Relação Albumina/Globulina
+0,6
+ 
+ 
+Valor de referência:
+0,8 a 2,2
+ 
+Observações gerais:\tAMOSTRA NÃO COLETADA PELO LABORATÓRIO
+ 
+Exame assinado por Dra. Fulana - CRBM: 00000__________________________________________________
+ 
+Bilirrubinas
+ 
+Material:
+Soro
+Coleta:
+20/09/2026 - 02:54:04
+Método:
+Colorimétrico de ponto final - QS
+ 
+Bilirrubina Total
+4,80
+ 
+mg/dL
+ 
+Valor de referência:
+Adulto: 0,2 a  1,3 mg/dL
+ 
+Bilirrubina Direta
+3,60
+ 
+mg/dL
+ 
+Valor de referência:
+Adulto: 0,0 a 0,3 mg/dL
+ 
+Bilirrubina Indireta
+1,20
+ 
+mg/dL
+ 
+Valor de referência:
+Inferior ou igual a 0,80 mg/dL
+ 
+Observações gerais:\tAMOSTRA NÃO COLETADA PELO LABORATÓRIO
+ 
+Exame assinado por Dra. Fulana - CRBM: 00000
+`;
+
+/** O leucograma da AFIP: porcentagem e absoluto em Mil/mm3, uma coluna por linha. */
+const AFIP_DIFERENCIAL = `
+Coleta:
+14/08/2026 - 03:10:00
+Hemograma Completo
+Eritrograma
+Hemoglobina
+9,4
+ 
+g/dL
+ 12,0 - 15,0 g/dL
+Plaquetas
+96
+ 
+Mil/mm3
+    150 -  400 Mil/mm3
+ 
+Leucograma
+Valores Encontrados
+Valores de Referência
+ 
+(%)
+Mil/mm3
+(Mil/mm3)
+Leucócitos
+24,80
+ 
+  4,5 - 11,0
+ 
+ 
+Neutrófilos
+84,2
+ 
+20,88
+ 
+  1,8 - 7,70
+ 
+   Bastonetes
+11,0
+ 
+2,73
+ 
+    0 - 0,7
+ 
+   Segmentados
+73,2
+ 
+18,15
+ 
+  1,8 - 7,0
+ 
+Linfócitos típicos
+8,4
+ 
+2,08
+ 
+  1,0 - 3,8
+`;
+
+describe("laudos que rotulam o valor com o nome do exame", () => {
+  it("REGRESSÃO: bilirrubinas, proteínas e albumina não somem mais", () => {
+    // Nenhum destes traz a palavra "Resultado". Antes saíam calados da
+    // transcrição: a linha parecia completa e faltava o painel inteiro.
+    const saida = formatarLabs(AFIP_ROTULO_PROPRIO);
+    expect(saida).toContain("BT 4,80");
+    expect(saida).toContain("BD 3,60");
+    expect(saida).toContain("BI 1,20");
+    expect(saida).toContain("PTOT 5,4");
+    expect(saida).toContain("ALB 2,10");
+    expect(saida).toContain("GLOB 3,3");
+    expect(saida).toContain("A/G 0,6");
+  });
+
+  it("REGRESSÃO: o VHS é rotulado 'Primeira hora'", () => {
+    expect(formatarLabs(AFIP_ROTULO_PROPRIO)).toContain("VHS 47");
+  });
+
+  it("lê a gasometria arterial inteira, com o sinal do excesso de base", () => {
+    // Sem o sinal, "Base Exces -8,4" virava 8,4 e a acidose metabólica era
+    // transcrita como alcalose.
+    expect(formatarLabs(AFIP_ROTULO_PROPRIO)).toContain(
+      "GASART PH 7,210 PO2 58,0 PCO2 61,0 HCO3 18,7 BE -8,4 SAT 88,0",
+    );
+  });
+
+  it("REGRESSÃO: 'Superior a 90' vira '>90', não '90'", () => {
+    // TFG 90 é o piso do normal; TFG >90 é normal. São leituras diferentes.
+    const saida = formatarLabs(AFIP_ROTULO_PROPRIO);
+    expect(saida).toContain("TFG >90");
+    expect(saida).not.toMatch(/TFG 90\b/);
+  });
+
+  it("REGRESSÃO: a nota de rodapé não vira rótulo do gráfico", () => {
+    // "concentracoes elevadas de potassio" era lido como rótulo, e o valor
+    // vinha da série histórica logo abaixo: 5,3 no lugar de 2,9.
+    const saida = formatarLabs(AFIP_ROTULO_PROPRIO);
+    expect(saida).toContain("K 2,9");
+    expect(saida).not.toContain("5,3");
+  });
+
+  it("REGRESSÃO: o título da seção não encerra o bloco do próprio exame", () => {
+    // "Dosagem sérica de Creatinina" é seguida de "Creatinina / 1,86".
+    // Cortar no segundo "Creatinina" deixava o bloco sem valor nenhum.
+    expect(formatarLabs(AFIP_ROTULO_PROPRIO)).toContain("CR 1,86");
+  });
+
+  it("não confunde o gráfico histórico com o resultado", () => {
+    expect(formatarLabs(AFIP_ROTULO_PROPRIO)).not.toContain("CR 1,31");
+  });
+
+  it("diferencial em duas colunas sai absoluto com a porcentagem ao lado", () => {
+    const saida = formatarLabs(AFIP_DIFERENCIAL);
+    expect(saida).toContain("LEUC 24.800");
+    expect(saida).toContain("NEUT 20,88 (84,2%)");
+    expect(saida).toContain("BAST 2,73 (11,0%)");
+    expect(saida).not.toContain("SEM DESVIO");
+  });
+
+  it("não lê a faixa de referência como se fosse coluna", () => {
+    // Depois das duas colunas vem "1,8 - 7,70", que não é valor encontrado.
+    expect(formatarLabs(AFIP_DIFERENCIAL)).not.toContain("7,70");
+  });
+
+  it("REGRESSÃO: o pH da gasometria não vaza para a urina", () => {
+    const comUrina = `${AFIP_ROTULO_PROPRIO}
+Urina I
+Material:
+Urina (jato médio)
+pH
+6,5
+ 
+5,0 até 6,0
+Leucócitos
+9.000
+ 
+Até 20.000 /mL
+`;
+    const saida = formatarLabs(comUrina);
+    expect(saida).toContain("GASART PH 7,210");
+    expect(saida).toContain("UR1 PH 6,5");
+    expect(saida).not.toContain("UR1 PH 7,210");
+  });
+});
+
+/**
+ * Os exames acrescentados que não aparecem nos laudos que tenho em mãos.
+ * A forma é a mesma da página da AFIP; o que estes casos travam é que cada
+ * um lê o próprio bloco e não invade o do vizinho.
+ */
+const AFIP_NOVOS = `
+Coleta:
+02/10/2026 - 04:20:00
+Reticulócitos
+Material:
+Sangue total (EDTA)
+ 
+Resultado
+3,4
+ 
+%
+ 
+Observações gerais:\tnada
+ 
+Procalcitonina
+Material:
+Soro
+ 
+Resultado
+12,60
+ 
+ng/mL
+ 
+Observações gerais:\tnada
+ 
+Ácido Úrico
+Material:
+Soro
+ 
+Resultado
+9,1
+ 
+mg/dL
+ 
+Observações gerais:\tnada
+ 
+Cloretos
+Material:
+Soro
+ 
+Resultado
+112
+ 
+mmol/L
+ 
+Observações gerais:\tnada
+ 
+Cálcio Iônico
+Material:
+Soro
+ 
+Resultado
+0,92
+ 
+mmol/L
+ 
+Observações gerais:\tnada
+ 
+Cálcio Total
+Material:
+Soro
+ 
+Resultado
+7,4
+ 
+mg/dL
+ 
+Observações gerais:\tnada
+ 
+Fibrinogênio
+Material:
+Plasma citratado
+ 
+Resultado
+680
+ 
+mg/dL
+ 
+Observações gerais:\tnada
+ 
+D-Dímero
+Material:
+Plasma citratado
+ 
+Resultado
+4,80
+ 
+ug/mL
+ 
+Observações gerais:\tnada
+ 
+NT-proBNP
+Material:
+Soro
+ 
+Resultado
+3.210
+ 
+pg/mL
+ 
+Observações gerais:\tnada
+ 
+CK-MB
+Material:
+Soro
+ 
+Resultado
+18
+ 
+U/L
+ 
+Observações gerais:\tnada
+`;
+
+describe("exames acrescentados", () => {
+  it("lê cada um do seu próprio bloco", () => {
+    const saida = formatarLabs(AFIP_NOVOS);
+    expect(saida).toContain("RETIC 3,4");
+    expect(saida).toContain("PCT 12,60");
+    expect(saida).toContain("AU 9,1");
+    expect(saida).toContain("CL 112");
+    expect(saida).toContain("FIB 680");
+    expect(saida).toContain("DDIM 4,80");
+  });
+
+  it("cálcio total e cálcio iônico não trocam de valor", () => {
+    const saida = formatarLabs(AFIP_NOVOS);
+    expect(saida).toContain("CA 7,4");
+    expect(saida).toContain("CAI 0,92");
+  });
+
+  it("o NT-proBNP não é lido como BNP", () => {
+    const saida = formatarLabs(AFIP_NOVOS);
+    expect(saida).toContain("NTPROBNP 3.210");
+    expect(saida).not.toMatch(/\bBNP 3\.210/);
+  });
+
+  it("a CK total não herda o valor da CK-MB", () => {
+    // "\bCK\b" casa com o CK de "CK-MB" — o hífen fecha palavra.
+    const saida = formatarLabs(AFIP_NOVOS);
+    expect(saida).toContain("CKMB 18");
+    expect(saida).not.toContain("CK 18");
   });
 });
