@@ -124,7 +124,8 @@ export function daCategoria(slug: CategoriaSlug, lista = todos()): Snippet[] {
   const itens = lista.filter((s) => s.categoria === slug);
   if (!ALFABETICAS.has(slug)) return itens;
   // O que você criou entra na ordem junto com o resto: meia lista alfabética
-  // não é alfabética, e o ponto colorido ao lado do nome já diz o que é seu.
+  // não é alfabética. Procurar por nome é o gesto, e para isso o texto ser
+  // seu ou ter vindo do PS.py não muda nada.
   return itens.sort((a, b) => COLACAO.compare(a.nome, b.nome));
 }
 

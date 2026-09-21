@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import type { CategoriaSlug, Snippet } from "@/lib/types";
 import { copiar, normalizar } from "@/lib/clipboard";
-import { daCategoria, ehNovo } from "@/lib/repositorio";
+import { daCategoria } from "@/lib/repositorio";
 import { useTextos } from "@/hooks/useTextos";
 import { avisarCopia } from "./AvisoCopia";
 import { EditorTexto } from "./EditorTexto";
@@ -93,10 +93,7 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
                 onClick={() => void copiarItem(s)}
                 className="transicao flex min-w-0 flex-1 items-center justify-between gap-2 px-2.5 py-1.5 text-left hover:bg-panelHover"
               >
-                <span className="flex min-w-0 items-center gap-1.5">
-                  <Marca snippet={s} />
-                  <span className="truncate text-[11px] font-semibold text-ink">{s.nome}</span>
-                </span>
+                <span className="truncate text-[11px] font-semibold text-ink">{s.nome}</span>
                 <span className="tabular shrink-0 font-mono text-[11px] text-accent">
                   {s.texto}
                 </span>
@@ -127,9 +124,8 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
                   */}
                   <button
                     onClick={() => void copiarItem(s)}
-                    className="transicao flex min-w-0 flex-1 items-center gap-1.5 px-2.5 py-1.5 text-left hover:bg-panelHover"
+                    className="transicao flex min-w-0 flex-1 items-center px-2.5 py-1.5 text-left hover:bg-panelHover"
                   >
-                    <Marca snippet={s} />
                     <span className="truncate text-[12px] font-bold tracking-wide text-ink">
                       {s.nome}
                     </span>
@@ -164,35 +160,6 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
       )}
     </div>
   );
-}
-
-/**
- * Ponto que distingue texto seu (accent) de original editado (warn).
- * Lê do próprio snippet — `atualizadoEm` só existe no que você mexeu — e não
- * do localStorage, que durante a hidratação divergiria do HTML do servidor.
- */
-function Marca({ snippet }: { snippet: Snippet }) {
-  const { id, atualizadoEm } = snippet;
-
-  if (ehNovo(id)) {
-    return (
-      <span
-        title="Texto seu"
-        aria-label="Texto seu"
-        className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent"
-      />
-    );
-  }
-  if (atualizadoEm) {
-    return (
-      <span
-        title="Original editado por você"
-        aria-label="Original editado por você"
-        className="h-1.5 w-1.5 shrink-0 rounded-full bg-warn"
-      />
-    );
-  }
-  return null;
 }
 
 function BotaoEditar({ aoClicar, nome }: { aoClicar: () => void; nome: string }) {

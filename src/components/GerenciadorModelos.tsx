@@ -8,7 +8,6 @@ import {
   editarSadt,
   ehNovo,
   escondidos,
-  foiEditado,
   remover,
   restaurarBase,
   type ComId,
@@ -103,11 +102,8 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
                     className="transicao flex items-stretch overflow-hidden rounded-lg border border-edge bg-base"
                   >
                     <div className="min-w-0 flex-1 px-3 py-2">
-                      <span className="flex items-center gap-1.5">
-                        <Marca tipo={tipo} id={m.id} />
-                        <span className="truncate text-[12px] font-bold tracking-wide text-ink">
-                          {m.nome}
-                        </span>
+                      <span className="block truncate text-[12px] font-bold tracking-wide text-ink">
+                        {m.nome}
                       </span>
                       <span className="mt-0.5 block truncate text-[10px] text-inkDim">
                         {resumo(m)}
@@ -190,19 +186,6 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
       </div>
     </div>
   );
-}
-
-/** Ponto que distingue modelo seu (accent) de original editado (warn). */
-function Marca({ tipo, id }: { tipo: Tipo; id: string }) {
-  if (ehNovo(id)) {
-    return <span title="Modelo seu" className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />;
-  }
-  if (foiEditado(tipo, id)) {
-    return (
-      <span title="Original editado por você" className="h-1.5 w-1.5 shrink-0 rounded-full bg-warn" />
-    );
-  }
-  return null;
 }
 
 function resumo(m: ModeloApac | ModeloSadt): string {
