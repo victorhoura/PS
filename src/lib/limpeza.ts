@@ -49,7 +49,12 @@ function comoJson<T>(bruto: string | null): T | null {
   }
 }
 
-/** Apaga tudo que o app já gravou nesta máquina, inclusive chaves antigas. */
+/**
+ * Apaga o que o app guardou nesta máquina, inclusive chaves de versões
+ * antigas. Fica de fora, de propósito, o cookie de uma palavra com o tema
+ * (ver `tema.ts`): ele é o que impede a tela de senha de voltar ao escuro a
+ * cada bloqueio, e não carrega nada além de "claro" ou "escuro".
+ */
 export function apagarTudoDaMaquina(): void {
   try {
     const alvos: string[] = [];
