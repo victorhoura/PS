@@ -9,13 +9,6 @@ const FERRAMENTAS = [
   { href: "/apps/contador", nome: "CONTADOR", nota: "contagem de atendimentos do plantão" },
 ];
 
-/** Escores que ainda estão no PS.py e entram na próxima leva. */
-const PENDENTES = [
-  "NIHSS", "CINCINNATI", "SOFA", "WELLS (TEP)", "HINCHEY", "ATLANTA",
-  "TOKYO (TG18)", "COLANGITE (CHARCOT/REYNOLDS)", "HIPONATREMIA", "HIPERNATREMIA",
-  "HIPOCALEMIA", "HIPERCALEMIA", "PROTOCOLO DE CEFALEIA", "CLASSIFICAÇÃO DE CEFALEIA",
-];
-
 export default function Apps() {
   return (
     <div className="p-4 lg:p-6">
@@ -55,22 +48,13 @@ export default function Apps() {
 
       <section>
         <h2 className="mb-2 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">
-          AINDA NÃO PORTADOS
+          CONFIRA ANTES DE CONFIAR
         </h2>
-        <p className="mb-3 max-w-2xl text-[11px] leading-relaxed text-inkDim">
-          Continuam funcionando no programa em Python. Entram na próxima leva, depois que você
-          testar os de cima num plantão real.
+        <p className="max-w-2xl text-[11px] leading-relaxed text-inkDim">
+          Todos os escores do PS.py já estão aqui. O que era cálculo virou cálculo, o que era
+          conduta virou texto — mas o valor que sai não substitui o seu julgamento, e vale
+          conferir cada um contra o programa antigo antes de usar no plantão.
         </p>
-        <div className="flex flex-wrap gap-1.5">
-          {PENDENTES.map((p) => (
-            <span
-              key={p}
-              className="rounded border border-edge/60 px-2 py-1 font-mono text-[10px] text-inkDim/70"
-            >
-              {p}
-            </span>
-          ))}
-        </div>
       </section>
     </div>
   );

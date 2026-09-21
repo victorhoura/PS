@@ -444,3 +444,265 @@ describe("CHARCOT / REYNOLDS", () => {
     expect(laudo).toContain("NÃO FECHA A TRÍADE COMPLETA");
   });
 });
+
+describe("HIPONATREMIA", () => {
+  const hipo = pegar("hiponatremia");
+
+  it("REGRESSÃO: sem os campos, pede os dados em vez de calcular com zero", () => {
+    // Volume zero num laudo é prescrição errada com cara de resultado.
+    const { resumo, laudo } = responder(hipo, {});
+    expect(resumo).toContain("PREENCHA");
+    expect(laudo).toContain("PREENCHA PESO, SÓDIO ATUAL E SÓDIO DESEJADO");
+    expect(laudo).not.toContain("0 ML DE NACL");
+  });
+
+  it("calcula déficit e volume conferidos na mão", () => {
+    // Homem 70 kg -> ACT 42 L. De 120 para 130: delta 10, déficit 420 mEq.
+    // Total = 420/513*1000 = 819 mL. Seguro (delta 8) = 336/513*1000 = 655 mL.
+    const { laudo } = responder(hipo, {}, { peso: 70, na: 120, alvo: 130 });
+    expect(laudo).toContain("DÉFICIT DE NA+ = 420 MEQ");
+    expect(laudo).toContain("819 ML DE NACL 3%");
+    expect(laudo).toContain("UTILIZAREMOS 655 ML");
+    expect(laudo).toContain("27 ML/H");
+  });
+
+  it("o fator de água corporal muda com o sexo", () => {
+    // Mulher 70 kg -> ACT 35 L, déficit 350 em vez de 420.
+    const { laudo } = responder(hipo, { sexo: 1 }, { peso: 70, na: 120, alvo: 130 });
+    expect(laudo).toContain("DÉFICIT DE NA+ = 350 MEQ");
+  });
+
+  it("REGRESSÃO: o volume infundido nunca passa dos 8 mEq/L em 24h", () => {
+    // Alvo pedindo 20 de subida: o volume seguro continua o de 8.
+    const { laudo } = responder(hipo, {}, { peso: 70, na: 115, alvo: 135 });
+    expect(laudo).toContain("UTILIZAREMOS 655 ML");
+    expect(laudo).toContain("SUPERA 8 MEQ/L EM 24H");
+  });
+
+  it("alvo abaixo do sódio atual não vira volume negativo", () => {
+    const { laudo } = responder(hipo, {}, { peso: 70, na: 130, alvo: 125 });
+    expect(laudo).toContain("DÉFICIT DE NA+ = 0 MEQ");
+    expect(laudo).not.toContain("-");
+  });
+});
+
+describe("HIPERNATREMIA", () => {
+  const hiper = pegar("hipernatremia");
+
+  it("não calcula sem peso e sódio", () => {
+    expect(responder(hiper, {}).laudo).toContain("PREENCHA PESO E SÓDIO SÉRICO");
+  });
+
+  it("REGRESSÃO: sódio ≤ 145 diz que não há o que corrigir", () => {
+    const { resumo, laudo } = responder(hiper, {}, { peso: 70, na: 142 });
+    expect(resumo).toContain("NÃO HÁ HIPERNATREMIA");
+    expect(laudo).toContain("NÃO HÁ HIPERNATREMIA PARA CORRIGIR");
+    expect(laudo).not.toContain("ML/H");
+  });
+
+  it("aplica Adrogué–Madias, conferido na mão", () => {
+    // Homem 70 kg -> ACT 42. Na 160, reduzir 8.
+    // Água livre: 8*(42+1)/160 = 2,15 L. Salina 0,45%: 344/83 = 4,15 L.
+    const { laudo } = responder(hiper, {}, { peso: 70, na: 160 });
+    expect(laudo).toContain("ÁGUA LIVRE = 2.150 ML");
+    expect(laudo).toContain("SOLUÇÃO SALINA 0,45% = 4.145 ML");
+    expect(laudo).toContain("SOLUÇÃO SALINA 0,225% = 2.831 ML");
+    expect(laudo).toContain("REDUZIR ATÉ 8,0 MEQ/L EM 24H");
+  });
+
+  it("não reduz abaixo de 145 mesmo quando 8 caberiam", () => {
+    // Na 150: só há 5 de margem até 145, não 8.
+    const { laudo } = responder(hiper, {}, { peso: 70, na: 150 });
+    expect(laudo).toContain("REDUZIR ATÉ 5,0 MEQ/L EM 24H");
+  });
+});
+
+describe("HIPOCALEMIA", () => {
+  const hipo = pegar("hipocalemia");
+
+  it("não classifica sem o potássio", () => {
+    expect(responder(hipo, {}).laudo).toContain("PREENCHA O POTÁSSIO");
+  });
+
+  it("classifica pelas faixas", () => {
+    expect(responder(hipo, {}, { k: 3.8 }).resumo).toContain("NORMAL");
+    expect(responder(hipo, {}, { k: 3.2 }).resumo).toContain("LEVE");
+    expect(responder(hipo, {}, { k: 2.7 }).resumo).toContain("MODERADA");
+    expect(responder(hipo, {}, { k: 2.2 }).resumo).toContain("GRAVE");
+  });
+
+  it("REGRESSÃO: ECG alterado ou sintoma joga para GRAVE em qualquer K", () => {
+    // Um K de 3,3 com arritmia não é hipocalemia leve.
+    expect(responder(hipo, { ecg: 1 }, { k: 3.3 }).resumo).toContain("GRAVE");
+    expect(responder(hipo, { sintomas: 1 }, { k: 3.3 }).resumo).toContain("GRAVE");
+    expect(responder(hipo, { ecg: 1 }, { k: 3.3 }).laudo).toContain("NUNCA EM BÓLUS");
+  });
+
+  it("via oral impossível troca a rota nas classes que a assumem", () => {
+    const { laudo } = responder(hipo, { semVo: 1 }, { k: 3.2 });
+    expect(laudo).toContain("USAR A ROTA EV DESTA MESMA CLASSE");
+  });
+});
+
+describe("HIPERCALEMIA", () => {
+  const hiper = pegar("hipercalemia");
+
+  it("não decide sem o potássio", () => {
+    expect(responder(hiper, {}).laudo).toContain("PREENCHA O POTÁSSIO");
+  });
+
+  it("REGRESSÃO: ECG alterado é grave mesmo com K baixo para a faixa", () => {
+    const comEcg = responder(hiper, { ecg: 1 }, { k: 5.8 });
+    expect(comEcg.resumo).toContain("GRAVE");
+    expect(comEcg.laudo).toContain("CÁLCIO GLUCONATO");
+
+    const semEcg = responder(hiper, {}, { k: 5.8 });
+    expect(semEcg.resumo).toContain("SEM GRAVIDADE IMEDIATA");
+    expect(semEcg.laudo).not.toContain("CÁLCIO GLUCONATO");
+  });
+
+  it("K ≥ 6,5 é grave mesmo sem ECG alterado", () => {
+    const { resumo, laudo } = responder(hiper, {}, { k: 6.6 });
+    expect(resumo).toContain("GRAVE");
+    expect(laudo).toContain("PROTEGER MEMBRANA");
+  });
+
+  it("o shift sai sempre; bicarbonato só com acidose marcada", () => {
+    const sem = responder(hiper, {}, { k: 5.8 });
+    expect(sem.laudo).toContain("SOLUÇÃO POLARIZANTE");
+    expect(sem.laudo).not.toContain("BICARBONATO");
+
+    const com = responder(hiper, { acidose: 1 }, { k: 5.8 });
+    expect(com.laudo).toContain("BICARBONATO DE SÓDIO");
+  });
+
+  it("diálise entra por doença renal ou por gravidade", () => {
+    expect(responder(hiper, { renal: 1 }, { k: 5.5 }).laudo).toContain("HEMODIÁLISE");
+    expect(responder(hiper, {}, { k: 7.0 }).laudo).toContain("HEMODIÁLISE");
+    expect(responder(hiper, {}, { k: 5.5 }).laudo).not.toContain("HEMODIÁLISE");
+  });
+
+  it("peso é opcional e só aparece quando informado", () => {
+    expect(responder(hiper, {}, { k: 5.5 }).laudo).not.toContain("PESO:");
+    expect(responder(hiper, {}, { k: 5.5, peso: 80 }).laudo).toContain("PESO: 80,0 KG");
+  });
+});
+
+describe("PROTOCOLO DE CEFALEIA", () => {
+  const prot = pegar("protocolo-cefaleia");
+
+  it("sem red flag, trata como primária do tipo escolhido", () => {
+    const { resumo, laudo } = responder(prot, {});
+    expect(resumo).toContain("PRIMÁRIA PROVÁVEL");
+    expect(laudo).toContain("NENHUMA RED FLAG MARCADA");
+    expect(laudo).toContain("METOCLOPRAMIDA");
+  });
+
+  it("cada tipo primário tem a própria conduta", () => {
+    expect(responder(prot, { tipo: 1 }).laudo).toContain("CEFALEIA POR ABUSO");
+    expect(responder(prot, { tipo: 2 }).laudo).toContain("OXIGÊNIO 100%");
+    expect(responder(prot, { tipo: 3 }).laudo).toContain("REAVALIAÇÃO SERIADA");
+  });
+
+  it("REGRESSÃO: uma red flag apaga a conduta primária", () => {
+    // Tratar enxaqueca num paciente com cefaleia em trovão é perder a
+    // hemorragia. O ramo secundário não pode imprimir o tratamento primário.
+    const { resumo, laudo } = responder(prot, { tipo: 0, rf_trovao: 1 });
+    expect(resumo).toContain("SUSPEITA DE SECUNDÁRIA");
+    expect(laudo).toContain("SUSPEITA DE CEFALEIA SECUNDÁRIA");
+    expect(laudo).not.toContain("METOCLOPRAMIDA");
+    expect(laudo).toContain("NEUROIMAGEM");
+  });
+
+  it("Ottawa sozinho, sem red flag, já muda o status", () => {
+    const { resumo, laudo } = responder(prot, { ot_esforco: 1 });
+    expect(resumo).toContain("OTTAWA+");
+    expect(laudo).toContain("OTTAWA SAH POSITIVO");
+    expect(laudo).toContain("INVESTIGAR HSA");
+  });
+
+  it("o laudo nomeia as red flags marcadas, não só o total", () => {
+    const { laudo, resumo } = responder(prot, { rf_febre: 1, rf_gestacao: 1 });
+    expect(resumo).toContain("2 RED FLAGS");
+    expect(laudo).toContain("FEBRE / RIGIDEZ DE NUCA");
+    expect(laudo).toContain("GESTAÇÃO / PUERPÉRIO");
+    expect(laudo).toContain("OTTAWA SAH: NENHUM CRITÉRIO MARCADO");
+  });
+});
+
+describe("CLASSIFICAÇÃO DE CEFALEIA (ICHD-3)", () => {
+  const ichd = pegar("cefaleia-ichd");
+
+  it("sem nada marcado, nenhum conjunto fecha", () => {
+    const { resumo, laudo } = responder(ichd, {});
+    expect(resumo).toContain("NENHUM CONJUNTO");
+    expect(laudo).toContain("FALTA A DURAÇÃO DE 4–72H");
+  });
+
+  it("REGRESSÃO: diz O QUE falta, e não só que não preenche", () => {
+    // "Não é enxaqueca" e "falta perguntar sobre náusea" são coisas
+    // diferentes para quem está com o paciente na frente.
+    const { laudo } = responder(ichd, {
+      dur_migranea: 1, m_unilateral: 1, m_pulsatil: 1,
+    });
+    expect(laudo).toContain("FALTA NÁUSEA/VÔMITO OU FOTOFOBIA + FONOFOBIA");
+  });
+
+  it("migrânea fecha com duração + 2 características + náusea", () => {
+    const { resumo } = responder(ichd, {
+      dur_migranea: 1, m_unilateral: 1, m_pulsatil: 1, m_nausea: 1,
+    });
+    expect(resumo).toBe("TIPO PROVÁVEL: MIGRÂNEA (ICHD-3)");
+  });
+
+  it("foto + fono substituem a náusea na migrânea", () => {
+    const { resumo } = responder(ichd, {
+      dur_migranea: 1, m_unilateral: 1, m_pulsatil: 1, m_foto: 1, m_fono: 1,
+    });
+    expect(resumo).toContain("MIGRÂNEA");
+  });
+
+  it("uma característica só não basta", () => {
+    const { laudo } = responder(ichd, { dur_migranea: 1, m_unilateral: 1, m_nausea: 1 });
+    expect(laudo).toContain("FALTAM ≥2 CARACTERÍSTICAS");
+  });
+
+  it("REGRESSÃO: foto e fono juntas impedem a tensional", () => {
+    const base = { dur_tensional: 1, t_bilateral: 1, t_aperto: 1, t_sem_nausea: 1 };
+    expect(responder(ichd, base).resumo).toContain("TENSIONAL");
+
+    const comAmbas = responder(ichd, { ...base, t_foto: 1, t_fono: 1 });
+    expect(comAmbas.laudo).toContain("FOTOFOBIA E FONOFOBIA JUNTAS NÃO FECHAM TENSIONAL");
+
+    // Uma só continua fechando.
+    expect(responder(ichd, { ...base, t_foto: 1 }).resumo).toContain("TENSIONAL");
+  });
+
+  it("tensional exige a confirmação explícita de ausência de náusea", () => {
+    const { laudo } = responder(ichd, { dur_tensional: 1, t_bilateral: 1, t_aperto: 1 });
+    expect(laudo).toContain("FALTA CONFIRMAR AUSÊNCIA DE NÁUSEA");
+  });
+
+  it("salvas precisa de localização, intensidade e um autonômico", () => {
+    const semAuto = responder(ichd, { dur_salvas: 1, c_local: 1, c_severa: 1 });
+    expect(semAuto.laudo).toContain("FALTAM SINAIS AUTONÔMICOS");
+
+    const comAuto = responder(ichd, { dur_salvas: 1, c_local: 1, c_severa: 1, c_miose: 1 });
+    expect(comAuto.resumo).toContain("SALVAS/CLUSTER");
+
+    // Agitação substitui o autonômico.
+    const comAgitacao = responder(ichd, {
+      dur_salvas: 1, c_local: 1, c_severa: 1, c_agitacao: 1,
+    });
+    expect(comAgitacao.resumo).toContain("SALVAS/CLUSTER");
+  });
+
+  it("mais de um conjunto fechando é sinalizado, não escondido", () => {
+    const { resumo, laudo } = responder(ichd, {
+      dur_migranea: 1, m_unilateral: 1, m_pulsatil: 1, m_nausea: 1,
+      dur_salvas: 1, c_local: 1, c_severa: 1, c_miose: 1,
+    });
+    expect(resumo).toContain("MAIS DE UM CONJUNTO");
+    expect(laudo).toContain("REVISAR OS CRITÉRIOS");
+  });
+});

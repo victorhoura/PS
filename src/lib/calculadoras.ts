@@ -8,11 +8,18 @@
  */
 
 import type { Calculadora, Resposta, Valores } from "./escores/tipos";
-import { GLASGOW, NIHSS, CINCINNATI } from "./escores/neurologia";
+import {
+  CEFALEIA_ICHD,
+  CINCINNATI,
+  GLASGOW,
+  NIHSS,
+  PROTOCOLO_CEFALEIA,
+} from "./escores/neurologia";
 import { CURB65, QSOFA, WELLS_TVP, WELLS_TEP } from "./escores/torax";
 import { ALVARADO, ATLANTA, HINCHEY } from "./escores/abdome";
 import { SOFA } from "./escores/sofa";
 import { CHARCOT, TOKYO_COLANGITE, TOKYO_COLECISTITE } from "./escores/vias-biliares";
+import { HIPERCALEMIA, HIPERNATREMIA, HIPOCALEMIA, HIPONATREMIA } from "./escores/eletrolitos";
 
 export type { Calculadora, Campo, Criterio, Grupo, Resposta, Valores } from "./escores/tipos";
 
@@ -20,12 +27,18 @@ export type { Calculadora, Campo, Criterio, Grupo, Resposta, Valores } from "./e
 export const CALCULADORAS: Calculadora[] = [
   ALVARADO,
   ATLANTA,
+  CEFALEIA_ICHD,
   CHARCOT,
   CINCINNATI,
   CURB65,
   GLASGOW,
   HINCHEY,
+  HIPERCALEMIA,
+  HIPERNATREMIA,
+  HIPOCALEMIA,
+  HIPONATREMIA,
   NIHSS,
+  PROTOCOLO_CEFALEIA,
   QSOFA,
   SOFA,
   TOKYO_COLANGITE,
