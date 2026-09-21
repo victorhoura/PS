@@ -15,7 +15,7 @@ export default function FormatadorLabs() {
   }
 
   return (
-    <div className="flex h-full flex-col p-4 lg:p-6">
+    <div className="flex h-full flex-col p-3 lg:p-4">
       <header className="mb-4">
         <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">FORMATADOR DE EXAMES</h1>
         <p className="mt-0.5 text-[11px] text-inkDim">
@@ -55,13 +55,13 @@ export default function FormatadorLabs() {
             <button
               onClick={() => void copiarSaida()}
               disabled={!saida}
-              className="transicao flex-1 rounded-lg bg-accent px-4 py-2.5 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-30"
+              className="transicao flex-1 rounded-lg bg-accent px-4 py-2 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-30"
             >
               COPIAR
             </button>
             <button
               onClick={() => setBruto("")}
-              className="transicao rounded-lg border border-edge bg-panel px-4 py-2.5 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+              className="transicao rounded-lg border border-edge bg-panel px-4 py-2 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
             >
               LIMPAR
             </button>

@@ -41,7 +41,7 @@ export default function Contador() {
     <div className="flex h-full flex-col items-center justify-center p-6">
       <h1 className="mb-6 font-mono text-base font-bold tracking-[0.16em] text-ink">CONTADOR</h1>
 
-      <output className="mb-8 font-mono text-7xl font-bold tabular text-accent">{n}</output>
+      <output className="mb-6 font-mono text-7xl font-bold tabular text-accent">{n}</output>
 
       <div className="flex gap-3">
         <button

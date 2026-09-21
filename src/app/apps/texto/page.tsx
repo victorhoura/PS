@@ -39,7 +39,7 @@ export default function ConversorLetras() {
   }, [entrada, modo]);
 
   return (
-    <div className="flex h-full flex-col p-4 lg:p-6">
+    <div className="flex h-full flex-col p-3 lg:p-4">
       <header className="mb-4">
         <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">CONVERSOR DE LETRAS</h1>
       </header>
@@ -77,13 +77,13 @@ export default function ConversorLetras() {
             <button
               onClick={async () => avisarCopia("TEXTO", await copiar(saida))}
               disabled={!saida}
-              className="transicao flex-1 rounded-lg bg-accent px-4 py-2.5 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110 disabled:opacity-30"
+              className="transicao flex-1 rounded-lg bg-accent px-4 py-2 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110 disabled:opacity-30"
             >
               COPIAR
             </button>
             <button
               onClick={() => setEntrada("")}
-              className="transicao rounded-lg border border-edge bg-panel px-4 py-2.5 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+              className="transicao rounded-lg border border-edge bg-panel px-4 py-2 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
             >
               LIMPAR
             </button>

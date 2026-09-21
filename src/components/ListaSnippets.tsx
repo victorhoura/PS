@@ -45,7 +45,7 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
   const curto = itens.length > 0 && itens.every((i) => i.texto.length <= 12);
 
   return (
-    <div className="p-4 lg:p-6">
+    <div className="p-3 lg:p-4">
       <header className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">{titulo}</h1>
         <span className="tabular font-mono text-[11px] text-inkDim">
@@ -64,12 +64,12 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
             placeholder="Filtrar nesta categoria…"
             aria-label={`Filtrar ${titulo}`}
             autoFocus
-            className="h-9 w-full rounded-lg border border-edge bg-panel pl-9 pr-3 text-[13px] text-ink outline-none transition-colors placeholder:text-inkDim/60 focus:border-accent"
+            className="h-8 w-full rounded-lg border border-edge bg-panel pl-9 pr-3 text-[13px] text-ink outline-none transition-colors placeholder:text-inkDim/60 focus:border-accent"
           />
         </div>
         <button
           onClick={() => setEditor("novo")}
-          className="transicao flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-[11px] font-bold tracking-wide text-accentInk hover:brightness-110"
+          className="transicao flex h-8 shrink-0 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-[11px] font-bold tracking-wide text-accentInk hover:brightness-110"
         >
           <IconeMais tamanho={14} />
           NOVO
@@ -83,7 +83,7 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
       )}
 
       {curto ? (
-        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {filtrados.map((s) => (
             <div
               key={s.id}
@@ -91,7 +91,7 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
             >
               <button
                 onClick={() => void copiarItem(s)}
-                className="transicao flex min-w-0 flex-1 items-center justify-between gap-2 px-3 py-2 text-left hover:bg-panelHover"
+                className="transicao flex min-w-0 flex-1 items-center justify-between gap-2 px-2.5 py-1.5 text-left hover:bg-panelHover"
               >
                 <span className="flex min-w-0 items-center gap-1.5">
                   <Marca snippet={s} />
@@ -106,7 +106,7 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
           ))}
         </div>
       ) : (
-        <ul className="space-y-1.5">
+        <ul className="space-y-1">
           {filtrados.map((s) => {
             const expandido = aberto === s.id;
             return (
@@ -117,34 +117,35 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
                 }`}
               >
                 <div className="flex items-stretch">
+                  {/*
+                    Só o nome, sem prévia do texto. A prévia custava uma
+                    segunda linha em CADA item — numa categoria de 110
+                    fármacos, isso é o dobro da lista para ler — e nunca
+                    chegava à parte que importa: "REFERE DISFAGIA E FEBRE. NO
+                    MOMENTO NEGA…" é o mesmo começo em quase todas as
+                    anamneses. Quem quer o texto abre na seta.
+                  */}
                   <button
                     onClick={() => void copiarItem(s)}
-                    className="transicao min-w-0 flex-1 px-3 py-2.5 text-left hover:bg-panelHover"
+                    className="transicao flex min-w-0 flex-1 items-center gap-1.5 px-2.5 py-1.5 text-left hover:bg-panelHover"
                   >
-                    <span className="flex items-center gap-1.5">
-                      <Marca snippet={s} />
-                      <span className="text-[12px] font-bold tracking-wide text-ink">
-                        {s.nome}
-                      </span>
+                    <Marca snippet={s} />
+                    <span className="truncate text-[12px] font-bold tracking-wide text-ink">
+                      {s.nome}
                     </span>
-                    {!expandido && (
-                      <span className="mt-0.5 block truncate text-[11px] text-inkDim">
-                        {s.texto.replace(/\s+/g, " ").slice(0, 120)}
-                      </span>
-                    )}
                   </button>
                   <BotaoEditar aoClicar={() => setEditor(s)} nome={s.nome} />
                   <button
                     onClick={() => setAberto(expandido ? null : s.id)}
                     aria-expanded={expandido}
                     aria-label={expandido ? `Recolher ${s.nome}` : `Ver texto de ${s.nome}`}
-                    className="transicao flex w-10 shrink-0 items-center justify-center border-l border-edge text-inkDim hover:bg-panelHover hover:text-ink"
+                    className="transicao flex w-7 shrink-0 items-center justify-center border-l border-edge text-inkDim hover:bg-panelHover hover:text-ink"
                   >
-                    <IconeSeta aberto={expandido} tamanho={14} />
+                    <IconeSeta aberto={expandido} tamanho={12} />
                   </button>
                 </div>
                 {expandido && (
-                  <pre className="max-h-80 overflow-auto whitespace-pre-wrap border-t border-edge bg-base px-3 py-2.5 font-mono text-[11px] leading-relaxed text-inkDim">
+                  <pre className="max-h-80 overflow-auto whitespace-pre-wrap border-t border-edge bg-base px-2.5 py-2 font-mono text-[11px] leading-relaxed text-inkDim">
                     {s.texto}
                   </pre>
                 )}
@@ -200,9 +201,9 @@ function BotaoEditar({ aoClicar, nome }: { aoClicar: () => void; nome: string })
       onClick={aoClicar}
       aria-label={`Editar ${nome}`}
       title={`Editar ${nome}`}
-      className="transicao flex w-10 shrink-0 items-center justify-center border-l border-edge text-inkDim hover:bg-panelHover hover:text-accent"
+      className="transicao flex w-7 shrink-0 items-center justify-center border-l border-edge text-inkDim hover:bg-panelHover hover:text-accent"
     >
-      <IconeEditar tamanho={14} />
+      <IconeEditar tamanho={12} />
     </button>
   );
 }

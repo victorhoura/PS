@@ -101,7 +101,7 @@ export function EditorTexto({
         aria-label={criando ? "Criar texto" : "Editar texto"}
         className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-edge bg-panel shadow-painel"
       >
-        <header className="flex items-center justify-between border-b border-edge px-4 py-2.5">
+        <header className="flex items-center justify-between border-b border-edge px-4 py-2">
           <h2 className="font-mono text-[11px] font-bold tracking-widest text-ink">
             {criando ? "NOVO TEXTO" : "EDITAR TEXTO"}
           </h2>

@@ -50,10 +50,18 @@ export function Campo({
   autoFocus?: boolean;
 }) {
   return (
-    <div className={COLUNAS[largura]}>
+    /*
+     * Coluna flex com o campo empurrado para o fim.
+     *
+     * Rótulo de coluna estreita quebra em duas linhas — "CID PRINCIPAL" numa
+     * coluna de um sexto —, e num empilhamento simples isso descia só aquele
+     * campo, deixando a linha desalinhada. Aqui os campos terminam na mesma
+     * altura, quebre o rótulo ou não.
+     */
+    <div className={`flex h-full flex-col ${COLUNAS[largura]}`}>
       <label
         htmlFor={id}
-        className="mb-1 block font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim"
+        className="mb-1 block font-mono text-[9px] font-bold uppercase leading-tight tracking-[0.14em] text-inkDim"
       >
         {rotulo}
         {dica && (
@@ -71,7 +79,7 @@ export function Campo({
         autoComplete="off"
         spellCheck={false}
         aria-invalid={Boolean(erro)}
-        className={`h-9 w-full rounded-lg border bg-panel px-3 text-[12px] text-ink outline-none transition-colors ${
+        className={`mt-auto h-8 w-full rounded-lg border bg-panel px-3 text-[12px] text-ink outline-none transition-colors ${
           erro ? "border-danger" : "border-edge focus:border-accent"
         }`}
       />
@@ -131,7 +139,7 @@ export function Opcoes<T extends string>({
               type="button"
               aria-pressed={escolhido}
               onClick={() => aoMudar(escolhido ? "" : o.valor)}
-              className={`transicao h-9 flex-1 rounded-lg border px-3 text-[11px] font-bold tracking-wide ${
+              className={`transicao h-8 flex-1 rounded-lg border px-3 text-[11px] font-bold tracking-wide ${
                 escolhido
                   ? "border-accent bg-accent/15 text-accent"
                   : "border-edge bg-panel text-inkDim hover:bg-panelHover hover:text-ink"

@@ -64,13 +64,14 @@ export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada
       </div>
 
       <div className="w-full max-w-[17rem]">
-        <div className="mb-7 flex flex-col items-center">
-          <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-edge bg-panel text-accent">
+        <div className="mb-4 flex flex-col items-center">
+          <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl border border-edge bg-panel text-accent">
             <IconeCadeado tamanho={20} />
           </div>
           <div className="flex items-center gap-2.5">
             <Logo tamanho={24} />
-            <h1 className="font-mono text-lg font-bold tracking-[0.2em] text-accent">PS JAPA</h1>
+            {/* "Pronto socorro" está logo abaixo: o "PS" seria a mesma coisa duas vezes. */}
+            <h1 className="font-mono text-lg font-bold tracking-[0.24em] text-accent">JAPA</h1>
           </div>
           <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-inkDim">
             Pronto socorro
@@ -125,7 +126,7 @@ export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada
             <button
               type="submit"
               disabled={enviando || !senha}
-              className="transicao mt-3 w-full rounded-lg bg-accent px-4 py-2.5 text-[12px] font-bold tracking-[0.12em] text-accentInk hover:brightness-110 disabled:opacity-40"
+              className="transicao mt-3 w-full rounded-lg bg-accent px-4 py-2 text-[12px] font-bold tracking-[0.12em] text-accentInk hover:brightness-110 disabled:opacity-40"
             >
               {enviando ? "…" : "ENTRAR"}
             </button>

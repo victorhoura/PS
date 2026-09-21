@@ -18,11 +18,11 @@ export default function Home() {
   const totais = contagens(textos);
 
   return (
-    <div className="p-4 lg:p-8">
-      <header className="mb-8">
+    <div className="p-3 lg:p-4">
+      <header className="mb-6">
         <div className="flex items-center gap-3">
           <Logo tamanho={30} className="shrink-0" />
-          <h1 className="font-mono text-xl font-bold tracking-[0.16em] text-ink">PS JAPA</h1>
+          <h1 className="font-mono text-xl font-bold tracking-[0.2em] text-ink">JAPA</h1>
         </div>
         <p className="mt-1 text-xs text-inkDim">
           {textos.length} textos · {CALCULADORAS.length} escores · {FERRAMENTAS.length} ferramentas
@@ -36,7 +36,7 @@ export default function Home() {
         </p>
       </header>
 
-      <section className="mb-8">
+      <section className="mb-6">
         <h2 className="mb-3 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">TEXTOS</h2>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {CATEGORIAS.map((c) => (
@@ -54,7 +54,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-6">
         <h2 className="mb-3 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">ESCORES</h2>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {CALCULADORAS.map((c) => (

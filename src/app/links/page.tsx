@@ -13,7 +13,7 @@ const CONSULTA = [
 
 function Grupo({ titulo, itens }: { titulo: string; itens: { nome: string; url: string }[] }) {
   return (
-    <section className="mb-8">
+    <section className="mb-6">
       <h2 className="mb-3 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">{titulo}</h2>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {itens.map((l) => (
@@ -37,7 +37,7 @@ function Grupo({ titulo, itens }: { titulo: string; itens: { nome: string; url: 
 
 export default function Links() {
   return (
-    <div className="p-4 lg:p-6">
+    <div className="p-3 lg:p-4">
       <h1 className="mb-6 font-mono text-base font-bold tracking-[0.16em] text-ink">LINKS</h1>
 
       <Grupo titulo="SISTEMAS DO HOSPITAL" itens={SISTEMA} />

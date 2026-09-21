@@ -258,7 +258,7 @@ export default function GeradorSadt() {
   }, [campos.procedimentos]);
 
   return (
-    <div className="p-4 lg:p-6">
+    <div className="p-3 lg:p-4">
       <header className="mb-4">
         <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">GERADOR DE SADT</h1>
         <p className="mt-0.5 text-[11px] text-inkDim">
@@ -281,7 +281,7 @@ export default function GeradorSadt() {
                 aria-label="Modelo pronto"
                 value=""
                 onChange={(e) => aplicarModelo(e.target.value)}
-                className="h-9 min-w-0 flex-1 rounded-lg border border-edge bg-panel px-2 text-[12px] text-ink outline-none focus:border-accent"
+                className="h-8 min-w-0 flex-1 rounded-lg border border-edge bg-panel px-2 text-[12px] text-ink outline-none focus:border-accent"
               >
                 <option value="">
                   {modelos.length
@@ -458,14 +458,14 @@ export default function GeradorSadt() {
             <button
               type="submit"
               disabled={gerando}
-              className="transicao flex-1 rounded-lg bg-accent px-4 py-2.5 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110 disabled:opacity-40"
+              className="transicao flex-1 rounded-lg bg-accent px-4 py-2 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110 disabled:opacity-40"
             >
               {gerando ? "GERANDO…" : "GERAR SADT"}
             </button>
             <button
               type="button"
               onClick={limpar}
-              className="transicao rounded-lg border border-edge bg-panel px-4 py-2.5 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+              className="transicao rounded-lg border border-edge bg-panel px-4 py-2 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
             >
               LIMPAR
             </button>
@@ -500,13 +500,13 @@ export default function GeradorSadt() {
               <div className="mt-2 flex gap-2">
                 <button
                   onClick={imprimir}
-                  className="transicao flex-1 rounded-lg bg-accent px-4 py-2.5 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110"
+                  className="transicao flex-1 rounded-lg bg-accent px-4 py-2 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110"
                 >
                   IMPRIMIR
                 </button>
                 <button
                   onClick={baixar}
-                  className="transicao rounded-lg border border-edge bg-panel px-4 py-2.5 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+                  className="transicao rounded-lg border border-edge bg-panel px-4 py-2 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
                 >
                   BAIXAR
                 </button>

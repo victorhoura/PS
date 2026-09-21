@@ -39,7 +39,7 @@ export default function Backup() {
   }
 
   return (
-    <div className="p-4 lg:p-6">
+    <div className="p-3 lg:p-4">
       <h1 className="mb-1 font-mono text-base font-bold tracking-[0.16em] text-ink">BACKUP</h1>
       <p className="mb-6 max-w-2xl text-[11px] leading-relaxed text-inkDim">
         Os {SNIPPETS.length} textos originais vêm dentro do app e não se perdem nunca. O que{" "}
@@ -56,7 +56,7 @@ export default function Backup() {
       {aviso && (
         <p
           role="status"
-          className={`mb-5 rounded-lg border px-3 py-2 text-[11px] ${
+          className={`mb-4 rounded-lg border px-3 py-2 text-[11px] ${
             aviso.ok ? "border-ok/40 bg-ok/10 text-ok" : "border-danger/40 bg-danger/10 text-danger"
           }`}
         >

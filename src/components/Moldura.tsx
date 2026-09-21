@@ -69,10 +69,15 @@ export function Moldura({ children }: { children: React.ReactNode }) {
   // A tela de entrada é anterior ao app: sem barra lateral, sem paleta.
   if (pathname === "/entrar") return <>{children}</>;
 
+  /**
+   * "JAPA", e não "PS JAPA": o "PS" já está escrito por extenso ao lado, em
+   * "Pronto socorro". Repetir a sigla e o significado no mesmo bloco gasta a
+   * largura que falta numa janela estreita.
+   */
   const marca = (
     <Link href="/" className="flex min-w-0 items-center gap-2">
       <Logo tamanho={20} className="shrink-0" />
-      <span className="font-mono text-sm font-bold tracking-[0.18em] text-accent">PS JAPA</span>
+      <span className="font-mono text-sm font-bold tracking-[0.22em] text-accent">JAPA</span>
       <span className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-inkDim">
         Pronto socorro
       </span>
@@ -136,13 +141,13 @@ export function Moldura({ children }: { children: React.ReactNode }) {
       )}
 
       {/* ---------- tela larga: barra lateral fixa ---------- */}
-      <aside className="hidden shrink-0 border-r border-edge bg-panel lg:flex lg:h-dvh lg:w-56 lg:flex-col">
+      <aside className="hidden shrink-0 border-r border-edge bg-panel lg:flex lg:h-dvh lg:w-52 lg:flex-col">
         <div className="px-4 pb-3 pt-4">
           <Link href="/" className="flex items-center gap-2.5">
             <Logo tamanho={26} className="shrink-0" />
             <span className="min-w-0">
-              <span className="block font-mono text-sm font-bold tracking-[0.18em] text-accent">
-                PS JAPA
+              <span className="block font-mono text-sm font-bold tracking-[0.22em] text-accent">
+                JAPA
               </span>
               <span className="mt-0.5 block font-mono text-[9px] uppercase tracking-[0.14em] text-inkDim">
                 Pronto socorro

@@ -136,7 +136,7 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
             </div>
 
             {confirmando && (
-              <div className="flex flex-wrap items-center gap-2 border-t border-danger/40 bg-danger/10 px-4 py-2.5 text-[11px] text-inkDim">
+              <div className="flex flex-wrap items-center gap-2 border-t border-danger/40 bg-danger/10 px-4 py-2 text-[11px] text-inkDim">
                 <span>
                   Excluir <strong className="text-ink">{modelos.find((m) => m.id === confirmando)?.nome}</strong>?
                   {!ehNovo(confirmando) && " Dá para trazer de volta com RESTAURAR."}
@@ -355,7 +355,7 @@ function Campo({
         autoFocus={autoFocus}
         autoComplete="off"
         spellCheck={false}
-        className="h-9 w-full rounded-lg border border-edge bg-base px-3 text-[12px] text-ink outline-none focus:border-accent"
+        className="h-8 w-full rounded-lg border border-edge bg-base px-3 text-[12px] text-ink outline-none focus:border-accent"
       />
     </div>
   );

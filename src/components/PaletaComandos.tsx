@@ -191,7 +191,7 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
             onKeyDown={onKeyDown}
             placeholder="Buscar texto, CID, fármaco, calculadora…"
             aria-label="Buscar"
-            className="w-full bg-transparent py-3.5 text-sm text-ink outline-none placeholder:text-inkDim/60"
+            className="w-full bg-transparent py-2.5 text-sm text-ink outline-none placeholder:text-inkDim/60"
           />
         </div>
 

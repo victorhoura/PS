@@ -36,7 +36,7 @@ export function Calculadora({ slug }: { slug: string }) {
   }
 
   return (
-    <div className="p-4 lg:p-6">
+    <div className="p-3 lg:p-4">
       <header className="mb-4">
         <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">{calc.nome}</h1>
         <p className="mt-0.5 text-[11px] text-inkDim">{calc.subtitulo}</p>
@@ -44,13 +44,13 @@ export function Calculadora({ slug }: { slug: string }) {
 
       <div
         aria-live="polite"
-        className="mb-5 rounded-lg border border-accent/40 bg-accent/10 px-4 py-3"
+        className="mb-3 rounded-lg border border-accent/40 bg-accent/10 px-3 py-2"
       >
-        <span className="font-mono text-xl font-bold text-accent">{resumo}</span>
+        <span className="font-mono text-lg font-bold leading-snug text-accent">{resumo}</span>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <div className="space-y-5">
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="space-y-4">
           {calc.campos?.length ? (
             <fieldset className="rounded-lg border border-edge bg-panel p-3">
               <legend className="px-1 font-mono text-[10px] font-bold tracking-widest text-inkDim">
@@ -58,8 +58,8 @@ export function Calculadora({ slug }: { slug: string }) {
               </legend>
               <div className="grid gap-2 sm:grid-cols-2">
                 {calc.campos.map((campo) => (
-                  <label key={campo.id} className="block px-2 py-1.5">
-                    <span className="mb-1 block font-mono text-[10px] tracking-widest text-inkDim">
+                  <label key={campo.id} className="block px-2 py-1">
+                    <span className="mb-0.5 block font-mono text-[10px] tracking-widest text-inkDim">
                       {campo.label}
                       {campo.unidade ? ` (${campo.unidade})` : ""}
                     </span>
@@ -76,7 +76,7 @@ export function Calculadora({ slug }: { slug: string }) {
                           [campo.id]: e.target.value === "" ? null : Number(e.target.value),
                         }))
                       }
-                      className="w-full rounded-md border border-edge bg-base px-2.5 py-1.5 font-mono text-[13px] text-ink outline-none focus:border-accent"
+                      className="w-full rounded-md border border-edge bg-base px-2.5 py-1 font-mono text-[13px] text-ink outline-none focus:border-accent"
                     />
                   </label>
                 ))}
@@ -154,7 +154,7 @@ export function Calculadora({ slug }: { slug: string }) {
           </pre>
           <button
             onClick={() => void copiarLaudo()}
-            className="transicao mt-2 w-full rounded-lg bg-accent px-4 py-2.5 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110"
+            className="transicao mt-2 w-full rounded-lg bg-accent px-4 py-2 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110"
           >
             COPIAR RESULTADO
           </button>
