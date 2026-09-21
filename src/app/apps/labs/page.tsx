@@ -19,7 +19,7 @@ export default function FormatadorLabs() {
       <header className="mb-4">
         <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">FORMATADOR DE EXAMES</h1>
         <p className="mt-0.5 text-[11px] text-inkDim">
-          Cole o laudo do SHIFT/AFIP. A linha compacta sai embaixo, pronta para o prontuário.
+          Cole o laudo do SHIFT/AFIP. A linha compacta sai pronta para o prontuário.
         </p>
       </header>
 
@@ -46,7 +46,7 @@ export default function FormatadorLabs() {
           <output className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap rounded-lg border border-edge bg-panel px-3 py-2 font-mono text-[12px] leading-relaxed text-ink">
             {saida || (
               <span className="text-inkDim/60">
-                Nada reconhecido ainda. Cole o laudo ao lado.
+                Nada reconhecido ainda. Cole o laudo em LAUDO BRUTO.
               </span>
             )}
           </output>

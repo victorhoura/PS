@@ -96,7 +96,7 @@ export function Moldura({ children }: { children: React.ReactNode }) {
   );
 
   const barraTopo = (fechando: boolean) => (
-    <div className="flex items-center gap-1.5 border-b border-edge bg-panel px-2 py-2">
+    <div className="flex items-center gap-1.5 border-b border-edge bg-panel px-2 py-1.5">
       <button
         onClick={() => setGavetaAberta(!fechando)}
         aria-label={fechando ? "Fechar menu" : "Abrir menu"}

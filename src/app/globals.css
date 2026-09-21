@@ -93,6 +93,30 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * Linha do menu que abre em janela estreita.
+ *
+ * A altura dela não segue a LARGURA da janela, e sim o que aponta nela.
+ * Janela estreita de desktop — o app na lateral do Chrome, ao lado do
+ * prontuário — é apontada por mouse, e ali o que falta é altura: oito
+ * categorias não podem ocupar a tela toda. No celular a janela é igualmente
+ * estreita, mas quem aponta é o dedo, e aí alvo pequeno vira erro de toque.
+ *
+ * Por isso o corte é `pointer: coarse` e não um `max-width`: os dois casos
+ * têm a mesma largura e precisam de alturas opostas.
+ */
+.linha-menu {
+  padding: 0.3125rem 0.75rem;
+  font-size: 12px;
+}
+
+@media (pointer: coarse) {
+  .linha-menu {
+    padding: 0.625rem 1rem;
+    font-size: 13px;
+  }
+}
+
 @media print {
   body {
     background: #fff;
