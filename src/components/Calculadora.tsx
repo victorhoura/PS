@@ -42,11 +42,21 @@ export function Calculadora({ slug }: { slug: string }) {
         <p className="mt-0.5 text-[11px] text-inkDim">{calc.subtitulo}</p>
       </header>
 
+      {/*
+        O resultado. Era o único texto do app acima da escala — 18px, maior
+        que o próprio nome do escore — e por isso destoava em toda
+        calculadora. O destaque aqui vem da cor e da moldura; o tamanho fica
+        um passo abaixo do título, como em qualquer outra tela.
+
+        Não é só estética: o resumo nem sempre é um número curto. Quando ele
+        é uma instrução ("PREENCHA PESO E SÓDIO SÉRICO"), a 18px ele quebrava
+        em duas linhas grandes num painel de 300px e tomava a tela.
+      */}
       <div
         aria-live="polite"
-        className="mb-3 rounded-lg border border-accent/40 bg-accent/10 px-3 py-2"
+        className="mb-3 rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-1.5"
       >
-        <span className="font-mono text-lg font-bold leading-snug text-accent">{resumo}</span>
+        <span className="font-mono text-sm font-bold leading-snug text-accent">{resumo}</span>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
