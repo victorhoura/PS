@@ -32,17 +32,21 @@ jobs:
           node-version: "22"
 
       - name: Instalar o compilador para Windows
+        # O wine não é para rodar nada: o empacotador do Electron grava o
+        # ícone no .exe com o rcedit, que é um programa de Windows.
         run: |
           sudo apt-get update -q
-          sudo apt-get install -y -q mingw-w64
+          sudo apt-get install -y -q mingw-w64 wine64
 
       - name: Compilar o lançador
         working-directory: desktop
         # -Werror porque um aviso aqui é um executável que abre na mão do
         # usuário e falha de um jeito que ninguém consegue depurar no plantão.
         run: |
+          x86_64-w64-mingw32-windres recurso.rc -O coff -o recurso.o
           x86_64-w64-mingw32-gcc -municode -mwindows -O2 -s \
-            -Wall -Wextra -Werror -o "PS JAPA.exe" lancador.c
+            -Wall -Wextra -Werror -o "PS JAPA.exe" lancador.c recurso.o
+          rm -f recurso.o
           ls -la "PS JAPA.exe"
 
       - name: Instalar o empacotador do Electron

@@ -34,15 +34,23 @@ Localmente:
 
 ```sh
 cd desktop
+x86_64-w64-mingw32-windres recurso.rc -O coff -o recurso.o   # ícone + versão
 x86_64-w64-mingw32-gcc -municode -mwindows -O2 -s \
-  -Wall -Wextra -Werror -o "PS JAPA.exe" lancador.c   # o lançador
-npm install && npm run empacotar                       # a casca
+  -Wall -Wextra -Werror -o "PS JAPA.exe" lancador.c recurso.o
+npm install && npm run empacotar                              # a casca
 ```
 
 Os dois cruzam de Linux para Windows: o empacotador do Electron só baixa o
 binário de win32, e o lançador sai do mingw. O `-Werror` não é zelo: um aviso
 ali é um executável que falha na mão do usuário, no plantão, de um jeito que
 ninguém consegue depurar.
+
+O ícone dos dois executáveis é o `ps-japa.ico`, gerado da marca. No lançador
+ele entra pelo `recurso.rc`, com o ID 1 — é o menor número, e é esse que o
+Windows usa para desenhar o arquivo na pasta. Na casca, entra pelo `--icon` do
+empacotador, que grava o recurso com o `rcedit`; como o `rcedit` é um programa
+de Windows, **empacotar a casca a partir do Linux exige o `wine` instalado**,
+só para esse passo.
 
 ## Conferir o lançador sem Windows
 

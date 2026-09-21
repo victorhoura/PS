@@ -12,3 +12,4 @@ next-env.d.ts
 coverage/
 desktop/dist/
 desktop/PS JAPA.exe
+desktop/recurso.o

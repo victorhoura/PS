@@ -17,13 +17,20 @@ export function useTema(): { tema: Tema; alternar: () => void; montado: boolean 
     setMontado(true);
   }, []);
 
+  /**
+   * O efeito colateral fica FORA do atualizador do setTema.
+   *
+   * O React roda o atualizador durante a renderização, e desde que o tema
+   * passou a ser gravado na nuvem o `aplicarTema` avisa os assinantes do
+   * estado da nuvem — ou seja, mexia no estado de outro componente no meio da
+   * renderização deste. Aqui é um manipulador de evento: ler `tema` do
+   * fechamento é o valor desta renderização, que é o certo.
+   */
   const alternar = useCallback(() => {
-    setTema((atual) => {
-      const proximo: Tema = atual === "escuro" ? "claro" : "escuro";
-      aplicarTema(proximo);
-      return proximo;
-    });
-  }, []);
+    const proximo: Tema = tema === "escuro" ? "claro" : "escuro";
+    setTema(proximo);
+    aplicarTema(proximo);
+  }, [tema]);
 
   return { tema, alternar, montado };
 }

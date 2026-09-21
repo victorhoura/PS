@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { BotaoTema } from "@/components/BotaoTema";
 import { IconeCadeado } from "@/components/Icones";
+import { Logo } from "@/components/Logo";
 
 export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada: boolean }) {
   const [senha, setSenha] = useState("");
@@ -67,7 +68,10 @@ export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada
           <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-edge bg-panel text-accent">
             <IconeCadeado tamanho={20} />
           </div>
-          <h1 className="font-mono text-lg font-bold tracking-[0.2em] text-accent">PS JAPA</h1>
+          <div className="flex items-center gap-2.5">
+            <Logo tamanho={24} />
+            <h1 className="font-mono text-lg font-bold tracking-[0.2em] text-accent">PS JAPA</h1>
+          </div>
           <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-inkDim">
             Pronto socorro
           </p>

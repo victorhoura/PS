@@ -12,6 +12,7 @@ import { RegistrarSW } from "./RegistrarSW";
 import { EstadoNuvem } from "./EstadoNuvem";
 import { BotaoBloquear } from "./BotaoBloquear";
 import { BotaoTema } from "./BotaoTema";
+import { Logo } from "./Logo";
 import { IconeBusca, IconeFechar, IconeMenu } from "./Icones";
 
 /**
@@ -69,7 +70,8 @@ export function Moldura({ children }: { children: React.ReactNode }) {
   if (pathname === "/entrar") return <>{children}</>;
 
   const marca = (
-    <Link href="/" className="flex min-w-0 items-baseline gap-2">
+    <Link href="/" className="flex min-w-0 items-center gap-2">
+      <Logo tamanho={20} className="shrink-0" />
       <span className="font-mono text-sm font-bold tracking-[0.18em] text-accent">PS JAPA</span>
       <span className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-inkDim">
         Pronto socorro
@@ -136,12 +138,15 @@ export function Moldura({ children }: { children: React.ReactNode }) {
       {/* ---------- tela larga: barra lateral fixa ---------- */}
       <aside className="hidden shrink-0 border-r border-edge bg-panel lg:flex lg:h-dvh lg:w-56 lg:flex-col">
         <div className="px-4 pb-3 pt-4">
-          <Link href="/" className="block">
-            <span className="font-mono text-sm font-bold tracking-[0.18em] text-accent">
-              PS JAPA
-            </span>
-            <span className="mt-0.5 block font-mono text-[9px] uppercase tracking-[0.14em] text-inkDim">
-              Pronto socorro
+          <Link href="/" className="flex items-center gap-2.5">
+            <Logo tamanho={26} className="shrink-0" />
+            <span className="min-w-0">
+              <span className="block font-mono text-sm font-bold tracking-[0.18em] text-accent">
+                PS JAPA
+              </span>
+              <span className="mt-0.5 block font-mono text-[9px] uppercase tracking-[0.14em] text-inkDim">
+                Pronto socorro
+              </span>
             </span>
           </Link>
           <button

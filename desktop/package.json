@@ -5,7 +5,7 @@
   "description": "Casca de desktop do PS JAPA, para rodar o site a partir do pen drive",
   "main": "main.js",
   "scripts": {
-    "empacotar": "electron-packager . \"PS JAPA\" --platform=win32 --arch=x64 --out=dist --overwrite --electron-version=44.4.3 --ignore=\"^/(dist|node_modules|\\.github)($|/)\""
+    "empacotar": "electron-packager . \"PS JAPA\" --platform=win32 --arch=x64 --out=dist --overwrite --electron-version=44.4.3 --icon=ps-japa.ico --ignore=\"^/(?!(package\\.json|main\\.js|sem-rede\\.html)$)\""
   },
   "devDependencies": {
     "@electron/packager": "^20.3.0"

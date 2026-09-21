@@ -5,6 +5,7 @@ import { CATEGORIAS } from "@/data/snippets";
 import { CALCULADORAS } from "@/lib/calculadoras";
 import { contagens } from "@/lib/repositorio";
 import { useTextos } from "@/hooks/useTextos";
+import { Logo } from "@/components/Logo";
 
 const FERRAMENTAS = [
   { href: "/apps/labs", nome: "FORMATADOR DE EXAMES", nota: "cola o laudo do SHIFT, sai a linha pronta" },
@@ -19,7 +20,10 @@ export default function Home() {
   return (
     <div className="p-4 lg:p-8">
       <header className="mb-8">
-        <h1 className="font-mono text-xl font-bold tracking-[0.16em] text-ink">PS JAPA</h1>
+        <div className="flex items-center gap-3">
+          <Logo tamanho={30} className="shrink-0" />
+          <h1 className="font-mono text-xl font-bold tracking-[0.16em] text-ink">PS JAPA</h1>
+        </div>
         <p className="mt-1 text-xs text-inkDim">
           {textos.length} textos · {CALCULADORAS.length} escores · {FERRAMENTAS.length} ferramentas
         </p>
