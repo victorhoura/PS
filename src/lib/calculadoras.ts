@@ -10,18 +10,26 @@
 import type { Calculadora, Resposta, Valores } from "./escores/tipos";
 import { GLASGOW, NIHSS, CINCINNATI } from "./escores/neurologia";
 import { CURB65, QSOFA, WELLS_TVP, WELLS_TEP } from "./escores/torax";
-import { ALVARADO } from "./escores/abdome";
+import { ALVARADO, ATLANTA, HINCHEY } from "./escores/abdome";
+import { SOFA } from "./escores/sofa";
+import { CHARCOT, TOKYO_COLANGITE, TOKYO_COLECISTITE } from "./escores/vias-biliares";
 
 export type { Calculadora, Campo, Criterio, Grupo, Resposta, Valores } from "./escores/tipos";
 
 /** Em ordem alfabética: é como a lista é desenhada e como se procura. */
 export const CALCULADORAS: Calculadora[] = [
   ALVARADO,
+  ATLANTA,
+  CHARCOT,
   CINCINNATI,
   CURB65,
   GLASGOW,
+  HINCHEY,
   NIHSS,
   QSOFA,
+  SOFA,
+  TOKYO_COLANGITE,
+  TOKYO_COLECISTITE,
   WELLS_TEP,
   WELLS_TVP,
 ];
