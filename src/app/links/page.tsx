@@ -1,3 +1,4 @@
+import { Cartao, Secao } from "@/components/Cartao";
 import { Cofre } from "@/components/Cofre";
 
 const SISTEMA = [
@@ -13,38 +14,34 @@ const CONSULTA = [
 
 function Grupo({ titulo, itens }: { titulo: string; itens: { nome: string; url: string }[] }) {
   return (
-    <section className="mb-6">
-      <h2 className="mb-3 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">{titulo}</h2>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+    <Secao titulo={titulo}>
+      <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
         {itens.map((l) => (
-          <a
+          <Cartao
             key={l.url}
             href={l.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="transicao rounded-lg border border-edge bg-panel p-3 hover:border-accent/60 hover:bg-panelHover"
-          >
-            <span className="block text-[12px] font-bold tracking-wide text-ink">{l.nome}</span>
-            <span className="mt-1 block truncate font-mono text-[10px] text-inkDim">
-              {new URL(l.url).hostname}
-            </span>
-          </a>
+            nome={l.nome}
+            // O endereço fica: numa máquina do hospital, é o que diz se o
+            // link leva ao sistema certo antes de você digitar a senha nele.
+            nota={new URL(l.url).hostname}
+            notaMono
+            externo
+          />
         ))}
       </div>
-    </section>
+    </Secao>
   );
 }
 
 export default function Links() {
   return (
     <div className="p-3 lg:p-4">
-      <h1 className="mb-6 font-mono text-base font-bold tracking-[0.16em] text-ink">LINKS</h1>
+      <h1 className="mb-4 font-mono text-base font-bold tracking-[0.16em] text-ink">LINKS</h1>
 
-      <Grupo titulo="SISTEMAS DO HOSPITAL" itens={SISTEMA} />
-      <Grupo titulo="CONSULTA" itens={CONSULTA} />
+      <Grupo titulo="Sistemas do hospital" itens={SISTEMA} />
+      <Grupo titulo="Consulta" itens={CONSULTA} />
 
       <Cofre />
-
     </div>
   );
 }

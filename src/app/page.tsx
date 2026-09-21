@@ -1,90 +1,77 @@
 "use client";
 
-import Link from "next/link";
 import { CATEGORIAS } from "@/data/snippets";
 import { CALCULADORAS } from "@/lib/calculadoras";
 import { contagens } from "@/lib/repositorio";
 import { useTextos } from "@/hooks/useTextos";
+import { Cartao, Secao } from "@/components/Cartao";
 import { Logo } from "@/components/Logo";
 
 const FERRAMENTAS = [
-  { href: "/apps/labs", nome: "FORMATADOR DE EXAMES", nota: "cola o laudo do SHIFT, sai a linha pronta" },
-  { href: "/apps/texto", nome: "CONVERSOR DE LETRAS", nota: "maiúsculas, minúsculas, primeira letra" },
-  { href: "/apps/contador", nome: "CONTADOR", nota: "contagem simples de atendimentos" },
+  { href: "/apps/labs", nome: "FORMATADOR DE EXAMES" },
+  { href: "/apps/texto", nome: "CONVERSOR DE LETRAS" },
+  { href: "/apps/contador", nome: "CONTADOR" },
 ];
 
+/**
+ * A tela inicial é um índice, não um catálogo: aqui vale só o nome de cada
+ * destino. Quem quer saber o que um escore faz abre APLICATIVOS, que existe
+ * para isso e traz a descrição de cada um.
+ *
+ * Com a descrição embaixo de cada nome, esta página tinha quatro telas e meia
+ * de rolagem num painel de 300px — e as primeiras duas eram só o caminho até
+ * a lista de textos.
+ */
 export default function Home() {
   const textos = useTextos();
   const totais = contagens(textos);
 
+  const tecla = "rounded border border-edge bg-panel px-1 font-mono text-accent";
+
   return (
     <div className="p-3 lg:p-4">
-      <header className="mb-6">
-        <div className="flex items-center gap-3">
-          <Logo tamanho={30} className="shrink-0" />
-          <h1 className="font-mono text-xl font-bold tracking-[0.2em] text-ink">JAPA</h1>
+      <header className="mb-4">
+        <div className="flex items-center gap-2.5">
+          <Logo tamanho={22} className="shrink-0" />
+          <h1 className="font-mono text-base font-bold tracking-[0.2em] text-ink">JAPA</h1>
         </div>
-        <p className="mt-1 text-xs text-inkDim">
+        <p className="mt-1 text-[10px] text-inkDim">
           {textos.length} textos · {CALCULADORAS.length} escores · {FERRAMENTAS.length} ferramentas
         </p>
-        <p className="mt-3 max-w-xl text-[11px] leading-relaxed text-inkDim">
-          Aperte{" "}
-          <kbd className="rounded-lg border border-edge bg-panel px-1.5 py-0.5 font-mono text-accent">Ctrl K</kbd>{" "}
-          em qualquer tela para buscar em tudo de uma vez.{" "}
-          <kbd className="rounded-lg border border-edge bg-panel px-1.5 py-0.5 font-mono text-accent">Esc</kbd>{" "}
-          volta para cá.
+        <p className="mt-1.5 text-[10px] leading-relaxed text-inkDim">
+          <kbd className={tecla}>Ctrl K</kbd> busca em tudo · <kbd className={tecla}>Esc</kbd> volta
+          para cá
         </p>
       </header>
 
-      <section className="mb-6">
-        <h2 className="mb-3 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">TEXTOS</h2>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <Secao titulo="Textos">
+        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {CATEGORIAS.map((c) => (
-            <Link
+            <Cartao
               key={c.slug}
               href={`/c/${c.slug}`}
-              className="transicao group rounded-lg border border-edge bg-panel p-3 hover:border-accent/60 hover:bg-panelHover"
-            >
-              <span className="block text-[12px] font-bold tracking-wide text-ink">{c.label}</span>
-              <span className="mt-1 block font-mono text-[10px] text-inkDim">
-                {totais[c.slug] ?? c.total} itens
-              </span>
-            </Link>
+              nome={c.label}
+              valor={totais[c.slug] ?? c.total}
+            />
           ))}
         </div>
-      </section>
+      </Secao>
 
-      <section className="mb-6">
-        <h2 className="mb-3 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">ESCORES</h2>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <Secao titulo="Escores">
+        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {CALCULADORAS.map((c) => (
-            <Link
-              key={c.slug}
-              href={`/apps/${c.slug}`}
-              className="transicao rounded-lg border border-edge bg-panel p-3 hover:border-accent/60 hover:bg-panelHover"
-            >
-              <span className="block text-[12px] font-bold tracking-wide text-ink">{c.nome}</span>
-              <span className="mt-1 block text-[10px] leading-snug text-inkDim">{c.subtitulo}</span>
-            </Link>
+            <Cartao key={c.slug} href={`/apps/${c.slug}`} nome={c.nome} />
           ))}
         </div>
-      </section>
+      </Secao>
 
-      <section>
-        <h2 className="mb-3 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">FERRAMENTAS</h2>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <Secao titulo="Ferramentas">
+        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {FERRAMENTAS.map((f) => (
-            <Link
-              key={f.href}
-              href={f.href}
-              className="transicao rounded-lg border border-edge bg-panel p-3 hover:border-accent/60 hover:bg-panelHover"
-            >
-              <span className="block text-[12px] font-bold tracking-wide text-ink">{f.nome}</span>
-              <span className="mt-1 block text-[10px] leading-snug text-inkDim">{f.nota}</span>
-            </Link>
+            <Cartao key={f.href} href={f.href} nome={f.nome} />
           ))}
         </div>
-      </section>
+      </Secao>
     </div>
   );
 }
