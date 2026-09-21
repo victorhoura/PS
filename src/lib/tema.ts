@@ -45,6 +45,28 @@ export function lerTema(): Tema {
   return document.documentElement.getAttribute("data-tema") === "claro" ? "claro" : "escuro";
 }
 
+/** A escolha desta máquina, se ela já tiver uma. */
+export function temaDoCookie(): Tema | null {
+  if (typeof document === "undefined") return null;
+  const m = document.cookie.match(DO_COOKIE);
+  return m ? (m[1] as Tema) : null;
+}
+
+/**
+ * Avisa quando o tema muda, venha de onde vier — do botão, da nuvem ou do
+ * script do <head>.
+ *
+ * É o `data-tema` que é observado, e não a preferência, porque ele é o
+ * ÚNICO lugar em que o tema de fato existe. Um botão que lê a preferência
+ * passa a mentir assim que o tema muda por outro caminho, e um botão que
+ * mente pede dois cliques para fazer uma coisa.
+ */
+export function inscreverTema(aoMudar: () => void): () => void {
+  const observador = new MutationObserver(aoMudar);
+  observador.observe(document.documentElement, { attributeFilter: ["data-tema"] });
+  return () => observador.disconnect();
+}
+
 function guardarNoCookie(tema: Tema) {
   try {
     // `secure` só em https: no executável e no `next dev` o app roda em

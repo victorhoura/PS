@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
-import { carregarPreferencias, inscreverPreferencias, preferenciasAtuais } from "@/lib/preferencias";
+import {
+  carregarPreferencias,
+  definirPreferencia,
+  inscreverPreferencias,
+  preferenciasAtuais,
+} from "@/lib/preferencias";
 import { migrarEApagarLocal } from "@/lib/limpeza";
-import { pintarTema } from "@/lib/tema";
+import { pintarTema, temaDoCookie } from "@/lib/tema";
 import { useEstadoNuvem, useEstadoTextos } from "@/hooks/useTextos";
 
 /**
@@ -25,11 +30,31 @@ export function EstadoNuvem() {
     void migrarEApagarLocal().then(() => carregarPreferencias());
   }, []);
 
-  // O tema vem da nuvem; até chegar, vale o escuro do HTML.
+  /**
+   * Quem decide o tema é esta máquina; a nuvem só opina quando ela ainda não
+   * tem escolha nenhuma.
+   *
+   * Era o contrário, e desfazia a escolha de duas formas. Clicar em CLARO
+   * enquanto a leitura das preferências ainda estava em voo: a resposta
+   * chegava depois e repintava de escuro, deixando a nuvem com "claro" e a
+   * tela com "escuro". E trocar o tema na tela de senha: ali não há sessão
+   * para gravar, então a nuvem chegava logo depois do login e desfazia.
+   *
+   * Agora o tema é preferência DA MÁQUINA — cada uma lembra a sua. A nuvem
+   * guarda a última escolhida só para servir de padrão num computador novo,
+   * e se alinha ao que esta máquina diz, o que também faz subir a escolha
+   * feita na tela de senha, assim que existe sessão para gravá-la.
+   */
   useEffect(() => {
     const aplicar = () => {
-      const tema = preferenciasAtuais().tema;
-      if (tema) pintarTema(tema);
+      const daMaquina = temaDoCookie();
+      const daNuvem = preferenciasAtuais().tema;
+
+      if (daMaquina) {
+        if (daNuvem && daNuvem !== daMaquina) definirPreferencia("tema", daMaquina);
+        return;
+      }
+      if (daNuvem) pintarTema(daNuvem);
     };
     aplicar();
     return inscreverPreferencias(aplicar);

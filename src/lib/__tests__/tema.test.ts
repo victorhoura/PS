@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SCRIPT_TEMA, aplicarTema, lerTema, pintarTema } from "@/lib/tema";
+import { SCRIPT_TEMA, aplicarTema, lerTema, pintarTema, temaDoCookie } from "@/lib/tema";
 
 /**
  * O que estes testes protegem é uma frase só: o tema escolhido sobrevive ao
@@ -117,6 +117,23 @@ describe("gravação", () => {
     const { escritos } = fingirDocumento();
     aplicarTema("claro");
     expect(escritos[0].par).toBe("ps_tema=claro");
+  });
+});
+
+describe("a escolha desta máquina", () => {
+  it("máquina nova não tem escolha — aí a nuvem decide", () => {
+    fingirDocumento("");
+    expect(temaDoCookie()).toBeNull();
+  });
+
+  it("máquina que já escolheu manda, e a nuvem não repinta por cima", () => {
+    fingirDocumento("ps_tema=claro");
+    expect(temaDoCookie()).toBe("claro");
+  });
+
+  it("valor estragado não conta como escolha", () => {
+    fingirDocumento("ps_tema=roxo");
+    expect(temaDoCookie()).toBeNull();
   });
 });
 

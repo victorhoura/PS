@@ -1,36 +1,31 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { aplicarTema, lerTema, type Tema } from "@/lib/tema";
+import { useCallback, useSyncExternalStore } from "react";
+import { aplicarTema, inscreverTema, lerTema, type Tema } from "@/lib/tema";
+
+const NO_SERVIDOR = (): Tema => "escuro";
 
 /**
- * O estado inicial é "escuro" tanto no servidor quanto na primeira renderização
- * do cliente; o valor real entra depois da montagem. É o que mantém o HTML do
- * servidor e o do cliente idênticos na hidratação.
+ * O tema que está valendo, lido do <html> e não de uma cópia.
+ *
+ * Antes isto era um `useState` preenchido uma única vez na montagem. O
+ * problema aparecia quando o tema mudava depois disso — em máquina nova, a
+ * preferência chega da nuvem alguns instantes após a tela montar: a página
+ * ficava clara e o botão continuava oferecendo "TEMA CLARO", porque a cópia
+ * dele tinha nascido "escuro" e ninguém a atualizava. O primeiro clique
+ * então aplicava "claro" sobre "claro" e não acontecia nada visível; só o
+ * segundo funcionava.
+ *
+ * Lendo o atributo direto, o botão não tem cópia para ficar desatualizada.
+ * No servidor vale o escuro, que é como o HTML nasce — assim a hidratação
+ * encontra o mesmo que foi enviado.
  */
-export function useTema(): { tema: Tema; alternar: () => void; montado: boolean } {
-  const [tema, setTema] = useState<Tema>("escuro");
-  const [montado, setMontado] = useState(false);
+export function useTema(): { tema: Tema; alternar: () => void } {
+  const tema = useSyncExternalStore(inscreverTema, lerTema, NO_SERVIDOR);
 
-  useEffect(() => {
-    setTema(lerTema());
-    setMontado(true);
-  }, []);
-
-  /**
-   * O efeito colateral fica FORA do atualizador do setTema.
-   *
-   * O React roda o atualizador durante a renderização, e desde que o tema
-   * passou a ser gravado na nuvem o `aplicarTema` avisa os assinantes do
-   * estado da nuvem — ou seja, mexia no estado de outro componente no meio da
-   * renderização deste. Aqui é um manipulador de evento: ler `tema` do
-   * fechamento é o valor desta renderização, que é o certo.
-   */
   const alternar = useCallback(() => {
-    const proximo: Tema = tema === "escuro" ? "claro" : "escuro";
-    setTema(proximo);
-    aplicarTema(proximo);
+    aplicarTema(tema === "escuro" ? "claro" : "escuro");
   }, [tema]);
 
-  return { tema, alternar, montado };
+  return { tema, alternar };
 }

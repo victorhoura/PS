@@ -4,13 +4,13 @@ import { useTema } from "@/hooks/useTema";
 import { IconeLua, IconeSol } from "./Icones";
 
 /**
- * Alterna claro/escuro. Até montar mostra o ícone do tema escuro, que é o
+ * Alterna claro/escuro. Até hidratar mostra o ícone do tema escuro, que é o
  * padrão — assim o servidor e o cliente desenham a mesma coisa e a hidratação
  * não reclama.
  */
 export function BotaoTema({ compacto = false }: { compacto?: boolean }) {
-  const { tema, alternar, montado } = useTema();
-  const claro = montado && tema === "claro";
+  const { tema, alternar } = useTema();
+  const claro = tema === "claro";
   const rotulo = claro ? "Mudar para tema escuro" : "Mudar para tema claro";
 
   if (compacto) {

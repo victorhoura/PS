@@ -28,6 +28,16 @@ let cache: Preferencias = VAZIAS;
 let carregou = false;
 let emVoo: Promise<void> | null = null;
 
+/**
+ * Campos que você mexeu enquanto a leitura da nuvem ainda estava a caminho.
+ *
+ * Sem isto a resposta entrava por cima: trocar o tema (ou digitar o nome do
+ * médico, ou contar um atendimento) nos primeiros instantes da tela era
+ * perder a alteração quando a nuvem respondesse — e ainda ficar com a tela
+ * dizendo uma coisa e o banco outra.
+ */
+const mexidas = new Set<keyof Preferencias>();
+
 const ouvintes = new Set<() => void>();
 const empurrar = comEspera<Preferencias>("preferencias");
 
@@ -58,11 +68,21 @@ export function carregarPreferencias(): Promise<void> {
   emVoo = (async () => {
     try {
       const r = await lerDaNuvem<Preferencias>("preferencias");
-      if (r.conteudo && typeof r.conteudo === "object") cache = r.conteudo;
+      if (r.conteudo && typeof r.conteudo === "object") {
+        // O que veio da nuvem é mais velho do que o que você acabou de
+        // mexer: o pedido saiu antes do seu clique.
+        const meu = cache;
+        const vindo: Preferencias = { ...r.conteudo };
+        for (const chave of mexidas) {
+          (vindo as Record<string, unknown>)[chave] = meu[chave];
+        }
+        cache = vindo;
+      }
       carregou = true;
     } catch {
       // Sem preferência valem os padrões; não é motivo para travar o app.
     } finally {
+      mexidas.clear();
       emVoo = null;
       avisar();
     }
@@ -80,6 +100,7 @@ export function definirPreferencia<K extends keyof Preferencias>(
   valor: Preferencias[K],
 ): void {
   cache = { ...cache, [chave]: valor };
+  if (emVoo) mexidas.add(chave);
   empurrar(() => cache);
   avisar();
 }
