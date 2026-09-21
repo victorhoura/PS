@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { acharCalculadora, respostaInicial, somar } from "@/lib/calculadoras";
+import { acharCalculadora, respostaInicial, somar, valoresIniciais } from "@/lib/calculadoras";
 import { copiar } from "@/lib/clipboard";
 import { avisarCopia } from "./AvisoCopia";
 
@@ -13,10 +13,22 @@ import { avisarCopia } from "./AvisoCopia";
 export function Calculadora({ slug }: { slug: string }) {
   const calc = acharCalculadora(slug)!;
   const [resposta, setResposta] = useState(() => respostaInicial(calc));
+  const [valores, setValores] = useState(() => valoresIniciais(calc));
 
   const pontos = useMemo(() => somar(calc, resposta), [calc, resposta]);
-  const laudo = useMemo(() => calc.laudo(pontos, resposta), [calc, pontos, resposta]);
-  const resumo = useMemo(() => calc.resumo(pontos, resposta), [calc, pontos, resposta]);
+  const laudo = useMemo(
+    () => calc.laudo(pontos, resposta, valores),
+    [calc, pontos, resposta, valores],
+  );
+  const resumo = useMemo(
+    () => calc.resumo(pontos, resposta, valores),
+    [calc, pontos, resposta, valores],
+  );
+
+  function zerar() {
+    setResposta(respostaInicial(calc));
+    setValores(valoresIniciais(calc));
+  }
 
   async function copiarLaudo() {
     const ok = await copiar(laudo);
@@ -39,6 +51,39 @@ export function Calculadora({ slug }: { slug: string }) {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <div className="space-y-5">
+          {calc.campos?.length ? (
+            <fieldset className="rounded-lg border border-edge bg-panel p-3">
+              <legend className="px-1 font-mono text-[10px] font-bold tracking-widest text-inkDim">
+                DADOS DO PACIENTE
+              </legend>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {calc.campos.map((campo) => (
+                  <label key={campo.id} className="block px-2 py-1.5">
+                    <span className="mb-1 block font-mono text-[10px] tracking-widest text-inkDim">
+                      {campo.label}
+                      {campo.unidade ? ` (${campo.unidade})` : ""}
+                    </span>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      step={campo.passo ?? "any"}
+                      // Vazio vira null, e não 0: peso 0 não existe, e o laudo
+                      // precisa distinguir "não preenchido" de "zero".
+                      value={valores[campo.id] ?? ""}
+                      onChange={(e) =>
+                        setValores((v) => ({
+                          ...v,
+                          [campo.id]: e.target.value === "" ? null : Number(e.target.value),
+                        }))
+                      }
+                      className="w-full rounded-md border border-edge bg-base px-2.5 py-1.5 font-mono text-[13px] text-ink outline-none focus:border-accent"
+                    />
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          ) : null}
+
           {calc.grupos.map((g) => (
             <fieldset key={g.titulo} className="rounded-lg border border-edge bg-panel p-3">
               <legend className="px-1 font-mono text-[10px] font-bold tracking-widest text-inkDim">
@@ -78,13 +123,17 @@ export function Calculadora({ slug }: { slug: string }) {
                       className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-[#2fb5d9]"
                     />
                     <span className="flex-1 text-[11px] leading-snug text-ink">{c.label}</span>
-                    <span
-                      className={`shrink-0 font-mono text-[10px] ${
-                        (c.pontos ?? 0) < 0 ? "text-warn" : "text-inkDim"
-                      }`}
-                    >
-                      {(c.pontos ?? 0) > 0 ? `+${c.pontos}` : c.pontos}
-                    </span>
+                    {/* Critério que não pontua — os da PERC, por exemplo — não
+                        ganha selo: um "0" ao lado é ruído, não informação. */}
+                    {c.pontos ? (
+                      <span
+                        className={`shrink-0 font-mono text-[10px] ${
+                          c.pontos < 0 ? "text-warn" : "text-inkDim"
+                        }`}
+                      >
+                        {c.pontos > 0 ? `+${c.pontos}` : c.pontos}
+                      </span>
+                    ) : null}
                   </label>
                 ),
               )}
@@ -92,7 +141,7 @@ export function Calculadora({ slug }: { slug: string }) {
           ))}
 
           <button
-            onClick={() => setResposta(respostaInicial(calc))}
+            onClick={zerar}
             className="transicao w-full rounded-lg border border-edge bg-panel px-4 py-2 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
           >
             ZERAR
