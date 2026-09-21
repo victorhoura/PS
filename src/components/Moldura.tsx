@@ -75,10 +75,21 @@ export function Moldura({ children }: { children: React.ReactNode }) {
    * largura que falta numa janela estreita.
    */
   const marca = (
-    <Link href="/" className="flex min-w-0 items-center gap-2">
+    <Link href="/" className="flex min-w-0 items-center gap-2 overflow-hidden">
       <Logo tamanho={20} className="shrink-0" />
-      <span className="font-mono text-sm font-bold tracking-[0.22em] text-accent">JAPA</span>
-      <span className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-inkDim">
+      {/*
+        A marca vai sumindo de trás para frente conforme a janela aperta, e a
+        logo é a última a sair — ela sozinha ainda identifica o app e leva
+        para o início.
+
+        Sem isto os dois nomes não encolhiam (a logo não encolhe, e o texto
+        não tem onde quebrar) e passavam POR BAIXO do botão Ctrl K, que é
+        largura fixa: em vez de cortar, sobrepunha.
+      */}
+      <span className="hidden shrink-0 font-mono text-sm font-bold tracking-[0.22em] text-accent min-[310px]:inline">
+        JAPA
+      </span>
+      <span className="hidden truncate font-mono text-[9px] uppercase tracking-[0.14em] text-inkDim min-[440px]:inline">
         Pronto socorro
       </span>
     </Link>
