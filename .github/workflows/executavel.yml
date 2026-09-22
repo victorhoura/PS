@@ -13,6 +13,17 @@ name: Executável do pen drive
 # padrão. Empacotar para Windows a partir do Linux funciona nos dois casos:
 # o empacotador do Electron só baixa o binário de win32, e o lançador sai do
 # mingw.
+#
+# O destino dos dois é um Release de tag fixa, e não só o artefato do
+# Actions. Artefato é saída de build: o GitHub o apaga sozinho — no máximo
+# 90 dias, e menos por padrão. Release não expira, e o endereço não muda de
+# uma compilação para a outra, que é o que a página /baixar do app precisa
+# para poder apontar para ele sem ser reescrita toda vez:
+#
+#   .../releases/download/executavel/PS-JAPA-pendrive.zip
+#   .../releases/download/executavel/PS-JAPA-completo.zip
+#
+# Os artefatos continuam saindo, para conferir uma compilação sem publicar.
 
 on:
   push:
@@ -24,6 +35,9 @@ on:
 jobs:
   empacotar:
     runs-on: ubuntu-latest
+    # Mexer no Release é escrever no repositório; sem isto o passo falha.
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -76,3 +90,54 @@ jobs:
           name: PS-JAPA-completo
           path: entrega/completo
           retention-days: 30
+
+      # Depois dos artefatos, e com `mv`: a pasta completa tem 370 MB, e
+      # copiá-la só para renomear gastaria disco do runner à toa.
+      #
+      # O nome de dentro do .zip é o que faz sentido na mão de quem baixa —
+      # é esta pasta que vai para o pen drive, não uma pasta "pendrive".
+      - name: Compactar para o Release
+        run: |
+          mv entrega/pendrive "entrega/PS JAPA"
+          mv entrega/completo "entrega/PS JAPA - completo"
+          cd entrega
+          zip -qr ../PS-JAPA-pendrive.zip "PS JAPA"
+          zip -qr ../PS-JAPA-completo.zip "PS JAPA - completo"
+          cd ..
+          ls -lh PS-JAPA-*.zip
+
+      - name: Publicar no Release de endereço fixo
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: executavel
+        run: |
+          set -euo pipefail
+
+          # A tag é sempre a mesma e passa a apontar para o commit que gerou
+          # estes arquivos. O endereço do download não muda; o conteúdo sim.
+          git tag -f "$TAG"
+          git push -f origin "refs/tags/$TAG"
+
+          NOTAS=$(cat <<TEXTO
+          Compilado de \`${GITHUB_SHA:0:7}\` em $(date -u '+%d/%m/%Y %H:%M') UTC.
+
+          | arquivo | quando usar |
+          | --- | --- |
+          | **PS-JAPA-pendrive.zip** | comece por aqui. Abre o Chrome ou o Edge da própria máquina, com o perfil e os PDFs no pen drive. Traz junto o \`.cmd\`, para onde executável é bloqueado e script não é. |
+          | **PS-JAPA-completo.zip** | só se não houver Chrome nem Edge, ou se a rede forçar a pasta de perfil por política. Carrega o próprio navegador, por isso os 370 MB. |
+
+          Nenhum dos dois guarda cópia do app: os dois abrem <https://ps.victorhoura.com>,
+          então o que muda no site já vale sem baixar nada de novo. O download só
+          precisa ser refeito quando o lançador em si mudar.
+
+          O passo a passo está no \`LEIA-ME.txt\` dentro do .zip.
+          TEXTO
+          )
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" PS-JAPA-pendrive.zip PS-JAPA-completo.zip --clobber
+            gh release edit "$TAG" --notes "$NOTAS" --latest
+          else
+            gh release create "$TAG" PS-JAPA-pendrive.zip PS-JAPA-completo.zip \
+              --title "PS JAPA — para o pen drive" --notes "$NOTAS" --latest
+          fi

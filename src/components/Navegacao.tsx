@@ -71,6 +71,9 @@ export function Navegacao({
       <Link href="/backup" onClick={aoNavegar} className={item(pathname === "/backup")}>
         BACKUP
       </Link>
+      <Link href="/baixar" onClick={aoNavegar} className={item(pathname === "/baixar")}>
+        PEN DRIVE
+      </Link>
     </nav>
   );
 }
