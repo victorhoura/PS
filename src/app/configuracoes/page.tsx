@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Secao } from "@/components/Cartao";
 import { BotaoBloquear } from "@/components/BotaoBloquear";
+import { TrocarSenha } from "@/components/TrocarSenha";
 import { IconeLua, IconeSol } from "@/components/Icones";
 import { useTema } from "@/hooks/useTema";
 import { aplicarTema, type Tema } from "@/lib/tema";
@@ -68,6 +69,10 @@ export default function Configuracoes() {
           O tema escolhido vale para este computador e é lembrado nele, inclusive depois de
           bloquear. Num computador novo vale o último que você escolheu em qualquer um.
         </p>
+      </Secao>
+
+      <Secao titulo="Senha do app">
+        <TrocarSenha />
       </Secao>
 
       <Secao titulo="Sessão">
