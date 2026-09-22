@@ -10,6 +10,9 @@ import { type Link, removerLink, salvarLink, urlValida } from "@/lib/links";
  * descartar, exclusão em dois toques — porque é o mesmo gesto do app e não
  * faz sentido aprender duas caixas diferentes.
  */
+/** Valor sentinela da opção que troca a lista pelo campo de texto. */
+const NOVO_GRUPO = "\u0000novo";
+
 export function EditorLink({
   alvo,
   grupos,
@@ -24,6 +27,8 @@ export function EditorLink({
   const [nome, setNome] = useState(alvo?.nome ?? "");
   const [url, setUrl] = useState(alvo?.url ?? "");
   const [grupo, setGrupo] = useState(alvo?.grupo ?? grupos[0] ?? "Sistemas do hospital");
+  /** Sem grupo nenhum ainda, não há lista para escolher: cai direto no campo. */
+  const [criandoGrupo, setCriandoGrupo] = useState(grupos.length === 0);
   const [erro, setErro] = useState("");
   const [confirmandoApagar, setConfirmandoApagar] = useState(false);
   const [confirmandoDescarte, setConfirmandoDescarte] = useState(false);
@@ -67,6 +72,10 @@ export function EditorLink({
     }
     if (!urlValida(url)) {
       setErro("Endereço inválido. Ex.: hospitalarguarulhos.sissonline.com.br");
+      return;
+    }
+    if (!grupo.trim()) {
+      setErro("Dê um nome ao grupo.");
       return;
     }
     salvarLink({
@@ -143,26 +152,64 @@ export function EditorLink({
           <label htmlFor="li-grupo" className={rotulo}>
             GRUPO
           </label>
-          <input
-            id="li-grupo"
-            value={grupo}
-            onChange={(e) => {
-              setGrupo(e.target.value);
-              setErro("");
-            }}
-            list="li-grupos"
-            placeholder="Sistemas do hospital"
-            className={campo}
-          />
-          {/* Sugere os que já existem, mas deixa digitar um novo: é assim que
-              se cria um grupo, sem precisar de outra tela para isso. */}
-          <datalist id="li-grupos">
-            {grupos.map((g) => (
-              <option key={g} value={g} />
-            ))}
-          </datalist>
+          {/*
+            Lista de verdade, e não um <input list> com datalist.
+            O datalist FILTRA as opções pelo texto que já está no campo — e
+            como o campo nasce preenchido com um grupo, abrir a setinha
+            mostrava só aquele, parecendo quebrado. Aqui escolher é escolher,
+            e criar um grupo novo é uma opção explícita da própria lista.
+          */}
+          {criandoGrupo ? (
+            <div className="flex gap-2">
+              <input
+                id="li-grupo"
+                value={grupo}
+                onChange={(e) => {
+                  setGrupo(e.target.value);
+                  setErro("");
+                }}
+                autoFocus={grupos.length > 0}
+                placeholder="Nome do grupo novo"
+                className={campo}
+              />
+              {grupos.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCriandoGrupo(false);
+                    setGrupo(grupos[0]);
+                  }}
+                  className="transicao shrink-0 rounded-lg border border-edge px-3 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+                >
+                  VOLTAR À LISTA
+                </button>
+              )}
+            </div>
+          ) : (
+            <select
+              id="li-grupo"
+              value={grupo}
+              onChange={(e) => {
+                setErro("");
+                if (e.target.value === NOVO_GRUPO) {
+                  setCriandoGrupo(true);
+                  setGrupo("");
+                } else {
+                  setGrupo(e.target.value);
+                }
+              }}
+              className={`${campo} cursor-pointer`}
+            >
+              {grupos.map((g) => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              ))}
+              <option value={NOVO_GRUPO}>+ criar um grupo novo…</option>
+            </select>
+          )}
           <p className="mt-1 text-[10px] text-inkDim/70">
-            É o título da seção. Digite um nome novo para criar outra.
+            É o título da seção onde o link aparece.
           </p>
 
           {erro && (
