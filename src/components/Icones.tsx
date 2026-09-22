@@ -102,3 +102,17 @@ export const IconeCheck = (p: Props) => (
     <path d="m4 12 5.5 5.5L20 7" />
   </Svg>
 );
+
+/**
+ * Engrenagem.
+ *
+ * O contorno é o da peça inteira, com os oito dentes fechados no caminho.
+ * Dentes soltos em volta de um círculo — que é o desenho mais fácil — dão um
+ * SOL, e o sol é o ícone do tema, logo ao lado deste no rodapé.
+ */
+export const IconeEngrenagem = (p: Props) => (
+  <Svg {...p}>
+    <path d="M 20.96 9.93 L 20.96 14.07 L 18.11 14.22 L 17.89 14.75 L 19.80 16.88 L 16.88 19.80 L 14.75 17.89 L 14.22 18.11 L 14.07 20.96 L 9.93 20.96 L 9.78 18.11 L 9.25 17.89 L 7.12 19.80 L 4.20 16.88 L 6.11 14.75 L 5.89 14.22 L 3.04 14.07 L 3.04 9.93 L 5.89 9.78 L 6.11 9.25 L 4.20 7.12 L 7.12 4.20 L 9.25 6.11 L 9.78 5.89 L 9.93 3.04 L 14.07 3.04 L 14.22 5.89 L 14.75 6.11 L 16.88 4.20 L 19.80 7.12 L 17.89 9.25 L 18.11 9.78 Z" />
+    <circle cx="12" cy="12" r="3" />
+  </Svg>
+);

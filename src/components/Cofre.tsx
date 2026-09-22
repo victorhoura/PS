@@ -319,7 +319,7 @@ export function Cofre() {
 
 function Moldura({ children }: { children: React.ReactNode }) {
   return (
-    <section className="max-w-2xl rounded-lg border border-edge bg-panel p-4">
+    <section className="rounded-lg border border-edge bg-panel p-3">
       <h2 className="mb-2 flex items-center gap-2 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">
         <IconeCadeado tamanho={13} /> Cofre
       </h2>
@@ -360,7 +360,7 @@ function VistaCofre({
     conteudo.grade?.valores.some((l) => l.some((v) => v.trim() !== "")) ?? false;
 
   return (
-    <section className="max-w-2xl rounded-lg border border-accent/40 bg-panel p-4">
+    <section className="rounded-lg border border-accent/40 bg-panel p-3">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-accent">
           <IconeCadeado tamanho={13} /> Cofre aberto
@@ -434,9 +434,16 @@ function VistaCofre({
   );
 }
 
+/**
+ * Uma credencial: o nome e os botões que copiam.
+ *
+ * Não há como mostrar a senha na tela, e isso é de propósito. O cofre é
+ * aberto em computador de plantão, muitas vezes com gente ao lado e com
+ * câmera no teto — senha revelada é senha lida por quem estava olhando, e
+ * ela continua na tela até alguém lembrar de esconder. Copiar resolve o que
+ * você precisa (colar no sistema) sem esse risco.
+ */
 function LinhaCredencial({ credencial }: { credencial: Credencial }) {
-  const [revelada, setRevelada] = useState(false);
-
   return (
     <div className="rounded-lg border border-edge bg-base px-3 py-2">
       <div className="mb-1.5 flex items-center justify-between gap-2">
@@ -453,23 +460,9 @@ function LinhaCredencial({ credencial }: { credencial: Credencial }) {
           <BotaoCopiar rotulo="USUÁRIO" valor={credencial.usuario} nome={`Usuário ${credencial.rotulo}`} />
         )}
         {credencial.senha && (
-          <>
-            <BotaoCopiar rotulo="SENHA" valor={credencial.senha} nome={`Senha ${credencial.rotulo}`} />
-            <button
-              onClick={() => setRevelada((v) => !v)}
-              className="transicao rounded-md border border-edge px-2.5 py-1 text-[10px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
-            >
-              {revelada ? "OCULTAR" : "VER"}
-            </button>
-          </>
+          <BotaoCopiar rotulo="SENHA" valor={credencial.senha} nome={`Senha ${credencial.rotulo}`} />
         )}
       </div>
-
-      {revelada && (
-        <p className="mt-2 break-all rounded border border-edge bg-panel px-2 py-1.5 font-mono text-[12px] text-ink">
-          {credencial.senha}
-        </p>
-      )}
     </div>
   );
 }
@@ -515,7 +508,7 @@ function FormularioCofre({
   }
 
   return (
-    <section className="max-w-2xl rounded-lg border border-accent/40 bg-panel p-4">
+    <section className="rounded-lg border border-accent/40 bg-panel p-3">
       <h2 className="mb-3 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-accent">
         Editando o cofre
       </h2>

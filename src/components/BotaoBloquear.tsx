@@ -16,7 +16,15 @@ import { IconeCadeado } from "./Icones";
  * montado em memória — inclusive o cofre decifrado — sobrevive. O replace
  * ainda impede que o botão "voltar" devolva a tela que acabou de ser trancada.
  */
-export function BotaoBloquear({ compacto = false }: { compacto?: boolean }) {
+export function BotaoBloquear({
+  compacto = false,
+  destaque = false,
+}: {
+  /** Só o cadeado, para a barra de cima da janela estreita. */
+  compacto?: boolean;
+  /** Botão de verdade, para a tela de configurações. */
+  destaque?: boolean;
+}) {
   const [saindo, setSaindo] = useState(false);
 
   async function bloquear() {
@@ -50,7 +58,11 @@ export function BotaoBloquear({ compacto = false }: { compacto?: boolean }) {
     <button
       onClick={() => void bloquear()}
       disabled={saindo}
-      className="transicao flex w-full items-center gap-2 rounded-md px-3 py-2 text-[11px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink disabled:opacity-50"
+      className={
+        destaque
+          ? "transicao flex h-8 items-center gap-2 rounded-lg border border-danger/50 px-4 text-[11px] font-bold tracking-wide text-danger hover:bg-danger/10 disabled:opacity-50"
+          : "transicao flex w-full items-center gap-2 rounded-md px-3 py-2 text-[11px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink disabled:opacity-50"
+      }
     >
       <IconeCadeado tamanho={14} />
       {saindo ? "BLOQUEANDO…" : "BLOQUEAR"}

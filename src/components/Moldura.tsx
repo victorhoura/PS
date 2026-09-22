@@ -13,7 +13,7 @@ import { EstadoNuvem } from "./EstadoNuvem";
 import { BotaoBloquear } from "./BotaoBloquear";
 import { BotaoTema } from "./BotaoTema";
 import { Logo } from "./Logo";
-import { IconeBusca, IconeFechar, IconeMenu } from "./Icones";
+import { IconeBusca, IconeEngrenagem, IconeFechar, IconeMenu } from "./Icones";
 
 /**
  * Duas formas para o mesmo app:
@@ -179,9 +179,29 @@ export function Moldura({ children }: { children: React.ReactNode }) {
           <Navegacao totais={totais} />
         </div>
 
-        <div className="border-t border-edge px-2 py-2">
-          <BotaoTema />
-          <BotaoBloquear />
+        {/*
+          Rodapé em ícones, numa linha só: engrenagem, tema e cadeado.
+          Em duas linhas de texto isto custava o dobro da altura para dizer o
+          mesmo, e altura é o que falta quando o app roda na lateral do
+          Chrome. O BLOQUEAR continua a um clique, que é o que importa numa
+          máquina compartilhada — ele não foi para dentro das configurações.
+        */}
+        <div className="flex items-center gap-1 border-t border-edge px-2 py-2">
+          <Link
+            href="/configuracoes"
+            aria-label="Configurações"
+            title="Configurações"
+            aria-current={pathname === "/configuracoes" ? "page" : undefined}
+            className={`transicao flex h-8 w-8 items-center justify-center rounded-md border border-edge ${
+              pathname === "/configuracoes"
+                ? "bg-accent text-accentInk"
+                : "text-inkDim hover:bg-panelHover hover:text-ink"
+            }`}
+          >
+            <IconeEngrenagem />
+          </Link>
+          <BotaoTema compacto />
+          <BotaoBloquear compacto />
         </div>
       </aside>
 
