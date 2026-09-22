@@ -361,27 +361,33 @@ function VistaCofre({
 
   return (
     <section className="rounded-lg border border-accent/40 bg-panel p-3">
-      <div className="mb-3 flex items-center justify-between gap-2">
+      {/*
+        Quebra de linha em vez de corte. Numa janela estreita — o app no
+        painel lateral do Chrome — os três botões não cabiam ao lado do
+        título e o TRANCAR saía para fora da tela. Justamente o TRANCAR, que
+        é o que você aperta com pressa ao se levantar da mesa.
+      */}
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
         <h2 className="flex items-center gap-2 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-accent">
           <IconeCadeado tamanho={13} /> Cofre aberto
         </h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-1.5">
           <button
             onClick={aoEditar}
-            className="transicao rounded-md border border-edge px-3 py-1.5 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+            className="transicao rounded-md border border-edge px-2.5 py-1.5 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
           >
             EDITAR
           </button>
           <button
             onClick={aoExportar}
             title="Baixa o cofre cifrado, para levar a outro computador"
-            className="transicao rounded-md border border-edge px-3 py-1.5 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+            className="transicao rounded-md border border-edge px-2.5 py-1.5 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
           >
             EXPORTAR
           </button>
           <button
             onClick={aoTrancar}
-            className="transicao rounded-md border border-edge px-3 py-1.5 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+            className="transicao rounded-md border border-edge px-2.5 py-1.5 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
           >
             TRANCAR
           </button>
@@ -600,7 +606,8 @@ function FormularioCofre({
         </div>
       </div>
 
-      <div className="mt-4 flex gap-2 border-t border-edge pt-3">
+      {/* Mesma razão do cabeçalho: em janela estreita estes três estouravam. */}
+      <div className="mt-4 flex flex-wrap gap-2 border-t border-edge pt-3">
         <button
           onClick={() =>
             aoSalvar({
