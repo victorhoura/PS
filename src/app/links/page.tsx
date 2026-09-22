@@ -5,14 +5,16 @@ import { Secao } from "@/components/Cartao";
 import { Cofre } from "@/components/Cofre";
 import { EditorLink } from "@/components/EditorLink";
 import { avisarCopia } from "@/components/AvisoCopia";
-import { IconeEditar, IconeMais } from "@/components/Icones";
+import { IconeEditar, IconeMais, IconeSeta } from "@/components/Icones";
 import { useLinks } from "@/hooks/useLinks";
-import { hostDe, type Link, porGrupo } from "@/lib/links";
+import { type Link, porGrupo } from "@/lib/links";
 
 export default function Links() {
   const links = useLinks();
   /** null = fechado; "novo" = criando; Link = editando aquele. */
   const [editor, setEditor] = useState<Link | "novo" | null>(null);
+  /** Qual link está com o endereço à mostra. Um de cada vez. */
+  const [expandido, setExpandido] = useState<string | null>(null);
 
   const grupos = useMemo(() => porGrupo(links), [links]);
   const nomesDeGrupo = useMemo(() => grupos.map(([g]) => g), [grupos]);
@@ -43,43 +45,67 @@ export default function Links() {
 
       {grupos.map(([nome, itens]) => (
         <Secao key={nome} titulo={nome}>
-          <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
-            {itens.map((l) => (
-              <div
-                key={l.id}
-                className="transicao group flex items-stretch overflow-hidden rounded-lg border border-edge bg-panel hover:border-accent/60"
-              >
-                {/*
-                  O link e o botão de editar são irmãos, e não um dentro do
-                  outro: um <button> dentro de um <a> não é HTML válido, e o
-                  clique acabaria abrindo o site em vez de editar.
-                */}
-                <a
-                  href={l.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="transicao min-w-0 flex-1 px-2.5 py-1.5 hover:bg-panelHover"
+          {/*
+            `items-start` porque um cartão pode abrir: sem isso a célula
+            vizinha da mesma linha da grade esticaria junto, sem ter o que
+            mostrar no espaço que ganhou.
+          */}
+          <div className="grid grid-cols-1 items-start gap-1 sm:grid-cols-2">
+            {itens.map((l) => {
+              const aberto = expandido === l.id;
+              return (
+                <div
+                  key={l.id}
+                  className={`transicao overflow-hidden rounded-lg border bg-panel ${
+                    aberto ? "border-accent/60" : "border-edge hover:border-accent/40"
+                  }`}
                 >
-                  <span className="block truncate text-[12px] font-bold tracking-wide text-ink">
-                    {l.nome}
-                  </span>
-                  {/* O endereço fica: numa máquina do hospital, é o que diz se
-                      o link leva ao sistema certo antes de você digitar a
-                      senha nele. */}
-                  <span className="mt-0.5 block truncate font-mono text-[10px] leading-snug text-inkDim">
-                    {hostDe(l.url)}
-                  </span>
-                </a>
-                <button
-                  onClick={() => setEditor(l)}
-                  aria-label={`Editar ${l.nome}`}
-                  title={`Editar ${l.nome}`}
-                  className="transicao flex w-8 shrink-0 items-center justify-center border-l border-edge text-inkDim hover:bg-panelHover hover:text-accent"
-                >
-                  <IconeEditar tamanho={12} />
-                </button>
-              </div>
-            ))}
+                  <div className="flex items-stretch">
+                    {/*
+                      O link e os botões são irmãos, e não um dentro do outro:
+                      um <button> dentro de um <a> não é HTML válido, e o
+                      clique acabaria abrindo o site em vez de editar.
+
+                      Só o nome na linha, como nas listas de texto. O endereço
+                      desceu para a seta: ele importa na hora de conferir se o
+                      link leva ao sistema certo, e não a cada vez que você
+                      passa os olhos pela lista.
+                    */}
+                    <a
+                      href={l.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="transicao flex min-w-0 flex-1 items-center px-2.5 py-1.5 hover:bg-panelHover"
+                    >
+                      <span className="truncate text-[12px] font-bold tracking-wide text-ink">
+                        {l.nome}
+                      </span>
+                    </a>
+                    <button
+                      onClick={() => setEditor(l)}
+                      aria-label={`Editar ${l.nome}`}
+                      title={`Editar ${l.nome}`}
+                      className="transicao flex w-7 shrink-0 items-center justify-center border-l border-edge text-inkDim hover:bg-panelHover hover:text-accent"
+                    >
+                      <IconeEditar tamanho={12} />
+                    </button>
+                    <button
+                      onClick={() => setExpandido(aberto ? null : l.id)}
+                      aria-expanded={aberto}
+                      aria-label={aberto ? `Recolher ${l.nome}` : `Ver endereço de ${l.nome}`}
+                      className="transicao flex w-7 shrink-0 items-center justify-center border-l border-edge text-inkDim hover:bg-panelHover hover:text-ink"
+                    >
+                      <IconeSeta aberto={aberto} tamanho={12} />
+                    </button>
+                  </div>
+                  {aberto && (
+                    <p className="select-all break-all border-t border-edge bg-base px-2.5 py-2 font-mono text-[11px] leading-relaxed text-inkDim">
+                      {l.url}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </Secao>
       ))}

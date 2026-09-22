@@ -66,11 +66,6 @@ describe("endereço digitado do jeito humano", () => {
       expect(l.urlValida(ruim)).toBe(false);
     }
   });
-
-  it("o host mostrado é só o domínio", async () => {
-    const l = await modulo();
-    expect(l.hostDe("https://app.sinconecta.com/ords/f?p=1500")).toBe("app.sinconecta.com");
-  });
 });
 
 describe("grupos", () => {

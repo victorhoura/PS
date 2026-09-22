@@ -158,15 +158,6 @@ export function urlValida(bruto: string): boolean {
   }
 }
 
-/** O endereço como ele aparece embaixo do nome. */
-export function hostDe(url: string): string {
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return url;
-  }
-}
-
 export function salvarLink(link: Link): void {
   const limpo: Link = {
     ...link,
