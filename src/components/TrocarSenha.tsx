@@ -1,6 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { copiar } from "@/lib/clipboard";
+import { avisarCopia } from "./AvisoCopia";
+import { IconeCopiar } from "./Icones";
+
+async function copiarSegredo(segredo: string) {
+  avisarCopia("Código do autenticador", await copiar(segredo));
+}
 
 /**
  * Trocar a senha do app.
@@ -135,8 +142,9 @@ export function TrocarSenha() {
       {preparo && (
         <div className="mb-4 rounded-lg border border-accent/40 bg-panel p-3">
           <p className="mb-2 text-[11px] leading-relaxed text-inkDim">
-            Escaneie no autenticador do celular. Guarde também o código escrito: é com ele que você
-            reconfigura o autenticador se trocar de aparelho.
+            Escaneie com a câmera do celular. <strong className="text-ink">Serve qualquer
+            autenticador</strong> — o app Senhas do iPhone, o Google Authenticator, o Authy, o
+            1Password: todos leem este mesmo código.
           </p>
           <div className="flex flex-wrap items-center gap-4">
             {/* O SVG vem do nosso próprio servidor, desenhado a partir do
@@ -145,12 +153,36 @@ export function TrocarSenha() {
               className="inline-block h-36 w-36 shrink-0 rounded bg-white p-1.5 [&>svg]:h-full [&>svg]:w-full"
               dangerouslySetInnerHTML={{ __html: preparo.svg }}
             />
-            <code className="select-all break-all font-mono text-[11px] tracking-wider text-accent">
-              {preparo.segredo}
-            </code>
+            <div className="min-w-0 flex-1">
+              <span className="mb-1 block font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim">
+                ou digite este código no app
+              </span>
+              <code className="block select-all break-all font-mono text-[11px] leading-relaxed tracking-wider text-accent">
+                {preparo.segredo}
+              </code>
+              <button
+                type="button"
+                onClick={() => void copiarSegredo(preparo.segredo)}
+                className="transicao mt-2 flex items-center gap-1.5 rounded-md border border-edge px-2.5 py-1 text-[10px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-accent"
+              >
+                <IconeCopiar tamanho={12} /> COPIAR CÓDIGO
+              </button>
+            </div>
           </div>
+          {/*
+            No iPhone, escanear pela câmera abre o app Senhas — o iOS é dono
+            desse tipo de link. Não é defeito e funciona igual, mas quem
+            esperava outro app acha que deu errado, então a tela diz.
+          */}
+          <p className="mt-3 border-t border-edge pt-2 text-[10px] leading-relaxed text-inkDim/70">
+            No iPhone, a câmera abre o app <strong>Senhas</strong> da Apple — pode aceitar, ele
+            guarda o código e depois preenche sozinho. Se preferir outro app, abra o app primeiro e
+            use a opção de escanear de dentro dele, ou cole o código acima.
+          </p>
           <p className="mt-2 text-[10px] leading-relaxed text-inkDim/70">
-            O autenticador só fica valendo quando você concluir a troca aqui embaixo.
+            Guarde o código escrito num lugar seguro: é com ele que você reconfigura o autenticador
+            se trocar de celular. O autenticador só fica valendo quando você concluir a troca aqui
+            embaixo.
           </p>
         </div>
       )}

@@ -133,14 +133,27 @@ export async function conferirCodigo(
   return false;
 }
 
+const EMISSOR = "PS JAPA";
+
 /**
- * O endereço `otpauth://` que vira o QR code. O rótulo é o que aparece na
- * lista do autenticador, então diz o app e não só o domínio.
+ * O endereço `otpauth://` que vira o QR code.
+ *
+ * O rótulo vai no formato "Emissor:conta", que é a convenção que os
+ * autenticadores leem para separar o nome do serviço do nome da conta. Sem
+ * os dois, a entrada aparece na lista do celular só como "PS JAPA", sem
+ * dizer de onde veio — e no meio de uma lista de logins isso é ruim.
+ *
+ * Note que este endereço é o mesmo para qualquer autenticador: o padrão é um
+ * só. O Google Authenticator, o Authy, o 1Password e o app Senhas do iPhone
+ * leem exatamente este QR. Qual deles o celular abre ao escanear pela câmera
+ * é escolha do sistema, não daqui.
  */
-export function enderecoOtpauth(segredo: string, conta = "PS JAPA"): string {
-  const rotulo = encodeURIComponent(conta);
+export function enderecoOtpauth(segredo: string, conta = "ps.victorhoura.com"): string {
+  // As partes são codificadas separadamente para o ":" ficar literal, que é
+  // como a convenção pede.
+  const rotulo = `${encodeURIComponent(EMISSOR)}:${encodeURIComponent(conta)}`;
   return (
-    `otpauth://totp/${rotulo}?secret=${segredo}&issuer=${encodeURIComponent("PS JAPA")}` +
+    `otpauth://totp/${rotulo}?secret=${segredo}&issuer=${encodeURIComponent(EMISSOR)}` +
     `&algorithm=SHA1&digits=${DIGITOS}&period=${JANELA_SEGUNDOS}`
   );
 }

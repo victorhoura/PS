@@ -109,4 +109,19 @@ describe("endereço do QR", () => {
     expect(url.searchParams.get("period")).toBe("30");
     expect(url.searchParams.get("algorithm")).toBe("SHA1");
   });
+
+  it("o rótulo é Emissor:conta, que é o que separa o serviço da conta", () => {
+    // O pathname vem com a barra da frente.
+    const caminho = decodeURIComponent(new URL(enderecoOtpauth("ABC234")).pathname);
+    expect(caminho).toBe("/PS JAPA:ps.victorhoura.com");
+  });
+
+  it("é o mesmo endereço para qualquer autenticador — o padrão é um só", () => {
+    // Nada aqui é específico de um aplicativo: se um dia aparecer algo do
+    // tipo, este teste é o lugar de barrar.
+    const endereco = enderecoOtpauth("ABC234");
+    expect(endereco.startsWith("otpauth://totp/")).toBe(true);
+    expect(endereco.toLowerCase()).not.toContain("google");
+    expect(endereco.toLowerCase()).not.toContain("apple");
+  });
 });
