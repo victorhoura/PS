@@ -122,8 +122,9 @@ export function TrocarSenha() {
       <div className="max-w-2xl">
         <p className="mb-3 text-[11px] leading-relaxed text-inkDim">
           Para trocar a senha é preciso um aplicativo autenticador no seu celular — o Google
-          Authenticator, o Authy, ou o próprio gerenciador de senhas do aparelho. Você escaneia um
-          QR uma única vez; depois é só o código de seis dígitos.
+          Authenticator ou o Authy, por exemplo. Você escaneia um QR uma única vez; depois é só o
+          código de seis dígitos. Vale a pena que seja um app separado do que guarda as suas
+          senhas: é ter os dois em lugares diferentes que faz do segundo fator um segundo fator.
         </p>
         <button
           onClick={() => void preparar()}
@@ -142,9 +143,9 @@ export function TrocarSenha() {
       {preparo && (
         <div className="mb-4 rounded-lg border border-accent/40 bg-panel p-3">
           <p className="mb-2 text-[11px] leading-relaxed text-inkDim">
-            Escaneie com a câmera do celular. <strong className="text-ink">Serve qualquer
-            autenticador</strong> — o app Senhas do iPhone, o Google Authenticator, o Authy, o
-            1Password: todos leem este mesmo código.
+            <strong className="text-ink">Abra o autenticador no celular e escaneie de dentro
+            dele</strong> — no Google Authenticator, no Authy ou no 1Password, procure por
+            “escanear código QR”. Serve qualquer um: todos leem este mesmo código.
           </p>
           <div className="flex flex-wrap items-center gap-4">
             {/* O SVG vem do nosso próprio servidor, desenhado a partir do
@@ -170,14 +171,18 @@ export function TrocarSenha() {
             </div>
           </div>
           {/*
-            No iPhone, escanear pela câmera abre o app Senhas — o iOS é dono
-            desse tipo de link. Não é defeito e funciona igual, mas quem
-            esperava outro app acha que deu errado, então a tela diz.
+            Escanear pela câmera do iPhone abre o app Senhas numa tela de
+            "Nova Senha", pedindo usuário e senha — o iOS é dono desse tipo de
+            link e quer criar uma entrada para pendurar o código nela. Não é
+            defeito, mas parece, e é por isso que o caminho recomendado ali em
+            cima é escanear de dentro do autenticador.
           */}
           <p className="mt-3 border-t border-edge pt-2 text-[10px] leading-relaxed text-inkDim/70">
-            No iPhone, a câmera abre o app <strong>Senhas</strong> da Apple — pode aceitar, ele
-            guarda o código e depois preenche sozinho. Se preferir outro app, abra o app primeiro e
-            use a opção de escanear de dentro dele, ou cole o código acima.
+            <strong>No iPhone, pela câmera é diferente:</strong> abre o app Senhas numa tela de
+            “Nova Senha” pedindo usuário e senha. Ele está criando uma entrada para guardar o
+            código dentro dela — funciona, mas aí a sua senha e o segundo fator passam a morar no
+            mesmo cofre, que é justamente o que o segundo fator existe para evitar. Prefira
+            escanear de dentro do autenticador, ou colar o código acima nele.
           </p>
           <p className="mt-2 text-[10px] leading-relaxed text-inkDim/70">
             Guarde o código escrito num lugar seguro: é com ele que você reconfigura o autenticador
