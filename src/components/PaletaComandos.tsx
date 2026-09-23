@@ -202,7 +202,7 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
           />
         </div>
 
-        <ul ref={listaRef} className="min-h-0 flex-1 overflow-y-auto py-1">
+        <ul ref={listaRef} className="anel-dentro min-h-0 flex-1 overflow-y-auto py-1">
           {resultados.length === 0 && (
             <li className="px-4 py-6 text-center text-xs text-inkDim">Nada encontrado.</li>
           )}

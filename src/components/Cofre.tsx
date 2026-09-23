@@ -573,7 +573,14 @@ function FormularioCofre({
           Transcreva o cartão. Deixe em branco se preferir manter o cartão só no papel — é a
           opção mais segura, já que ele é o seu segundo fator.
         </p>
-        <div className="inline-block overflow-x-auto">
+        {/*
+          `-m-1 p-1`: 4px de folga por dentro, devolvidos por fora. A caixa
+          rola na horizontal (a grade não cabe numa janela de 300px), e quem
+          rola recorta — sem a folga, o anel de foco das células da última
+          coluna era cortado à direita. A margem negativa mantém a tabela
+          alinhada com o texto de cima.
+        */}
+        <div className="-m-1 inline-block max-w-full overflow-x-auto p-1">
           <table className="border-collapse">
             <tbody>
               <tr>

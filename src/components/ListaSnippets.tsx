@@ -87,7 +87,7 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
           {filtrados.map((s) => (
             <div
               key={s.id}
-              className="transicao group flex items-stretch overflow-hidden rounded-lg border border-edge bg-panel hover:border-accent/60"
+              className="anel-dentro transicao group flex items-stretch overflow-hidden rounded-lg border border-edge bg-panel hover:border-accent/60"
             >
               <button
                 onClick={() => void copiarItem(s)}
@@ -109,7 +109,7 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
             return (
               <li
                 key={s.id}
-                className={`transicao overflow-hidden rounded-lg border bg-panel ${
+                className={`anel-dentro transicao overflow-hidden rounded-lg border bg-panel ${
                   expandido ? "border-accent/60" : "border-edge hover:border-accent/40"
                 }`}
               >

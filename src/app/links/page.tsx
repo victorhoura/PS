@@ -56,7 +56,7 @@ export default function Links() {
               return (
                 <div
                   key={l.id}
-                  className={`transicao overflow-hidden rounded-lg border bg-panel ${
+                  className={`anel-dentro transicao overflow-hidden rounded-lg border bg-panel ${
                     aberto ? "border-accent/60" : "border-edge hover:border-accent/40"
                   }`}
                 >

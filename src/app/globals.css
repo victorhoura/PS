@@ -92,6 +92,23 @@ body {
   outline: none;
 }
 
+/*
+ * Anel por DENTRO, para as linhas das listas.
+ *
+ * Cada linha de lista (um texto, um CID, um link, um resultado do Ctrl K) é
+ * um botão que ocupa o cartão inteiro, e o cartão recorta o que passa das
+ * bordas para arredondar os cantos. O anel de cima sai 2px para fora — e
+ * era cortado nos quatro lados, em toda lista do app. A varredura achou o
+ * mesmo defeito do Ctrl K quase cinco mil vezes: era uma causa só.
+ *
+ * Com o deslocamento negativo o anel ocupa os 2px mais externos do próprio
+ * botão, sem sair dele. Marca-se o CARTÃO, não cada botão: assim um botão
+ * novo que entrar na linha já nasce certo.
+ */
+.anel-dentro :focus-visible {
+  outline-offset: -2px;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;

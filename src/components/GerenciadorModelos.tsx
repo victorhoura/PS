@@ -99,7 +99,7 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
                 {modelos.map((m) => (
                   <li
                     key={m.id}
-                    className="transicao flex items-stretch overflow-hidden rounded-lg border border-edge bg-base"
+                    className="transicao flex items-stretch anel-dentro overflow-hidden rounded-lg border border-edge bg-base"
                   >
                     <div className="min-w-0 flex-1 px-3 py-2">
                       <span className="block truncate text-[12px] font-bold tracking-wide text-ink">
