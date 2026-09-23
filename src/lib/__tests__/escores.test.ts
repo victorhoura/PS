@@ -460,7 +460,36 @@ describe("ATLANTA", () => {
 
   it("lista todos os motivos quando são vários", () => {
     const { laudo } = responder(atl, { transitoria: 1, local: 1, sistemica: 1 });
-    expect(laudo).toContain("FALÊNCIA ORGÂNICA TRANSITÓRIA (<48H) / COMPLICAÇÕES LOCAIS / COMPLICAÇÕES SISTÊMICAS");
+    expect(laudo).toContain("FALÊNCIA ORGÂNICA TRANSITÓRIA (ATÉ 48 H) / COMPLICAÇÕES LOCAIS / COMPLICAÇÕES SISTÊMICAS");
+  });
+
+  it("define falência orgânica pelo Marshall modificado e persistente como > 48 h", () => {
+    const { laudo } = responder(atl, { persistente: 1 });
+    expect(laudo).toContain("PERSISTENTE (> 48 H)");
+    expect(laudo).toContain("MARSHALL MODIFICADO ≥ 2");
+    expect(laudo).toContain("WATERFALL");
+  });
+});
+
+describe("ALVARADO", () => {
+  const alv = pegar("alvarado");
+
+  it("soma os pesos do artigo (dor em FID e leucocitose valem 2)", () => {
+    expect(responder(alv, { dor_fid: 1, leuco: 1 }).pontos).toBe(4);
+    const todos = { migratoria: 1, anorexia: 1, nv: 1, dor_fid: 1, descomp: 1, febre: 1, leuco: 1, desvio: 1 };
+    expect(responder(alv, todos).resumo).toBe("10/10 · MUITO PROVÁVEL (9–10)");
+  });
+
+  it("REGRESSÃO: cortes do artigo nos rótulos — febre ≥ 37,3 e neutrófilos > 75%", () => {
+    const rotulo = (id: string) => alv.grupos[0].criterios.find((c) => c.id === id)!.label;
+    expect(rotulo("febre")).toBe("TEMPERATURA ≥ 37,3 °C");
+    expect(rotulo("desvio")).toContain("NEUTRÓFILOS > 75%");
+  });
+
+  it("escore baixo ajuda a excluir; escore alto não confirma sozinho", () => {
+    expect(responder(alv, { anorexia: 1 }).laudo).toContain("SENSIBILIDADE DE ~99%");
+    expect(responder(alv, { dor_fid: 1, leuco: 1, migratoria: 1, febre: 1, nv: 1 }).laudo)
+      .toContain("NÃO É ESPECÍFICO O BASTANTE PARA CONFIRMAR SOZINHO");
   });
 });
 
@@ -469,6 +498,15 @@ describe("HINCHEY", () => {
 
   it("começa no estágio I", () => {
     expect(responder(hin, {}).laudo).toContain("ESTÁGIO: I");
+  });
+
+  it("REGRESSÃO: estágio I é abscesso pericólico, com a conduta pelo tamanho", () => {
+    // Hinchey 1978 não tem "peritonite pericólica"; a WSES 2020 separa o
+    // abscesso pequeno (antibiótico) do grande (drenagem percutânea).
+    const { laudo } = responder(hin, {});
+    expect(laudo).toContain("ABSCESSO PERICÓLICO (OU FLEIMÃO)");
+    expect(laudo).not.toContain("PERITONITE PERICÓLICA");
+    expect(laudo).toContain("ABSCESSO ≥ 4–5 CM: DRENAGEM PERCUTÂNEA");
   });
 
   it("cada estágio traz a própria conduta", () => {

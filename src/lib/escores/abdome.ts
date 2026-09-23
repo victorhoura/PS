@@ -8,6 +8,12 @@ import type { Resposta } from "./tipos";
 
 // ============================ ALVARADO ============================
 
+/*
+ * Alvarado, Ann Emerg Med 1986: febre é ≥ 37,3 °C e desvio à esquerda é
+ * neutrófilos > 75%. A WSES 2020 manda usá-lo para EXCLUIR (< 5 tem
+ * sensibilidade de ~99%) e não para confirmar apendicite no adulto.
+ */
+
 export const ALVARADO: Calculadora = {
   slug: "alvarado",
   nome: "ALVARADO (MANTRELS)",
@@ -20,22 +26,22 @@ export const ALVARADO: Calculadora = {
       { id: "nv", label: "NÁUSEAS/VÔMITOS", pontos: 1 },
       { id: "dor_fid", label: "DOR/DEFESA À PALPAÇÃO EM FID", pontos: 2 },
       { id: "descomp", label: "DESCOMPRESSÃO BRUSCA DOLOROSA", pontos: 1 },
-      { id: "febre", label: "FEBRE (>37,3 °C)", pontos: 1 },
+      { id: "febre", label: "TEMPERATURA ≥ 37,3 °C", pontos: 1 },
       { id: "leuco", label: "LEUCOCITOSE (>10.000)", pontos: 2 },
-      { id: "desvio", label: "DESVIO À ESQUERDA", pontos: 1 },
+      { id: "desvio", label: "DESVIO À ESQUERDA (NEUTRÓFILOS > 75%)", pontos: 1 },
     ],
   }],
   resumo: (p) => `${p}/10 · ${classeAlvarado(p)}`,
   laudo: (p) => {
     let conduta: string[];
     if (p <= 4) {
-      conduta = ["- BAIXA PROBABILIDADE: OBSERVAÇÃO/REAVALIAÇÃO CLÍNICA.", "- CONSIDERAR EXAMES (HEMOGRAMA/URINA) SE NECESSÁRIO.", "- IMAGEM SE DÚVIDA OU PERSISTÊNCIA/PIORA."];
+      conduta = ["- BAIXA PROBABILIDADE: ESCORE < 5 TEM SENSIBILIDADE DE ~99% PARA EXCLUIR (WSES 2020).", "- OBSERVAÇÃO/REAVALIAÇÃO CLÍNICA; ALTA COM ORIENTAÇÃO DE RETORNO SE ESTÁVEL.", "- IMAGEM SE DÚVIDA OU PERSISTÊNCIA/PIORA."];
     } else if (p <= 6) {
       conduta = ["- PROBABILIDADE INTERMEDIÁRIA: SOLICITAR IMAGEM (USG ABDOME; TC SE NECESSÁRIO).", "- ANALGESIA/HIDRATAÇÃO E REAVALIAÇÃO SERIADA.", "- AVALIAÇÃO CIRÚRGICA CONFORME DISPONIBILIDADE/SUSPEITA."];
     } else if (p <= 8) {
-      conduta = ["- PROVÁVEL: AVALIAÇÃO CIRÚRGICA PRECOCE.", "- IMAGEM PODE SER ÚTIL PARA CONFIRMAÇÃO/COMPLICAÇÕES (USG/TC).", "- JEJUM, HIDRATAÇÃO, ANALGESIA; ANTIBIÓTICO SE INDICADO PELO SERVIÇO."];
+      conduta = ["- PROVÁVEL: AVALIAÇÃO CIRÚRGICA PRECOCE.", "- CONFIRMAR COM IMAGEM (USG/TC): O ALVARADO NÃO É ESPECÍFICO O BASTANTE PARA CONFIRMAR SOZINHO (WSES 2020).", "- JEJUM, HIDRATAÇÃO, ANALGESIA; ANTIBIÓTICO SE INDICADO PELO SERVIÇO."];
     } else {
-      conduta = ["- MUITO PROVÁVEL: AVALIAÇÃO CIRÚRGICA IMEDIATA.", "- CONSIDERAR TRATAMENTO ESTRUTURADO DO SERVIÇO (JEJUM, ACESSO, HIDRATAÇÃO, ANALGESIA).", "- IMAGEM SE IMPACTAR CONDUTA (ATÍPICO, DÚVIDA, COMPLICAÇÃO)."];
+      conduta = ["- MUITO PROVÁVEL: AVALIAÇÃO CIRÚRGICA IMEDIATA.", "- CONSIDERAR TRATAMENTO ESTRUTURADO DO SERVIÇO (JEJUM, ACESSO, HIDRATAÇÃO, ANALGESIA).", "- MENOR DE 40 ANOS: A TC PRÉ-OPERATÓRIA PODE SER DISPENSADA ANTES DA LAPAROSCOPIA (WSES 2020); ACIMA DISSO, IMAGEM ANTES DA CIRURGIA."];
     }
     return cx([
       "ALVARADO (MANTRELS) - RESULTADO",
@@ -46,6 +52,8 @@ export const ALVARADO: Calculadora = {
       ...conduta,
       "",
       "OBS: ESCORE É APOIO À DECISÃO; CORRELACIONAR COM EXAME FÍSICO, EVOLUÇÃO, GESTAÇÃO, IDADE E DIAGNÓSTICOS DIFERENCIAIS.",
+      "NA GESTAÇÃO O ESCORE SOBE SEM APENDICITE (LEUCOCITOSE E NÁUSEA FISIOLÓGICAS); MENOS CONFIÁVEL NO IDOSO E NO HIV.",
+      "REF: ALVARADO A. ANN EMERG MED 1986;15:557-64 | DI SAVERIO S ET AL. WSES 2020, WORLD J EMERG SURG 2020;15:27.",
     ]);
   },
 };
@@ -75,8 +83,8 @@ export const ATLANTA: Calculadora = {
   grupos: [{
     titulo: "CRITÉRIOS",
     criterios: [
-      { id: "persistente", label: "FALÊNCIA ORGÂNICA PERSISTENTE (≥48H) (RESP./CV/RENAL)", pontos: 0 },
-      { id: "transitoria", label: "FALÊNCIA ORGÂNICA TRANSITÓRIA (<48H) (RESP./CV/RENAL)", pontos: 0 },
+      { id: "persistente", label: "FALÊNCIA ORGÂNICA PERSISTENTE (> 48 H) (RESP./CV/RENAL)", pontos: 0 },
+      { id: "transitoria", label: "FALÊNCIA ORGÂNICA TRANSITÓRIA (RESOLVE EM ATÉ 48 H) (RESP./CV/RENAL)", pontos: 0 },
       { id: "local", label: "COMPLICAÇÕES LOCAIS (NECROSE, COLEÇÕES, PSEUDOCISTO)", pontos: 0 },
       { id: "sistemica", label: "COMPLICAÇÕES SISTÊMICAS (EXACERBAÇÃO DE COMORBIDADES)", pontos: 0 },
     ],
@@ -86,12 +94,13 @@ export const ATLANTA: Calculadora = {
     const { classe, motivo } = classeAtlanta(r);
     const conduta =
       classe === "LEVE"
-        ? ["- SUPORTE CLÍNICO: HIDRATAÇÃO, ANALGESIA, ANTIEMÉTICO.",
+        ? ["- SUPORTE CLÍNICO: HIDRATAÇÃO MODERADA E GUIADA POR METAS, ANALGESIA, ANTIEMÉTICO.",
            "- REALIMENTAÇÃO ORAL PRECOCE QUANDO TOLERADO.",
            "- SEM ROTINA DE ANTIBIÓTICO (A MENOS DE INDICAÇÃO ESPECÍFICA).",
            "- AVALIAR ETIOLOGIA (BILIAR, ALCOÓLICA, HIPERTRIGLICERIDEMIA)."]
         : classe === "MODERADAMENTE GRAVE"
           ? ["- MONITORIZAÇÃO MAIS PRÓXIMA (RISCO DE PIORA).",
+             "- HIDRATAÇÃO MODERADA E GUIADA POR METAS, REAVALIANDO A VOLEMIA.",
              "- CONSIDERAR UTI/SEMI-INTENSIVA CONFORME DISFUNÇÃO E NECESSIDADE DE SUPORTE.",
              "- IMAGEM CONFORME EVOLUÇÃO (SUSPEITA DE COMPLICAÇÃO/NECROSE).",
              "- NUTRIÇÃO ENTERAL SE IMPOSSIBILIDADE DE VIA ORAL PROLONGADA."]
@@ -108,8 +117,13 @@ export const ATLANTA: Calculadora = {
       "CONDUTA (SUGESTÃO PRÁTICA - ADAPTAR AO PROTOCOLO LOCAL):",
       ...conduta,
       "",
+      "FALÊNCIA ORGÂNICA = MARSHALL MODIFICADO ≥ 2: PAO2/FIO2 ≤ 300, PAS < 90 SEM RESPOSTA A VOLUME",
+      "OU CREATININA ≥ 1,9 MG/DL.",
+      "HIDRATAÇÃO: A AGRESSIVA (20 ML/KG + 3 ML/KG/H) NÃO MELHOROU DESFECHO E QUASE TRIPLICOU A SOBRECARGA",
+      "DE VOLUME EM RELAÇÃO À MODERADA (WATERFALL, NEJM 2022).",
+      "",
       "OBS: A CLASSIFICAÇÃO É APOIO; CORRELACIONAR COM EVOLUÇÃO, EXAMES, DISFUNÇÃO ORGÂNICA E PROTOCOLO DO SERVIÇO.",
-      "REF: REVISED ATLANTA CLASSIFICATION (2012).",
+      "REF: BANKS PA ET AL. GUT 2013;62:102-11 (ATLANTA REVISADA, 2012).",
     ]);
   },
 };
@@ -118,11 +132,11 @@ function classeAtlanta(r: Resposta): { classe: string; motivo: string } {
   if (r.persistente === 1) {
     return {
       classe: "GRAVE",
-      motivo: "FALÊNCIA ORGÂNICA PERSISTENTE (≥48H) (1 OU MAIS ÓRGÃOS)",
+      motivo: "FALÊNCIA ORGÂNICA PERSISTENTE (> 48 H) (1 OU MAIS ÓRGÃOS)",
     };
   }
   const motivos: string[] = [];
-  if (r.transitoria === 1) motivos.push("FALÊNCIA ORGÂNICA TRANSITÓRIA (<48H)");
+  if (r.transitoria === 1) motivos.push("FALÊNCIA ORGÂNICA TRANSITÓRIA (ATÉ 48 H)");
   if (r.local === 1) motivos.push("COMPLICAÇÕES LOCAIS");
   if (r.sistemica === 1) motivos.push("COMPLICAÇÕES SISTÊMICAS");
 
@@ -138,13 +152,13 @@ function classeAtlanta(r: Resposta): { classe: string; motivo: string } {
 
 const HINCHEY_ESTAGIOS = [
   {
-    rotulo: "HINCHEY I - ABSCESSO/PERITONITE PERICÓLICA (MICROPERFURAÇÃO)",
-    descricao: "HINCHEY I: ABSCESSO/PERITONITE PERICÓLICA (MICROPERFURAÇÃO)",
-    risco: "GERALMENTE MANEJO CLÍNICO; DRENAGEM SE ABSCESSO SELECIONADO",
+    rotulo: "HINCHEY I - ABSCESSO PERICÓLICO (OU FLEIMÃO)",
+    descricao: "HINCHEY I: ABSCESSO PERICÓLICO (OU FLEIMÃO)",
+    risco: "ANTIBIÓTICO; DRENAGEM PERCUTÂNEA SE O ABSCESSO FOR GRANDE (≥ 4–5 CM)",
     conduta: [
-      "- TRATAMENTO CLÍNICO (ANALGESIA, HIDRATAÇÃO, DIETA CONFORME TOLERÂNCIA).",
-      "- ANTIBIÓTICO SE INDICADO PELO SERVIÇO (COMPLICADA/ABSCESSO).",
-      "- IMAGEM/REAVALIAÇÃO SERIADA; ALTA COM ORIENTAÇÕES SE ESTÁVEL E BOM CONTROLE.",
+      "- ABSCESSO < 4–5 CM: TENTAR ANTIBIÓTICO SOZINHO (WSES 2020).",
+      "- ABSCESSO ≥ 4–5 CM: DRENAGEM PERCUTÂNEA + ANTIBIÓTICO.",
+      "- IMAGEM/REAVALIAÇÃO SERIADA; CIRURGIA SE FALHA OU PIORA.",
     ],
   },
   {
@@ -210,7 +224,9 @@ export const HINCHEY: Calculadora = {
       ...e.conduta,
       "",
       "OBS: A DECISÃO DEPENDE DO QUADRO CLÍNICO, DA TC, DAS COMORBIDADES E DA DISPONIBILIDADE DE DRENAGEM/CIRURGIA.",
-      "REF: CLASSIFICAÇÃO DE HINCHEY (DIVERTICULITE COMPLICADA).",
+      "DIVERTICULITE NÃO COMPLICADA NÃO ENTRA NO HINCHEY: NO IMUNOCOMPETENTE SEM INFLAMAÇÃO SISTÊMICA, A",
+      "WSES 2020 RECOMENDA NÃO USAR ANTIBIÓTICO (1A).",
+      "REF: HINCHEY EJ ET AL. ADV SURG 1978;12:85-109 | SARTELLI M ET AL. WSES 2020, WORLD J EMERG SURG 2020;15:32.",
     ]);
   },
 };
