@@ -180,20 +180,17 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
         className="flex max-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-edge bg-panel shadow-painel"
         onClick={(e) => e.stopPropagation()}
       >
-        {/*
-          O `py-1.5` daqui não é respiro: é o que faz o anel de foco caber.
-
-          O anel do app é desenhado 2px PARA FORA do elemento (`outline-offset`
-          em globals.css), e o campo encostava no topo deste diálogo, que
-          recorta o que passa das bordas para arredondar os cantos. Resultado:
-          o anel aparecia dos três lados e sumia em cima. Precisa de 4px de
-          folga — 2 do deslocamento, 2 da espessura — e tinha 1. Os 6px daqui
-          deixam 3 de sobra, para o anel nao ficar rente a borda.
-        */}
-        <div className="flex items-center gap-2.5 border-b border-edge px-4 py-1.5">
+        <div className="flex items-center gap-2.5 border-b border-edge px-4">
           <span className="text-inkDim/60">
             <IconeBusca tamanho={16} />
           </span>
+          {/*
+            `foco-obvio` tira o anel de foco — veja o porquê em globals.css.
+            Aqui ele não dizia nada: este campo é o único focável do diálogo,
+            é focado sozinho ao abrir e já tem o cursor piscando. E, por
+            encostar no topo de uma caixa que recorta as bordas, ainda
+            aparecia cortado em cima.
+          */}
           <input
             ref={inputRef}
             value={termo}
@@ -201,7 +198,7 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
             onKeyDown={onKeyDown}
             placeholder="Buscar texto, CID, fármaco, calculadora…"
             aria-label="Buscar"
-            className="w-full bg-transparent py-1.5 text-sm text-ink outline-none placeholder:text-inkDim/60"
+            className="foco-obvio w-full bg-transparent py-2.5 text-sm text-ink placeholder:text-inkDim/60"
           />
         </div>
 

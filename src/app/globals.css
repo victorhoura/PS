@@ -72,6 +72,26 @@ body {
   border-radius: 4px;
 }
 
+/*
+ * A exceção, para o campo de busca do Ctrl K.
+ *
+ * O anel existe para dizer ONDE está o foco. Naquela caixa não há dúvida: é
+ * o único elemento que recebe foco, ele é focado sozinho ao abrir, o cursor
+ * já está piscando nele e a caixa inteira existe para ser digitada. O anel
+ * ali só repetia o óbvio com um contorno grosso em volta da tela.
+ *
+ * Use isto SÓ quando essas quatro coisas valerem. Em qualquer campo que
+ * conviva com outro focável, tirar o anel é tirar a única pista de onde o
+ * teclado vai escrever.
+ *
+ * Mora aqui, e não como classe do Tailwind no componente, porque a regra
+ * acima está fora de @layer: CSS sem camada vence utilitário em camada, e um
+ * `outline-none` no elemento não teria efeito nenhum.
+ */
+.foco-obvio:focus-visible {
+  outline: none;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
