@@ -6,6 +6,9 @@
  * SE é (critérios A/B/C), depois QUÃO GRAVE é (I, II ou III) — e as duas
  * andam separadas: dá para ter gravidade marcada sem o diagnóstico fechar, e
  * o laudo tem que dizer as duas coisas em vez de misturá-las num número.
+ *
+ * Fontes: Kiriyama et al. (colangite), Yokoe et al. (colecistite) e Miura et
+ * al. (conduta), J Hepatobiliary Pancreat Sci 2018;25.
  */
 
 import type { Calculadora, Resposta, Valores } from "./tipos";
@@ -26,6 +29,10 @@ const sn = (b: boolean) => (b ? "SIM" : "NÃO");
  * A + (B ou C) é SUSPEITA; A + B + C é DEFINITIVA. A é obrigatório nos dois:
  * colestase com imagem alterada e sem inflamação nenhuma é obstrução biliar,
  * não colangite.
+ *
+ * Os números digitados também marcam critério, com os cortes do TG18:
+ * temperatura > 38 °C é A-1, leucócitos < 4.000 ou > 10.000 é A-2 e
+ * bilirrubina ≥ 2 é B-1 — quem já digitou o valor não precisa marcar de novo.
  */
 export const TOKYO_COLANGITE: Calculadora = {
   slug: "tokyo-colangite",
@@ -41,14 +48,14 @@ export const TOKYO_COLANGITE: Calculadora = {
     {
       titulo: "A — INFLAMAÇÃO SISTÊMICA",
       criterios: [
-        { id: "a_febre", label: "FEBRE E/OU CALAFRIOS", pontos: 0 },
-        { id: "a_lab", label: "INFLAMAÇÃO LABORATORIAL (LEUCOGRAMA/PCR)", pontos: 0 },
+        { id: "a_febre", label: "FEBRE (> 38 °C) E/OU CALAFRIOS", pontos: 0 },
+        { id: "a_lab", label: "LEUCÓCITOS < 4.000 OU > 10.000, OU PCR ≥ 1 mg/dL", pontos: 0 },
       ],
     },
     {
       titulo: "B — COLESTASE",
       criterios: [
-        { id: "b_lft", label: "ENZIMAS HEPÁTICAS ALTERADAS (FA/GGT/TGO/TGP)", pontos: 0 },
+        { id: "b_lft", label: "FA, GGT, TGO OU TGP > 1,5 × O LIMITE SUPERIOR", pontos: 0 },
       ],
     },
     {
@@ -61,8 +68,8 @@ export const TOKYO_COLANGITE: Calculadora = {
     {
       titulo: "GRAU III — DISFUNÇÃO ORGÂNICA (QUALQUER UMA BASTA)",
       criterios: [
-        { id: "g3_vaso", label: "CHOQUE / USO DE VASOPRESSOR", pontos: 0 },
-        { id: "g3_neuro", label: "ALTERAÇÃO NEUROLÓGICA", pontos: 0 },
+        { id: "g3_vaso", label: "HIPOTENSÃO COM DOPAMINA ≥ 5 OU NORADRENALINA EM QUALQUER DOSE", pontos: 0 },
+        { id: "g3_neuro", label: "ALTERAÇÃO DA CONSCIÊNCIA", pontos: 0 },
         { id: "g3_resp", label: "RESPIRATÓRIO GRAVE (PAO2/FIO2 < 300)", pontos: 0 },
         { id: "g3_renal", label: "RENAL (CREATININA > 2 OU OLIGÚRIA)", pontos: 0 },
         { id: "g3_hep", label: "HEPÁTICO (INR > 1,5)", pontos: 0 },
@@ -70,8 +77,8 @@ export const TOKYO_COLANGITE: Calculadora = {
       ],
     },
     {
-      titulo: "GRAU II — OUTROS CRITÉRIOS",
-      criterios: [{ id: "g2_albumina", label: "ALBUMINA BAIXA", pontos: 0 }],
+      titulo: "GRAU II — OUTROS CRITÉRIOS (PRECISA DE 2 DE 5 COM OS CAMPOS)",
+      criterios: [{ id: "g2_albumina", label: "ALBUMINA < 0,7 × O LIMITE INFERIOR", pontos: 0 }],
     },
   ],
   resumo: (_p, r, v) => {
@@ -80,9 +87,11 @@ export const TOKYO_COLANGITE: Calculadora = {
   },
   laudo: (_p, r, v) => {
     const d = colangite(r, v);
-    const drenagem = d.gravidade.startsWith("GRAU I ")
-      ? "- GRAU I: PODE RESPONDER A TRATAMENTO CLÍNICO; REAVALIAR NECESSIDADE DE DRENAGEM."
-      : "- GRAU II/III: DRENAGEM BILIAR O QUANTO ANTES (CONFORME RECURSO/ENDOSCOPIA).";
+    const drenagem = d.gravidade.startsWith("GRAU III")
+      ? "- GRAU III: SUPORTE RESPIRATÓRIO/CIRCULATÓRIO E DRENAGEM BILIAR ASSIM QUE O PACIENTE ESTABILIZAR."
+      : d.gravidade.startsWith("GRAU II")
+        ? "- GRAU II: DRENAGEM BILIAR PRECOCE (ENDOSCÓPICA OU PERCUTÂNEA)."
+        : "- GRAU I: EM GERAL O ANTIBIÓTICO BASTA; DRENAR SE NÃO RESPONDER AO TRATAMENTO INICIAL.";
 
     return cx([
       "TOKYO GUIDELINES (TG18) - COLANGITE AGUDA",
@@ -100,19 +109,26 @@ export const TOKYO_COLANGITE: Calculadora = {
       `- B (COLESTASE): ${sn(d.b)}`,
       `- C (IMAGEM): ${sn(d.c)}`,
       "",
-      `CRITÉRIOS DE GRAU II PRESENTES: ${d.criteriosG2.length} DE 5`,
+      `CRITÉRIOS DE GRAU II PRESENTES: ${d.criteriosG2.length} DE 5 (O GRAU II PEDE 2)`,
       ...(d.criteriosG2.length ? [`- ${d.criteriosG2.join("\n- ")}`] : []),
       ...(d.disfuncoes.length ? ["", `DISFUNÇÃO ORGÂNICA: ${d.disfuncoes.join(", ")}`] : []),
       "",
-      "REFERÊNCIA: TG18 (TOKYO GUIDELINES).",
+      "REFERÊNCIA: TG18 (KIRIYAMA S ET AL. J HEPATOBILIARY PANCREAT SCI 2018;25:17-30).",
       d.notaGrau2,
     ]);
   },
 };
 
 function colangite(r: Resposta, v: Valores) {
-  const a = r.a_febre === 1 || r.a_lab === 1;
   const bili = num(v, "bilirrubina");
+  const leuco = num(v, "leuco");
+  const temp = num(v, "temp");
+  const idade = num(v, "idade");
+
+  const a =
+    r.a_febre === 1 || r.a_lab === 1 ||
+    (temp !== null && temp > 38.0) ||
+    (leuco !== null && (leuco < 4000 || leuco > 10000));
   const b = (bili !== null && bili >= 2.0) || r.b_lft === 1;
   const c = r.c_dilatacao === 1 || r.c_etiologia === 1;
 
@@ -131,10 +147,6 @@ function colangite(r: Resposta, v: Valores) {
   if (r.g3_hep === 1) disfuncoes.push("HEPÁTICA");
   if (r.g3_heme === 1) disfuncoes.push("HEMATOLÓGICA");
 
-  const leuco = num(v, "leuco");
-  const temp = num(v, "temp");
-  const idade = num(v, "idade");
-
   const criteriosG2: string[] = [];
   if (leuco !== null && (leuco > 12000 || leuco < 4000)) {
     criteriosG2.push(`LEUCÓCITOS ${Math.round(leuco)} (>12.000 OU <4.000)`);
@@ -142,24 +154,23 @@ function colangite(r: Resposta, v: Valores) {
   if (temp !== null && temp >= 39.0) criteriosG2.push(`TEMPERATURA ${temp} °C (≥39)`);
   if (idade !== null && idade >= 75) criteriosG2.push(`IDADE ${Math.round(idade)} ANOS (≥75)`);
   if (bili !== null && bili >= 5.0) criteriosG2.push(`BILIRRUBINA ${bili} MG/DL (≥5)`);
-  if (r.g2_albumina === 1) criteriosG2.push("ALBUMINA BAIXA");
+  if (r.g2_albumina === 1) criteriosG2.push("ALBUMINA < 0,7 × LIMITE INFERIOR");
 
   /**
-   * O PS.py fecha GRAU II com UM critério; o TG18 publicado pede DOIS de
-   * cinco. Mantive o corte do programa de origem — errar para mais aqui
-   * antecipa drenagem, e o contrário atrasaria — mas o laudo imprime a
-   * contagem e esta nota, para ninguém ler "TG18 grau II" sem saber com
-   * quantos critérios ele fechou.
+   * Grau II pede DOIS dos cinco critérios (TG18, igual ao TG13). O PS.py
+   * fechava com um, e o laudo dizia "TG18 grau II" para um quadro que o
+   * TG18 chama de grau I — e grau II é indicação de drenagem precoce. Com um
+   * critério só, o laudo continua a mostrá-lo, sem mudar o grau.
    */
   const gravidade = disfuncoes.length
     ? "GRAU III (GRAVE)"
-    : criteriosG2.length >= 1
+    : criteriosG2.length >= 2
       ? "GRAU II (MODERADA)"
       : "GRAU I (LEVE)";
 
   const notaGrau2 =
-    criteriosG2.length === 1
-      ? "NOTA: ESTE GRAU II FECHOU COM 1 CRITÉRIO. O TG18 PUBLICADO EXIGE 2 DE 5."
+    !disfuncoes.length && criteriosG2.length === 1
+      ? "NOTA: 1 CRITÉRIO DE GRAU II PRESENTE; O TG18 PEDE 2. REAVALIAR A GRAVIDADE NA EVOLUÇÃO."
       : "";
 
   return { a, b, c, diagnostico, gravidade, disfuncoes, criteriosG2, notaGrau2 };
@@ -195,10 +206,10 @@ export const TOKYO_COLECISTITE: Calculadora = {
     {
       titulo: "GRAVIDADE",
       criterios: [
-        { id: "g3_orgao", label: "GRAU III: DISFUNÇÃO ORGÂNICA (QUALQUER)", pontos: 0 },
+        { id: "g3_orgao", label: "GRAU III: DISFUNÇÃO ORGÂNICA (CARDIOVASCULAR, NEUROLÓGICA, RESPIRATÓRIA, RENAL, HEPÁTICA OU HEMATOLÓGICA)", pontos: 0 },
         { id: "g2_72h", label: "DURAÇÃO DOS SINTOMAS > 72H", pontos: 0 },
         { id: "g2_massa", label: "MASSA DOLOROSA PALPÁVEL EM QSD", pontos: 0 },
-        { id: "g2_local", label: "INFLAMAÇÃO LOCAL MARCADA (GANGRENA/ABSCESSO/PERITONITE)", pontos: 0 },
+        { id: "g2_local", label: "INFLAMAÇÃO LOCAL MARCADA (GANGRENOSA, ENFISEMATOSA, ABSCESSO PERICOLECÍSTICO OU HEPÁTICO, PERITONITE BILIAR)", pontos: 0 },
       ],
     },
   ],
@@ -230,7 +241,7 @@ export const TOKYO_COLECISTITE: Calculadora = {
       `- C (IMAGEM): ${sn(d.c)}`,
       ...(d.motivosG2.length ? ["", `CRITÉRIOS DE GRAU II: ${d.motivosG2.join(", ")}`] : []),
       "",
-      "REFERÊNCIA: TG18 (TOKYO GUIDELINES).",
+      "REFERÊNCIA: TG18 (YOKOE M ET AL. J HEPATOBILIARY PANCREAT SCI 2018;25:41-54).",
     ]);
   },
 };

@@ -509,31 +509,43 @@ describe("TOKYO - COLANGITE", () => {
     const { laudo, resumo } = responder(tk, { a_febre: 1, b_lft: 1, g3_renal: 1 });
     expect(resumo).toContain("GRAU III (GRAVE)");
     expect(laudo).toContain("DISFUNÇÃO ORGÂNICA: RENAL");
-    expect(laudo).toContain("DRENAGEM BILIAR O QUANTO ANTES");
+    expect(laudo).toContain("DRENAGEM BILIAR ASSIM QUE O PACIENTE ESTABILIZAR");
   });
 
-  it("grau II conta os critérios e avisa quando fechou com um só", () => {
-    // O PS.py fecha grau II com 1 critério; o TG18 publicado pede 2 de 5.
+  it("REGRESSÃO: grau II pede 2 dos 5 critérios, como no TG18", () => {
+    // O PS.py fechava grau II com 1 critério — e grau II é indicação de
+    // drenagem precoce. Com 1 só, o grau fica I e o laudo mostra o critério.
     const um = responder(tk, { a_febre: 1, b_lft: 1 }, { idade: 80 });
-    expect(um.resumo).toContain("GRAU II");
+    expect(um.resumo).toContain("GRAU I (LEVE)");
     expect(um.laudo).toContain("CRITÉRIOS DE GRAU II PRESENTES: 1 DE 5");
-    expect(um.laudo).toContain("O TG18 PUBLICADO EXIGE 2 DE 5");
+    expect(um.laudo).toContain("IDADE 80 ANOS (≥75)");
+    expect(um.laudo).toContain("O TG18 PEDE 2");
 
     const dois = responder(tk, { a_febre: 1, b_lft: 1 }, { idade: 80, temp: 39.5 });
+    expect(dois.resumo).toContain("GRAU II (MODERADA)");
     expect(dois.laudo).toContain("CRITÉRIOS DE GRAU II PRESENTES: 2 DE 5");
-    expect(dois.laudo).not.toContain("EXIGE 2 DE 5");
+    expect(dois.laudo).toContain("DRENAGEM BILIAR PRECOCE");
+    expect(dois.laudo).not.toContain("O TG18 PEDE 2.");
   });
 
   it("leucopenia também conta como critério de grau II", () => {
-    const { laudo } = responder(tk, { a_febre: 1, b_lft: 1 }, { leuco: 3200 });
+    const { laudo, resumo } = responder(tk, { a_febre: 1, b_lft: 1 }, { leuco: 3200, idade: 80 });
     expect(laudo).toContain("LEUCÓCITOS 3200");
-    expect(laudo).toContain("GRAU II");
+    expect(resumo).toContain("GRAU II (MODERADA)");
+  });
+
+  it("temperatura e leucócitos digitados já marcam o critério A", () => {
+    // TG18: febre é > 38 °C; leucócitos < 4.000 ou > 10.000.
+    expect(responder(tk, { b_lft: 1 }, { temp: 38.5 }).laudo).toContain("SUSPEITA DE COLANGITE");
+    expect(responder(tk, { b_lft: 1 }, { leuco: 11000 }).laudo).toContain("SUSPEITA DE COLANGITE");
+    expect(responder(tk, { b_lft: 1 }, { temp: 38.0, leuco: 9000 }).laudo)
+      .toContain("CRITÉRIOS INSUFICIENTES");
   });
 
   it("sem critério nenhum é grau I", () => {
     const { resumo, laudo } = responder(tk, { a_febre: 1, b_lft: 1 }, { leuco: 9000, idade: 40 });
     expect(resumo).toContain("GRAU I (LEVE)");
-    expect(laudo).toContain("PODE RESPONDER A TRATAMENTO CLÍNICO");
+    expect(laudo).toContain("EM GERAL O ANTIBIÓTICO BASTA");
   });
 });
 
