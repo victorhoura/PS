@@ -103,8 +103,8 @@ export default function Backup() {
           VOLTAR AO ORIGINAL
         </h2>
         <p className="mb-3 text-[11px] leading-relaxed text-inkDim">
-          Apaga tudo que você criou e editou, devolvendo os {SNIPPETS.length} textos como vieram do
-          programa em Python. Baixe o backup antes.
+          Apaga tudo que você criou e editou, devolvendo os {SNIPPETS.length} textos originais do
+          app. Baixe o backup antes.
         </p>
         {confirmandoLimpeza ? (
           <div className="flex gap-2">

@@ -107,7 +107,7 @@ export function EditorTexto({
           </h2>
           <span className="flex items-center gap-2 font-mono text-[10px] text-inkDim">
             {alterado && <span className="text-warn">não salvo</span>}
-            {!criando && !proprio && (editado ? "original editado" : "original do PS.py")}
+            {!criando && !proprio && (editado ? "original editado" : "texto original")}
           </span>
         </header>
 

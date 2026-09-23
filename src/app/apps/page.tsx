@@ -35,11 +35,10 @@ export default function Apps() {
         </div>
       </Secao>
 
-      <Secao titulo="Confira antes de confiar">
+      <Secao titulo="Ferramenta de apoio">
         <p className="max-w-2xl text-[11px] leading-relaxed text-inkDim">
-          Todos os escores do PS.py já estão aqui. O que era cálculo virou cálculo, o que era
-          conduta virou texto — mas o valor que sai não substitui o seu julgamento, e vale
-          conferir cada um contra o programa antigo antes de usar no plantão.
+          Escores e calculadoras servem de auxílio à decisão, não a substituem. A conduta é
+          sempre médica: confira o resultado com o quadro clínico e com o protocolo do serviço.
         </p>
       </Secao>
     </div>
