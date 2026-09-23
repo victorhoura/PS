@@ -448,6 +448,10 @@ describe("CHARCOT / REYNOLDS", () => {
 describe("HIPONATREMIA", () => {
   const hipo = pegar("hiponatremia");
 
+  /** Sódio final por balanço de massa: o que a fórmula promete tem que acontecer. */
+  const sodioFinal = (na: number, act: number, litros: number) =>
+    (na * act + 513 * litros) / (act + litros);
+
   it("REGRESSÃO: sem os campos, pede os dados em vez de calcular com zero", () => {
     // Volume zero num laudo é prescrição errada com cara de resultado.
     const { resumo, laudo } = responder(hipo, {});
@@ -456,33 +460,68 @@ describe("HIPONATREMIA", () => {
     expect(laudo).not.toContain("0 ML DE NACL");
   });
 
-  it("calcula déficit e volume conferidos na mão", () => {
-    // Homem 70 kg -> ACT 42 L. De 120 para 130: delta 10, déficit 420 mEq.
-    // Total = 420/513*1000 = 819 mL. Seguro (delta 8) = 336/513*1000 = 655 mL.
-    const { laudo } = responder(hipo, {}, { peso: 70, na: 120, alvo: 130 });
-    expect(laudo).toContain("DÉFICIT DE NA+ = 420 MEQ");
-    expect(laudo).toContain("819 ML DE NACL 3%");
-    expect(laudo).toContain("UTILIZAREMOS 655 ML");
-    expect(laudo).toContain("27 ML/H");
+  it("aplica Adrogué–Madias, conferido na mão", () => {
+    // Homem 70 kg -> ACT 42 L. 1 L de NaCl 3% sobe (513-120)/(42+1) = 9,14.
+    // Subir 8: 8/9,14 = 875 mL em 24h = 36 mL/h. O alvo de +10 pediria 1.094.
+    const { laudo, resumo } = responder(hipo, {}, { peso: 70, na: 120, alvo: 130 });
+    expect(laudo).toContain("~9,1 MEQ/L");
+    expect(laudo).toContain("EXIGIRIA 1.094 ML");
+    expect(laudo).toContain("VOLUME: 875 ML DE NACL 3% EM 24H");
+    expect(laudo).toContain("36 ML/H");
+    expect(resumo).toBe("NACL 3% 875 mL EM 24H (36 mL/H) · +8,0 mEq/L");
   });
 
-  it("o fator de água corporal muda com o sexo", () => {
-    // Mulher 70 kg -> ACT 35 L, déficit 350 em vez de 420.
-    const { laudo } = responder(hipo, { sexo: 1 }, { peso: 70, na: 120, alvo: 130 });
-    expect(laudo).toContain("DÉFICIT DE NA+ = 350 MEQ");
+  it("REGRESSÃO: o volume prescrito produz a subida que o laudo anuncia", () => {
+    // A conta do PS.py (ACT × ΔNa ÷ 513) dava 655 mL para os mesmos +8, que
+    // por balanço de massa sobem o sódio só 6,0: ela esquece a água que
+    // entra junto com o sódio.
+    const { laudo } = responder(hipo, {}, { peso: 70, na: 120, alvo: 128 });
+    const ml = Number(/VOLUME: ([\d.]+) ML/.exec(laudo)![1].replace(".", ""));
+    expect(sodioFinal(120, 42, ml / 1000) - 120).toBeCloseTo(8, 0);
+    expect(laudo).not.toContain("655 ML");
+  });
+
+  it("a água corporal muda com o sexo e a idade", () => {
+    const vol = (sexo: number) =>
+      responder(hipo, { sexo }, { peso: 70, na: 120, alvo: 130 }).laudo;
+    // Mulher e homem idoso: ACT 35 L -> 733 mL. Mulher idosa: 31,5 L -> 662 mL.
+    expect(vol(1)).toContain("VOLUME: 733 ML");
+    expect(vol(1)).toContain("ÁGUA CORPORAL TOTAL: 35,0 L");
+    expect(vol(2)).toContain("VOLUME: 733 ML");
+    expect(vol(2)).toContain("HOMEM IDOSO");
+    expect(vol(3)).toContain("VOLUME: 662 ML");
+    expect(vol(3)).toContain("ÁGUA CORPORAL TOTAL: 31,5 L");
   });
 
   it("REGRESSÃO: o volume infundido nunca passa dos 8 mEq/L em 24h", () => {
-    // Alvo pedindo 20 de subida: o volume seguro continua o de 8.
+    // Alvo pedindo 20 de subida: o volume continua o de 8.
     const { laudo } = responder(hipo, {}, { peso: 70, na: 115, alvo: 135 });
-    expect(laudo).toContain("UTILIZAREMOS 655 ML");
-    expect(laudo).toContain("SUPERA 8 MEQ/L EM 24H");
+    expect(laudo).toContain("VOLUME: 864 ML");
+    expect(laudo).toContain("EXIGIRIA 2.161 ML");
+    expect(laudo).toContain("LIMITADA A 8 MEQ/L EM 24H");
   });
 
-  it("alvo abaixo do sódio atual não vira volume negativo", () => {
-    const { laudo } = responder(hipo, {}, { peso: 70, na: 130, alvo: 125 });
-    expect(laudo).toContain("DÉFICIT DE NA+ = 0 MEQ");
+  it("alvo que não sobe não vira volume, nem negativo nem zero", () => {
+    const { laudo, resumo } = responder(hipo, {}, { peso: 70, na: 130, alvo: 125 });
+    expect(resumo).toContain("NÃO É MAIOR QUE O ATUAL");
     expect(laudo).not.toContain("-");
+    expect(laudo).not.toContain("ML/H");
+  });
+
+  it("REGRESSÃO: sódio normal não recebe salina hipertônica", () => {
+    const { laudo, resumo } = responder(hipo, {}, { peso: 70, na: 138, alvo: 142 });
+    expect(resumo).toContain("NÃO HÁ HIPONATREMIA");
+    expect(laudo).not.toContain("ML/H");
+  });
+
+  it("traz o bólus dos sintomas graves e os limites de segurança", () => {
+    const { laudo } = responder(hipo, {}, { peso: 70, na: 118, alvo: 124 });
+    expect(laudo).toContain("NACL 3% 150 ML EV EM 20 MIN");
+    expect(laudo).toContain("ATÉ 3 BÓLUS NO TOTAL");
+    expect(laudo).toContain("10 MEQ/L NAS PRIMEIRAS 24H");
+    expect(laudo).toContain("NA ≤ 105");
+    expect(laudo).toContain("DESMOPRESSINA");
+    expect(laudo).toContain("55 ML NACL 20% + 445 ML SF 0,9%");
   });
 });
 
@@ -510,10 +549,23 @@ describe("HIPERNATREMIA", () => {
     expect(laudo).toContain("REDUZIR ATÉ 8,0 MEQ/L EM 24H");
   });
 
+  it("a idosa tem menos água, e recebe menos volume", () => {
+    // ACT 70 × 0,45 = 31,5. Água livre: 8*(31,5+1)/160 = 1,625 L.
+    const { laudo } = responder(hiper, { sexo: 3 }, { peso: 70, na: 160 });
+    expect(laudo).toContain("ÁGUA LIVRE = 1.625 ML");
+    expect(laudo).toContain("MULHER IDOSA");
+  });
+
   it("não reduz abaixo de 145 mesmo quando 8 caberiam", () => {
     // Na 150: só há 5 de margem até 145, não 8.
     const { laudo } = responder(hiper, {}, { peso: 70, na: 150 });
     expect(laudo).toContain("REDUZIR ATÉ 5,0 MEQ/L EM 24H");
+  });
+
+  it("lembra que o volume não inclui as perdas que continuam", () => {
+    const { laudo } = responder(hiper, {}, { peso: 70, na: 160 });
+    expect(laudo).toContain("NÃO INCLUI AS PERDAS QUE CONTINUAM");
+    expect(laudo).toContain("0,5 MEQ/L/H");
   });
 });
 
@@ -531,11 +583,26 @@ describe("HIPOCALEMIA", () => {
     expect(responder(hipo, {}, { k: 2.2 }).resumo).toContain("GRAVE");
   });
 
-  it("REGRESSÃO: ECG alterado ou sintoma joga para GRAVE em qualquer K", () => {
+  it("REGRESSÃO: com hipocalemia, ECG alterado ou sintoma pedem a conduta de grave", () => {
     // Um K de 3,3 com arritmia não é hipocalemia leve.
-    expect(responder(hipo, { ecg: 1 }, { k: 3.3 }).resumo).toContain("GRAVE");
-    expect(responder(hipo, { sintomas: 1 }, { k: 3.3 }).resumo).toContain("GRAVE");
-    expect(responder(hipo, { ecg: 1 }, { k: 3.3 }).laudo).toContain("NUNCA EM BÓLUS");
+    expect(responder(hipo, { ecg: 1 }, { k: 3.3 }).resumo).toContain("CONDUTA DE GRAVE");
+    expect(responder(hipo, { sintomas: 1 }, { k: 3.3 }).resumo).toContain("CONDUTA DE GRAVE");
+    const { laudo } = responder(hipo, { ecg: 1 }, { k: 3.3 });
+    expect(laudo).toContain("NUNCA EM BÓLUS");
+    expect(laudo).toContain("CLASSE: LEVE PELO VALOR");
+  });
+
+  it("REGRESSÃO: com K normal, sintoma marcado não vira KCl EV", () => {
+    // Antes: K 4,0 com "sintomas" saía GRAVE, com reposição EV.
+    const { resumo, laudo } = responder(hipo, { sintomas: 1 }, { k: 4.0 });
+    expect(resumo).toContain("NORMAL");
+    expect(resumo).not.toContain("GRAVE");
+    expect(laudo).not.toContain("REPOSIÇÃO EV");
+    expect(laudo).toContain("INVESTIGAR OUTRA CAUSA");
+  });
+
+  it("a reposição EV é diluída em SF, não em glicose", () => {
+    expect(responder(hipo, {}, { k: 2.2 }).laudo).toContain("DILUIR EM SF 0,9%");
   });
 
   it("via oral impossível troca a rota nas classes que a assumem", () => {
@@ -551,14 +618,44 @@ describe("HIPERCALEMIA", () => {
     expect(responder(hiper, {}).laudo).toContain("PREENCHA O POTÁSSIO");
   });
 
+  it("REGRESSÃO: K normal não recebe insulina nem cálcio", () => {
+    // Sem a trava, K 4,8 saía com solução polarizante e quelante.
+    const { resumo, laudo } = responder(hiper, {}, { k: 4.8 });
+    expect(resumo).toContain("SEM HIPERCALEMIA");
+    expect(laudo).not.toContain("INSULINA REGULAR");
+    expect(laudo).not.toContain("GLUCONATO");
+    expect(laudo).not.toContain("QUELANTE:");
+  });
+
+  it("ECG alterado com K normal manda procurar outra causa, não tratar potássio", () => {
+    const { laudo } = responder(hiper, { ecg: 1 }, { k: 5.0 });
+    expect(laudo).toContain("PROCURAR OUTRA CAUSA");
+    expect(laudo).not.toContain("GLUCONATO");
+  });
+
+  it("gradua pelo ERC: leve, moderada, grave", () => {
+    expect(responder(hiper, {}, { k: 5.7 }).resumo).toContain("LEVE");
+    expect(responder(hiper, {}, { k: 6.2 }).resumo).toContain("MODERADA");
+    expect(responder(hiper, {}, { k: 6.6 }).resumo).toContain("GRAVE");
+  });
+
   it("REGRESSÃO: ECG alterado é grave mesmo com K baixo para a faixa", () => {
     const comEcg = responder(hiper, { ecg: 1 }, { k: 5.8 });
     expect(comEcg.resumo).toContain("GRAVE");
-    expect(comEcg.laudo).toContain("CÁLCIO GLUCONATO");
+    expect(comEcg.laudo).toContain("GLUCONATO DE CÁLCIO");
 
     const semEcg = responder(hiper, {}, { k: 5.8 });
-    expect(semEcg.resumo).toContain("SEM GRAVIDADE IMEDIATA");
-    expect(semEcg.laudo).not.toContain("CÁLCIO GLUCONATO");
+    expect(semEcg.resumo).toContain("LEVE");
+    expect(semEcg.laudo).not.toContain("GLUCONATO");
+  });
+
+  it("REGRESSÃO: o cálcio sai com mL e gramas que batem", () => {
+    // 30 mL de gluconato a 10% são 3 g, não "ou 1 g": 1 g é a dose do
+    // cloreto, que tem três vezes mais cálcio por mL.
+    const { laudo } = responder(hiper, { ecg: 1 }, { k: 6.8 });
+    expect(laudo).toContain("GLUCONATO DE CÁLCIO 10% 30 ML (3 G)");
+    expect(laudo).toContain("CLORETO DE CÁLCIO 10% 10 ML (1 G)");
+    expect(laudo).not.toContain("OU 1 G EV");
   });
 
   it("K ≥ 6,5 é grave mesmo sem ECG alterado", () => {
@@ -567,13 +664,17 @@ describe("HIPERCALEMIA", () => {
     expect(laudo).toContain("PROTEGER MEMBRANA");
   });
 
-  it("o shift sai sempre; bicarbonato só com acidose marcada", () => {
-    const sem = responder(hiper, {}, { k: 5.8 });
-    expect(sem.laudo).toContain("SOLUÇÃO POLARIZANTE");
-    expect(sem.laudo).not.toContain("BICARBONATO");
+  it("o shift sai a partir de 6,0 ou com ECG; bicarbonato só com acidose", () => {
+    const leve = responder(hiper, {}, { k: 5.8 });
+    expect(leve.laudo).not.toContain("SOLUÇÃO POLARIZANTE");
+    expect(leve.laudo).toContain("SHIFT: NÃO É DE ROTINA");
 
-    const com = responder(hiper, { acidose: 1 }, { k: 5.8 });
-    expect(com.laudo).toContain("BICARBONATO DE SÓDIO");
+    const moderada = responder(hiper, {}, { k: 6.2 });
+    expect(moderada.laudo).toContain("SOLUÇÃO POLARIZANTE");
+    expect(moderada.laudo).not.toContain("PROTEGER MEMBRANA");
+    expect(moderada.laudo).not.toContain("BICARBONATO");
+
+    expect(responder(hiper, { acidose: 1 }, { k: 6.2 }).laudo).toContain("BICARBONATO DE SÓDIO");
   });
 
   it("diálise entra por doença renal ou por gravidade", () => {
