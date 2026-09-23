@@ -115,27 +115,109 @@ describe("CINCINNATI", () => {
   });
 });
 
+describe("CURB-65", () => {
+  const curb = pegar("curb-65");
+
+  it("REGRESSÃO: o corte de ureia é o do artigo, 7 mmol/L = 42 mg/dL", () => {
+    const rotulo = curb.grupos[0].criterios.find((c) => c.id === "u")!.label;
+    expect(rotulo).toContain("> 42 mg/dL");
+    expect(rotulo).toContain("7 mmol/L");
+    expect(rotulo).not.toContain("50");
+  });
+
+  it("pressão é sistólica < 90 OU diastólica ≤ 60", () => {
+    const rotulo = curb.grupos[0].criterios.find((c) => c.id === "b")!.label;
+    expect(rotulo).toBe("PAS < 90 mmHg OU PAD ≤ 60 mmHg");
+  });
+
+  it("classifica 0–1, 2 e 3–5", () => {
+    expect(responder(curb, { c: 1 }).resumo).toContain("BAIXO RISCO");
+    expect(responder(curb, { c: 1, u: 1 }).resumo).toContain("RISCO INTERMEDIÁRIO");
+    const alto = responder(curb, { c: 1, u: 1, r: 1, b: 1 });
+    expect(alto.resumo).toContain("ALTO RISCO");
+    expect(alto.laudo).toContain("AVALIAR UTI");
+  });
+});
+
+describe("qSOFA", () => {
+  const q = pegar("qsofa");
+
+  it("não se apresenta como triagem nem como diagnóstico de sepse", () => {
+    // SSC 2021: não usar como ferramenta única de triagem. Sepsis-3: o
+    // critério diagnóstico é o SOFA.
+    const { laudo } = responder(q, { fr: 1, pas: 1 });
+    expect(laudo.split("\n")[0]).not.toContain("TRIAGEM");
+    expect(laudo).toContain("NÃO USAR COMO FERRAMENTA ÚNICA DE TRIAGEM");
+    expect(laudo).toContain("SOFA ≥ 2");
+    expect(q.subtitulo).not.toContain("Triagem");
+  });
+
+  it("2 ou mais é alto risco; menos não exclui", () => {
+    expect(responder(q, { fr: 1, neuro: 1 }).resumo).toContain("ALTO RISCO");
+    expect(responder(q, { fr: 1 }).laudo).toContain("QSOFA NÃO EXCLUI SEPSE");
+  });
+});
+
+describe("WELLS (TVP)", () => {
+  const wells = pegar("wells-tvp");
+
+  it("REGRESSÃO: tem o item de TVP prévia do escore modificado (2003)", () => {
+    // Sem ele, câncer + TVP prévia dava 1 = "improvável"; o certo é 2.
+    const { resumo } = responder(wells, { cancer: 1, previa: 1 });
+    expect(resumo).toContain("2 pts");
+    expect(resumo).toContain("TVP PROVÁVEL");
+  });
+
+  it("diagnóstico alternativo tira 2 e o corte de dois níveis é 2", () => {
+    expect(responder(wells, { cancer: 1, dor: 1, alternativo: 1 }).resumo).toContain("TVP IMPROVÁVEL");
+    expect(responder(wells, { cancer: 1 }).resumo).toContain("TVP IMPROVÁVEL");
+  });
+
+  it("USG negativa na TVP provável segue para D-dímero, como no Wells 2003", () => {
+    const { laudo } = responder(wells, { cancer: 1, dor: 1 });
+    expect(laudo).toContain("SE USG NEGATIVO: D-DÍMERO");
+    expect(laudo).toContain("REPETIR USG EM 1 SEMANA");
+  });
+});
+
 describe("WELLS (TEP)", () => {
   const wells = pegar("wells-tep");
+  const escore = (laudo: string) => /SCORE: ([\d,]+)/.exec(laudo)![1];
 
-  it("soma os pesos fracionários", () => {
-    expect(responder(wells, { fc: 1, imob: 1, previa: 1 }).pontos).toBe(4.5);
-    expect(responder(wells, { tvp: 1, provavel: 1, fc: 1 }).pontos).toBe(7.5);
+  it("soma os pesos fracionários, com a FC entrando pelo campo numérico", () => {
+    expect(escore(responder(wells, { imob: 1, previa: 1 }, { fc: 110 }).laudo)).toBe("4,5");
+    expect(escore(responder(wells, { tvp: 1, provavel: 1 }, { fc: 120 }).laudo)).toBe("7,5");
+    expect(escore(responder(wells, { tvp: 1 }, { fc: 90 }).laudo)).toBe("3,0");
   });
 
   it("separa os três níveis nos cortes certos", () => {
     expect(responder(wells, { hemoptise: 1 }).laudo).toContain("BAIXA PROBABILIDADE");
-    expect(responder(wells, { fc: 1, previa: 1 }).laudo).toContain("PROBABILIDADE INTERMEDIÁRIA");
-    expect(responder(wells, { tvp: 1, provavel: 1, fc: 1 }).laudo).toContain("ALTA PROBABILIDADE");
+    expect(responder(wells, { previa: 1 }, { fc: 110 }).laudo).toContain("PROBABILIDADE INTERMEDIÁRIA");
+    expect(responder(wells, { tvp: 1, provavel: 1 }, { fc: 110 }).laudo).toContain("ALTA PROBABILIDADE");
   });
 
   it("alta probabilidade não manda pedir D-dímero", () => {
-    const { laudo } = responder(wells, { tvp: 1, provavel: 1, fc: 1 });
+    const { laudo } = responder(wells, { tvp: 1, provavel: 1 }, { fc: 110 });
     expect(laudo).toContain("NÃO USAR D-DÍMERO PARA EXCLUIR");
     expect(laudo).toContain("IMAGEM IMEDIATA");
   });
 
-  it("REGRESSÃO: PERC sem idade ou SpO2 é indeterminada, nunca negativa", () => {
+  it("REGRESSÃO: FC de exatamente 100 não pontua no Wells, mas reprova a PERC", () => {
+    // Wells pontua FC > 100; PERC só é negativa com pulso < 100 (Kline 2004).
+    const { laudo } = responder(wells, {}, { fc: 100, idade: 30, spo2: 98 });
+    expect(escore(laudo)).toBe("0,0");
+    expect(laudo).toContain("PERC: POSITIVO");
+    expect(laudo).toContain("FC ≥ 100");
+    expect(laudo).not.toContain("PODE EXCLUIR TEP SEM D-DÍMERO");
+  });
+
+  it("FC em branco é avisada, e não vira taquicardia ausente em silêncio", () => {
+    const { laudo, resumo } = responder(wells, { tvp: 1 });
+    expect(resumo).toContain("(SEM FC)");
+    expect(laudo).toContain("FC NÃO INFORMADA");
+  });
+
+  it("REGRESSÃO: PERC sem FC, idade ou SpO2 é indeterminada, nunca negativa", () => {
     // Dar PERC como negativa com campo em branco seria liberar o paciente
     // sem exame por causa de um dado que ninguém preencheu.
     const semNada = responder(wells, {});
@@ -145,28 +227,31 @@ describe("WELLS (TEP)", () => {
 
     const soIdade = responder(wells, {}, { idade: 30 });
     expect(soIdade.laudo).toContain("PERC: INDETERMINADO");
-    expect(soIdade.laudo).toContain("SPO2");
+    expect(soIdade.laudo).toContain("FC E SPO2");
+
+    const semFc = responder(wells, {}, { idade: 30, spo2: 98 });
+    expect(semFc.laudo).toContain("PERC: INDETERMINADO — PREENCHA FC");
   });
 
   it("PERC negativa só com os oito itens negativos", () => {
-    const { laudo } = responder(wells, {}, { idade: 30, spo2: 98 });
+    const { laudo } = responder(wells, {}, { fc: 80, idade: 30, spo2: 98 });
     expect(laudo).toContain("PERC: NEGATIVO");
     expect(laudo).toContain("PODE EXCLUIR TEP SEM D-DÍMERO E SEM IMAGEM");
   });
 
   it("qualquer item da PERC presente já a torna positiva, e diz qual", () => {
-    const idoso = responder(wells, {}, { idade: 62, spo2: 98 });
+    const idoso = responder(wells, {}, { fc: 80, idade: 62, spo2: 98 });
     expect(idoso.laudo).toContain("PERC: POSITIVO");
     expect(idoso.laudo).toContain("IDADE ≥ 50");
     expect(idoso.laudo).toContain("SOLICITAR D-DÍMERO");
 
-    const hipoxemico = responder(wells, {}, { idade: 30, spo2: 93 });
+    const hipoxemico = responder(wells, {}, { fc: 80, idade: 30, spo2: 93 });
     expect(hipoxemico.laudo).toContain("SPO2 < 95%");
   });
 
   it("os itens que a PERC compartilha com o Wells são lidos do mesmo lugar", () => {
-    // FC, hemoptise e TVP/TEP prévia pontuam no Wells E reprovam a PERC.
-    const { laudo, pontos } = responder(wells, { hemoptise: 1 }, { idade: 30, spo2: 98 });
+    // Hemoptise e TVP/TEP prévia pontuam no Wells E reprovam a PERC.
+    const { laudo, pontos } = responder(wells, { hemoptise: 1 }, { fc: 80, idade: 30, spo2: 98 });
     expect(pontos).toBe(1);
     expect(laudo).toContain("PERC: POSITIVO");
     expect(laudo).toContain("HEMOPTISE");
@@ -175,7 +260,7 @@ describe("WELLS (TEP)", () => {
   it("PERC não é invocada para excluir em alta probabilidade", () => {
     // Critérios que pesam no Wells sem reprovar a PERC: assim ela sai
     // NEGATIVA e mesmo assim a conduta tem que ser de alta probabilidade.
-    const { laudo } = responder(wells, { tvp: 1, provavel: 1, cancer: 1 }, { idade: 30, spo2: 99 });
+    const { laudo } = responder(wells, { tvp: 1, provavel: 1, cancer: 1 }, { fc: 80, idade: 30, spo2: 99 });
     expect(laudo).toContain("PERC: NEGATIVO");
     expect(laudo).not.toContain("PODE EXCLUIR TEP SEM D-DÍMERO");
     expect(laudo).toContain("IMAGEM IMEDIATA");
