@@ -1,7 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { acharCalculadora, respostaInicial, somar, valoresIniciais } from "@/lib/calculadoras";
+import {
+  acharCalculadora,
+  respostaInicial,
+  somar,
+  valorDaOpcao,
+  valoresIniciais,
+} from "@/lib/calculadoras";
 import { copiar } from "@/lib/clipboard";
 import { avisarCopia } from "./AvisoCopia";
 
@@ -111,8 +117,8 @@ export function Calculadora({ slug }: { slug: string }) {
                         <input
                           type="radio"
                           name={c.id}
-                          checked={resposta[c.id] === o.pontos}
-                          onChange={() => setResposta((r) => ({ ...r, [c.id]: o.pontos }))}
+                          checked={resposta[c.id] === valorDaOpcao(o)}
+                          onChange={() => setResposta((r) => ({ ...r, [c.id]: valorDaOpcao(o) }))}
                           className="h-3.5 w-3.5 shrink-0 accent-[#2fb5d9]"
                         />
                         <span className="text-[11px] leading-snug text-ink">{o.label}</span>

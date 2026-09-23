@@ -8,6 +8,24 @@ import type { Resposta } from "./tipos";
 
 // ============================ GLASGOW ============================
 
+/**
+ * Valor guardado para "V não testável" (intubado, traqueostomizado).
+ *
+ * Marcar V1 num intubado derruba o total em até 4 pontos por um motivo que
+ * não é neurológico. A escala manda registrar o componente como não
+ * testável (Teasdale 2014), e o costume é somar só E + M com o sufixo "T".
+ */
+const V_NAO_TESTAVEL = -1;
+
+function contaGCS(r: Resposta) {
+  const e = r.e ?? 4;
+  const m = r.m ?? 6;
+  const prs = r.prs ?? 0;
+  const vt = r.v === V_NAO_TESTAVEL;
+  const v = vt ? 0 : (r.v ?? 5);
+  return { e, v, m, prs, vt, gcs: e + v + m };
+}
+
 export const GLASGOW: Calculadora = {
   slug: "glasgow",
   nome: "ESCALA DE GLASGOW",
@@ -20,7 +38,7 @@ export const GLASGOW: Calculadora = {
         opcoes: [
           { label: "E4 - ESPONTÂNEA", pontos: 4 },
           { label: "E3 - AO CHAMADO", pontos: 3 },
-          { label: "E2 - À DOR", pontos: 2 },
+          { label: "E2 - À PRESSÃO/DOR", pontos: 2 },
           { label: "E1 - NENHUMA", pontos: 1 },
         ],
       }],
@@ -35,6 +53,7 @@ export const GLASGOW: Calculadora = {
           { label: "V3 - PALAVRAS INAPROPRIADAS", pontos: 3 },
           { label: "V2 - SONS INCOMPREENSÍVEIS", pontos: 2 },
           { label: "V1 - NENHUMA", pontos: 1 },
+          { label: "VT - NÃO TESTÁVEL (INTUBADO/TRAQUEOSTOMIA)", pontos: 0, valor: V_NAO_TESTAVEL },
         ],
       }],
     },
@@ -65,15 +84,22 @@ export const GLASGOW: Calculadora = {
     },
   ],
   resumo: (_p, r) => {
-    const gcs = (r.e ?? 4) + (r.v ?? 5) + (r.m ?? 6);
-    return `GCS ${gcs} · GCS-P ${Math.max(1, gcs - (r.prs ?? 0))} · ${classeGCS(gcs)}`;
+    const g = contaGCS(r);
+    if (g.vt) return `GCS ${g.gcs}T (E${g.e} VT M${g.m}) · V NÃO TESTÁVEL`;
+    return `GCS ${g.gcs} · GCS-P ${Math.max(1, g.gcs - g.prs)} · ${classeGCS(g.gcs)}`;
   },
   laudo: (_p, r) => {
-    const gcs = (r.e ?? 4) + (r.v ?? 5) + (r.m ?? 6);
-    const prs = r.prs ?? 0;
-    const prsTxt = ["PRS: 0 (2 PUPILAS FOTORREAGENTES)", "PRS: 1 (1 PUPILA NÃO FOTORREAGENTE)", "PRS: 2 (2 PUPILAS NÃO FOTORREAGENTES)"][prs];
+    const g = contaGCS(r);
+    const prsTxt = ["PRS: 0 (2 PUPILAS FOTORREAGENTES)", "PRS: 1 (1 PUPILA NÃO FOTORREAGENTE)", "PRS: 2 (2 PUPILAS NÃO FOTORREAGENTES)"][g.prs];
+    if (g.vt) {
+      return cx([
+        `GLASGOW (GCS): ${g.gcs}T | E${g.e} VT M${g.m} | ${prsTxt}`,
+        "V NÃO TESTÁVEL (INTUBADO/TRAQUEOSTOMIA): TOTAL = E + M, COM O SUFIXO T. NÃO COMPARAR COM A",
+        "ESCALA DE 3 A 15 NEM CLASSIFICAR EM LEVE/MODERADO/GRAVE; O GCS-P NÃO SE APLICA.",
+      ]);
+    }
     return cx([
-      `GLASGOW (GCS): ${gcs} | E${r.e ?? 4} V${r.v ?? 5} M${r.m ?? 6} | ${classeGCS(gcs)} | ${prsTxt} | GCS-P: ${Math.max(1, gcs - prs)}`,
+      `GLASGOW (GCS): ${g.gcs} | E${g.e} V${g.v} M${g.m} | ${classeGCS(g.gcs)} | ${prsTxt} | GCS-P: ${Math.max(1, g.gcs - g.prs)}`,
     ]);
   },
 };
@@ -90,14 +116,33 @@ function classeGCS(gcs: number): string {
  * As 11 seções da NIHSS, com a pontuação de cada opção.
  *
  * "UN" (não testável — amputação, artrodese, tubo) pontua ZERO, como no
- * PS.py. Na escala original esses itens ficam sem nota e o total não é
- * comparável; aqui vale a escolha do programa de origem, e o laudo avisa
- * quando um UN foi marcado para que o número não seja lido como se o exame
- * tivesse sido completo.
+ * PS.py. Na escala original esses itens ficam sem nota e o examinador
+ * justifica; aqui vale a escolha do programa de origem, e o laudo lista os
+ * itens UN para que o número não seja lido como o de um exame completo.
+ *
+ * O UN guarda o valor -1 (e não os seus 0 pontos): se guardasse 0, seria
+ * indistinguível do "0" do mesmo item — as duas opções apareciam marcadas
+ * juntas e o laudo escrevia "0".
+ *
+ * Textos das opções conforme a escala do NINDS (Brott 1989).
  */
-const NIHSS_ITENS: { id: string; titulo: string; opcoes: [string, number][] }[] = [
+const UN = -1;
+type OpcaoNihss = [string, number] | [string, number, number];
+
+const MOTOR = (segundos: number): OpcaoNihss[] => [
+  [`0 - SEM QUEDA (SUSTENTA ${segundos} S)`, 0],
+  [`1 - CAI ANTES DE ${segundos} S, SEM TOCAR O LEITO`, 1],
+  ["2 - ALGUM ESFORÇO CONTRA A GRAVIDADE, CAI NO LEITO", 2],
+  ["3 - NENHUM ESFORÇO CONTRA A GRAVIDADE", 3],
+  ["4 - SEM MOVIMENTO", 4],
+  ["UN - AMPUTAÇÃO/ARTRODESE", 0, UN],
+];
+
+const NIHSS_ITENS: { id: string; titulo: string; opcoes: OpcaoNihss[] }[] = [
   { id: "1a", titulo: "1A. NÍVEL DE CONSCIÊNCIA", opcoes: [
-    ["0 - ALERTA", 0], ["1 - SONOLENTO/OBTUNDIDO", 1], ["2 - ESTUPOR", 2], ["3 - COMA", 3]] },
+    ["0 - ALERTA", 0], ["1 - NÃO ALERTA, DESPERTA COM ESTÍMULO MÍNIMO", 1],
+    ["2 - SÓ RESPONDE A ESTÍMULO REPETIDO OU DOLOROSO", 2],
+    ["3 - SÓ RESPOSTA REFLEXA OU NENHUMA (COMA)", 3]] },
   { id: "1b", titulo: "1B. PERGUNTAS (MÊS E IDADE)", opcoes: [
     ["0 - AMBAS CORRETAS", 0], ["1 - UMA CORRETA", 1], ["2 - NENHUMA CORRETA", 2]] },
   { id: "1c", titulo: "1C. COMANDOS (OLHOS / MÃO)", opcoes: [
@@ -110,25 +155,13 @@ const NIHSS_ITENS: { id: string; titulo: string; opcoes: [string, number][] }[] 
   { id: "4", titulo: "4. PARALISIA FACIAL", opcoes: [
     ["0 - NORMAL", 0], ["1 - FRAQUEZA MÍNIMA", 1], ["2 - PARALISIA PARCIAL", 2],
     ["3 - PARALISIA COMPLETA", 3]] },
-  { id: "5a", titulo: "5A. MOTOR BRAÇO ESQUERDO", opcoes: [
-    ["0 - SEM QUEDA", 0], ["1 - QUEDA < 10S", 1], ["2 - NÃO SUSTENTA 10S", 2],
-    ["3 - NENHUM ESFORÇO CONTRA GRAVIDADE", 3], ["4 - SEM MOVIMENTO", 4],
-    ["UN - AMPUTAÇÃO/ARTRODESE", 0]] },
-  { id: "5b", titulo: "5B. MOTOR BRAÇO DIREITO", opcoes: [
-    ["0 - SEM QUEDA", 0], ["1 - QUEDA < 10S", 1], ["2 - NÃO SUSTENTA 10S", 2],
-    ["3 - NENHUM ESFORÇO CONTRA GRAVIDADE", 3], ["4 - SEM MOVIMENTO", 4],
-    ["UN - AMPUTAÇÃO/ARTRODESE", 0]] },
-  { id: "6a", titulo: "6A. MOTOR PERNA ESQUERDA", opcoes: [
-    ["0 - SEM QUEDA", 0], ["1 - QUEDA < 5S", 1], ["2 - NÃO SUSTENTA 5S", 2],
-    ["3 - NENHUM ESFORÇO CONTRA GRAVIDADE", 3], ["4 - SEM MOVIMENTO", 4],
-    ["UN - AMPUTAÇÃO/ARTRODESE", 0]] },
-  { id: "6b", titulo: "6B. MOTOR PERNA DIREITA", opcoes: [
-    ["0 - SEM QUEDA", 0], ["1 - QUEDA < 5S", 1], ["2 - NÃO SUSTENTA 5S", 2],
-    ["3 - NENHUM ESFORÇO CONTRA GRAVIDADE", 3], ["4 - SEM MOVIMENTO", 4],
-    ["UN - AMPUTAÇÃO/ARTRODESE", 0]] },
+  { id: "5a", titulo: "5A. MOTOR BRAÇO ESQUERDO", opcoes: MOTOR(10) },
+  { id: "5b", titulo: "5B. MOTOR BRAÇO DIREITO", opcoes: MOTOR(10) },
+  { id: "6a", titulo: "6A. MOTOR PERNA ESQUERDA", opcoes: MOTOR(5) },
+  { id: "6b", titulo: "6B. MOTOR PERNA DIREITA", opcoes: MOTOR(5) },
   { id: "7", titulo: "7. ATAXIA DE MEMBROS", opcoes: [
     ["0 - AUSENTE", 0], ["1 - EM UM MEMBRO", 1], ["2 - EM DOIS MEMBROS", 2],
-    ["UN - AMPUTAÇÃO/ARTRODESE", 0]] },
+    ["UN - AMPUTAÇÃO/ARTRODESE", 0, UN]] },
   { id: "8", titulo: "8. SENSIBILIDADE", opcoes: [
     ["0 - NORMAL", 0], ["1 - PERDA LEVE/MODERADA", 1], ["2 - PERDA GRAVE/TOTAL", 2]] },
   { id: "9", titulo: "9. LINGUAGEM (AFASIA)", opcoes: [
@@ -136,7 +169,7 @@ const NIHSS_ITENS: { id: string; titulo: string; opcoes: [string, number][] }[] 
     ["3 - MUDO/AFASIA GLOBAL", 3]] },
   { id: "10", titulo: "10. DISARTRIA", opcoes: [
     ["0 - NORMAL", 0], ["1 - LEVE/MODERADA", 1], ["2 - GRAVE/ININTELIGÍVEL OU MUDO", 2],
-    ["UN - INTUBADO/OUTRA BARREIRA", 0]] },
+    ["UN - INTUBADO/OUTRA BARREIRA", 0, UN]] },
   { id: "11", titulo: "11. NEGLIGÊNCIA/INATENÇÃO (EXTINÇÃO)", opcoes: [
     ["0 - AUSENTE", 0], ["1 - PARCIAL", 1], ["2 - PROFUNDA", 2]] },
 ];
@@ -159,21 +192,25 @@ export const NIHSS: Calculadora = {
       id: i.id,
       label: i.titulo,
       padrao: 0,
-      opcoes: i.opcoes.map(([label, pontos]) => ({ label, pontos })),
+      opcoes: i.opcoes.map(([label, pontos, valor]) => ({ label, pontos, valor })),
     }],
   })),
   resumo: (p) => `NIHSS ${p}/42 · ${classeNIHSS(p)}`,
   laudo: (p, r) => {
     const itens = NIHSS_ITENS.map((i) => {
       const valor = r[i.id] ?? 0;
-      // "UN" e "0" pontuam igual, então o rótulo é quem diz qual foi marcado.
-      const opcao = i.opcoes.find(([, pts]) => pts === valor);
+      const opcao = i.opcoes.find(([, pts, v]) => (v ?? pts) === valor);
       return `${i.titulo}: ${opcao ? opcao[0] : valor}`;
     });
+    const naoTestaveis = NIHSS_ITENS.filter((i) => r[i.id] === UN).map((i) => i.id.toUpperCase());
     return cx([
       "NIHSS - RESULTADO",
       `PONTUAÇÃO: ${p}/42`,
       `CLASSIFICAÇÃO: ${classeNIHSS(p)}`,
+      ...(naoTestaveis.length
+        ? [`ITENS NÃO TESTÁVEIS (UN), CONTADOS COMO 0: ${naoTestaveis.join(", ")} — O TOTAL NÃO ` +
+             "EQUIVALE AO DE UM EXAME COMPLETO; JUSTIFICAR NO PRONTUÁRIO."]
+        : []),
       "",
       ...itens,
       "",
@@ -223,6 +260,7 @@ export const CINCINNATI: Calculadora = {
       ...conduta,
       "",
       "OBS: UM ACHADO ALTERADO JÁ SUSTENTA A SUSPEITA — A ESCALA TRIA, NÃO GRADUA.",
+      "REF: KOTHARI RU ET AL. ANN EMERG MED 1999;33:373-8.",
     ]);
   },
 };
@@ -235,6 +273,7 @@ const TIPOS_PRIMARIOS = [
     conduta: [
       "- PRIMEIRA LINHA: ANTIEMÉTICO ANTIDOPAMINÉRGICO (EX.: METOCLOPRAMIDA) + AINE (EX.: CETOPROFENO/IBUPROFENO) ± HIDRATAÇÃO.",
       "- CONSIDERAR MAGNÉSIO EV OU TRIPTANO SE ELEGÍVEL (SEM CONTRAINDICAÇÕES).",
+      "- DEXAMETASONA EV EM DOSE ÚNICA PARA REDUZIR A RECORRÊNCIA APÓS A ALTA (AHS 2016).",
       "- EVITAR OPIOIDES COMO ROTINA.",
       "- REAVALIAR EM 30–60 MIN; REPETIR OU ASSOCIAR CONFORME RESPOSTA E PROTOCOLO.",
     ],
@@ -271,6 +310,7 @@ const RED_FLAGS = [
   { id: "rf_papiledema", label: "PAPILEDEMA / SINAIS DE HIPERTENSÃO INTRACRANIANA" },
   { id: "rf_posicional", label: "POSICIONAL / PIORA COM VALSALVA (TOSSE/ESFORÇO)" },
   { id: "rf_trauma", label: "PÓS-TRAUMA" },
+  { id: "rf_olho", label: "OLHO VERMELHO DOLOROSO COM SINTOMAS AUTONÔMICOS (GLAUCOMA AGUDO?)" },
   { id: "rf_pior", label: "PIOR DA VIDA / PADRÃO NOVO OU PROGRESSIVO" },
 ];
 
@@ -353,7 +393,7 @@ export const PROTOCOLO_CEFALEIA: Calculadora = {
           : ["OTTAWA SAH: NENHUM CRITÉRIO MARCADO.", ""]),
         "PASSOS SUGERIDOS (ADAPTAR AO PROTOCOLO LOCAL):",
         "- AVALIAR SINAIS VITAIS, EXAME NEUROLÓGICO COMPLETO E FUNDO DE OLHO (SE DISPONÍVEL).",
-        "- DEFINIR A SUSPEITA PRINCIPAL (HSA, MENINGITE, TVC, TUMOR/HIC, ARTERITE TEMPORAL, CRISE HIPERTENSIVA, DISSECÇÃO).",
+        "- DEFINIR A SUSPEITA PRINCIPAL (HSA, MENINGITE, TVC, TUMOR/HIC, ARTERITE TEMPORAL, CRISE HIPERTENSIVA, DISSECÇÃO, GLAUCOMA AGUDO).",
         "- CONSIDERAR NEUROIMAGEM (TC SEM CONTRASTE NA URGÊNCIA PARA QUADROS AGUDOS OU COM ALARME).",
         "- SE SUSPEITA DE HSA E TC NEGATIVA: CONDUTA ADICIONAL CONFORME TEMPO DE INÍCIO E PROTOCOLO (LP/ANGIO-TC).",
         "- SE FEBRE/RIGIDEZ DE NUCA: CONSIDERAR MENINGITE/ENCEFALITE (ANTIBIÓTICO/ANTIVIRAL CONFORME PROTOCOLO + LP QUANDO SEGURO).",
@@ -363,6 +403,7 @@ export const PROTOCOLO_CEFALEIA: Calculadora = {
         "- ANALGESIA E ANTIEMÉTICO; EVITAR OPIOIDES COMO PRIMEIRA LINHA, SE POSSÍVEL.",
         "",
         "OBS: DOCUMENTAR AS RED FLAGS, O EXAME NEUROLÓGICO E A REAVALIAÇÃO.",
+        "REF: RED FLAGS SNNOOP10 (DO TP ET AL. NEUROLOGY 2019) | OTTAWA SAH (PERRY JJ ET AL. JAMA 2013).",
       ]);
     }
 
@@ -385,12 +426,18 @@ export const PROTOCOLO_CEFALEIA: Calculadora = {
 // ============== CLASSIFICAÇÃO DE CEFALEIA (ICHD-3) ==============
 
 /**
- * Classificação das cefaleias primárias pelo ICHD-3.
+ * Classificação das cefaleias primárias pelo ICHD-3 (Cephalalgia 2018).
  *
  * Os três conjuntos são avaliados ao mesmo tempo e em separado, e o
  * resultado pode ser "nenhum" ou "mais de um" — não é um escolhe-um. Quando
  * um conjunto não fecha, o laudo diz O QUE FALTA, em vez de apenas negar:
  * é a diferença entre "não é enxaqueca" e "falta perguntar sobre náusea".
+ *
+ * O critério A de cada um é o número de crises: ≥ 5 na migrânea e nas
+ * salvas, ≥ 10 na tensional. O PS.py não o perguntava e fechava o
+ * diagnóstico na primeira crise; sem ele, o máximo que a ICHD-3 permite é
+ * a forma "provável" (1.5.1, 2.4, 3.5). As salvas têm ainda o critério D,
+ * de frequência.
  *
  * Isto classifica cefaleia PRIMÁRIA. Com red flag, o instrumento é o
  * protocolo de cefaleia, não este.
@@ -400,6 +447,13 @@ export const CEFALEIA_ICHD: Calculadora = {
   nome: "CLASSIFICAÇÃO DE CEFALEIA",
   subtitulo: "Cefaleias primárias pelos critérios ICHD-3",
   grupos: [
+    {
+      titulo: "NÚMERO DE CRISES (CRITÉRIO A)",
+      criterios: [
+        { id: "n5", label: "≥ 5 CRISES COM ESTE PADRÃO (MIGRÂNEA, SALVAS)", pontos: 0 },
+        { id: "n10", label: "≥ 10 EPISÓDIOS COM ESTE PADRÃO (TENSIONAL)", pontos: 0 },
+      ],
+    },
     {
       titulo: "DURAÇÃO DA CRISE",
       criterios: [
@@ -447,6 +501,7 @@ export const CEFALEIA_ICHD: Calculadora = {
       criterios: [
         { id: "c_local", label: "UNILATERAL ORBITÁRIA/SUPRAORBITÁRIA/TEMPORAL", pontos: 0 },
         { id: "c_severa", label: "SEVERA OU MUITO SEVERA", pontos: 0 },
+        { id: "c_freq", label: "FREQUÊNCIA DE 1 A CADA 2 DIAS ATÉ 8 POR DIA", pontos: 0 },
       ],
     },
     {
@@ -462,79 +517,108 @@ export const CEFALEIA_ICHD: Calculadora = {
     },
   ],
   resumo: (_p, r) => {
-    const fechados = avaliarICHD(r).filter((c) => c.fecha).map((c) => c.nome);
-    if (fechados.length === 0) return "NENHUM CONJUNTO ICHD-3 PREENCHIDO";
-    if (fechados.length === 1) return `TIPO PROVÁVEL: ${fechados[0]}`;
-    return `MAIS DE UM CONJUNTO FECHA: ${fechados.join(" + ")}`;
+    const av = avaliarICHD(r);
+    const fechados = av.filter((c) => c.estado === "fecha").map((c) => c.nome);
+    const provaveis = av.filter((c) => c.estado === "provavel").map((c) => c.nome);
+    if (fechados.length === 1) return `PREENCHE: ${fechados[0]}`;
+    if (fechados.length > 1) return `MAIS DE UM CONJUNTO FECHA: ${fechados.join(" + ")}`;
+    if (provaveis.length === 1) return `${provaveis[0]} PROVÁVEL · FALTA O Nº DE CRISES`;
+    if (provaveis.length > 1) return `MAIS DE UM CONJUNTO PROVÁVEL: ${provaveis.join(" + ")}`;
+    return "NENHUM CONJUNTO ICHD-3 PREENCHIDO";
   },
   laudo: (_p, r) => {
     const avaliacoes = avaliarICHD(r);
-    const fechados = avaliacoes.filter((c) => c.fecha).map((c) => c.nome);
+    const fechados = avaliacoes.filter((c) => c.estado === "fecha").map((c) => c.nome);
+    const provaveis = avaliacoes.filter((c) => c.estado === "provavel").map((c) => c.nome);
 
     const conclusao =
-      fechados.length === 0
-        ? ["CONCLUSÃO: NENHUM CONJUNTO DE CRITÉRIOS ICHD-3 FOI PREENCHIDO.",
-           "- REVISAR OS DADOS OU CONSIDERAR OUTRAS CAUSAS."]
-        : fechados.length === 1
-          ? [`CONCLUSÃO: TIPO PROVÁVEL — ${fechados[0]}.`]
-          : [`CONCLUSÃO: MAIS DE UM CONJUNTO FECHA (${fechados.join(" + ")}).`,
-             "- REVISAR OS CRITÉRIOS: OS CONJUNTOS DEVERIAM SER MUTUAMENTE EXCLUDENTES NA PRÁTICA."];
+      fechados.length === 1
+        ? [`CONCLUSÃO: PREENCHE ${fechados[0]}.`]
+        : fechados.length > 1
+          ? [`CONCLUSÃO: MAIS DE UM CONJUNTO FECHA (${fechados.join(" + ")}).`,
+             "- REVISAR OS CRITÉRIOS: OS CONJUNTOS DEVERIAM SER MUTUAMENTE EXCLUDENTES NA PRÁTICA."]
+          : provaveis.length
+            ? [`CONCLUSÃO: ${provaveis.join(" + ")} PROVÁVEL — TODOS OS CRITÉRIOS MENOS O Nº DE CRISES.`,
+               "- CONFIRMAR NA HISTÓRIA SE JÁ HOUVE O NÚMERO DE CRISES QUE A ICHD-3 PEDE."]
+            : ["CONCLUSÃO: NENHUM CONJUNTO DE CRITÉRIOS ICHD-3 FOI PREENCHIDO.",
+               "- REVISAR OS DADOS OU CONSIDERAR OUTRAS CAUSAS."];
 
     return cx([
       "CLASSIFICAÇÃO DE CEFALEIA (ICHD-3)",
       "",
-      ...avaliacoes.map((c) => `${c.nome}: ${c.fecha ? "PREENCHE" : `NÃO PREENCHE — ${c.motivo}`}`),
+      ...avaliacoes.map((c) =>
+        c.estado === "fecha"
+          ? `${c.nome}: PREENCHE`
+          : c.estado === "provavel"
+            ? `${c.nome}: PROVÁVEL — ${c.motivo}`
+            : `${c.nome}: NÃO PREENCHE — ${c.motivo}`),
       "",
       ...conclusao,
       "",
       "OBS: ESTA CLASSIFICAÇÃO VALE PARA CEFALEIAS PRIMÁRIAS. SE HOUVER RED FLAG, USAR O PROTOCOLO DE CEFALEIA.",
+      "REF: ICHD-3, CEPHALALGIA 2018;38:1-211.",
     ]);
   },
 };
+
+type EstadoICHD = { estado: "fecha" | "provavel" | "nao"; motivo: string };
+
+/**
+ * Quando B em diante fecham, o número de crises decide entre o diagnóstico
+ * e a forma provável; quando algo de B em diante falta, é isso que o laudo
+ * aponta, e o número de crises nem entra na conta.
+ */
+function porCrises(temCrises: boolean, faltaCrises: string): EstadoICHD {
+  return temCrises
+    ? { estado: "fecha", motivo: "" }
+    : { estado: "provavel", motivo: faltaCrises };
+}
 
 function avaliarICHD(r: Resposta) {
   const marcado = (id: string) => r[id] === 1;
   const conta = (ids: string[]) => ids.filter(marcado).length;
 
   // ---- migrânea sem aura ----
-  let migranea: { fecha: boolean; motivo: string };
+  let migranea: EstadoICHD;
   if (!marcado("dur_migranea")) {
-    migranea = { fecha: false, motivo: "FALTA A DURAÇÃO DE 4–72H" };
+    migranea = { estado: "nao", motivo: "FALTA A DURAÇÃO DE 4–72H" };
   } else if (conta(["m_unilateral", "m_pulsatil", "m_intensidade", "m_atividade"]) < 2) {
-    migranea = { fecha: false, motivo: "FALTAM ≥2 CARACTERÍSTICAS (UNILATERAL/PULSÁTIL/INTENSIDADE/PIORA)" };
+    migranea = { estado: "nao", motivo: "FALTAM ≥2 CARACTERÍSTICAS (UNILATERAL/PULSÁTIL/INTENSIDADE/PIORA)" };
   } else if (marcado("m_nausea") || (marcado("m_foto") && marcado("m_fono"))) {
-    migranea = { fecha: true, motivo: "" };
+    migranea = porCrises(marcado("n5"), "FALTA CONFIRMAR ≥ 5 CRISES (ICHD-3 1.5.1)");
   } else {
-    migranea = { fecha: false, motivo: "FALTA NÁUSEA/VÔMITO OU FOTOFOBIA + FONOFOBIA" };
+    migranea = { estado: "nao", motivo: "FALTA NÁUSEA/VÔMITO OU FOTOFOBIA + FONOFOBIA" };
   }
 
   // ---- tensional ----
-  let tensional: { fecha: boolean; motivo: string };
+  let tensional: EstadoICHD;
   if (!marcado("dur_tensional")) {
-    tensional = { fecha: false, motivo: "FALTA A DURAÇÃO DE 30 MIN–7 DIAS" };
+    tensional = { estado: "nao", motivo: "FALTA A DURAÇÃO DE 30 MIN–7 DIAS" };
   } else if (conta(["t_bilateral", "t_aperto", "t_intensidade", "t_atividade"]) < 2) {
-    tensional = { fecha: false, motivo: "FALTAM ≥2 CARACTERÍSTICAS (BILATERAL/APERTO/LEVE-MODERADA/NÃO PIORA)" };
+    tensional = { estado: "nao", motivo: "FALTAM ≥2 CARACTERÍSTICAS (BILATERAL/APERTO/LEVE-MODERADA/NÃO PIORA)" };
   } else if (!marcado("t_sem_nausea")) {
-    tensional = { fecha: false, motivo: "FALTA CONFIRMAR AUSÊNCIA DE NÁUSEA E VÔMITO" };
+    tensional = { estado: "nao", motivo: "FALTA CONFIRMAR AUSÊNCIA DE NÁUSEA E VÔMITO" };
   } else if (marcado("t_foto") && marcado("t_fono")) {
-    tensional = { fecha: false, motivo: "FOTOFOBIA E FONOFOBIA JUNTAS NÃO FECHAM TENSIONAL" };
+    tensional = { estado: "nao", motivo: "FOTOFOBIA E FONOFOBIA JUNTAS NÃO FECHAM TENSIONAL" };
   } else {
-    tensional = { fecha: true, motivo: "" };
+    tensional = porCrises(marcado("n10"), "FALTA CONFIRMAR ≥ 10 EPISÓDIOS (ICHD-3 2.4)");
   }
 
   // ---- salvas ----
-  let salvas: { fecha: boolean; motivo: string };
+  let salvas: EstadoICHD;
   const autonomicos = conta([
     "c_lacrimejamento", "c_nasal", "c_edema", "c_sudorese", "c_miose",
   ]);
   if (!marcado("dur_salvas")) {
-    salvas = { fecha: false, motivo: "FALTA A DURAÇÃO DE 15–180 MIN" };
+    salvas = { estado: "nao", motivo: "FALTA A DURAÇÃO DE 15–180 MIN" };
   } else if (!(marcado("c_local") && marcado("c_severa"))) {
-    salvas = { fecha: false, motivo: "FALTA LOCALIZAÇÃO TÍPICA UNILATERAL E/OU INTENSIDADE SEVERA" };
+    salvas = { estado: "nao", motivo: "FALTA LOCALIZAÇÃO TÍPICA UNILATERAL E/OU INTENSIDADE SEVERA" };
   } else if (autonomicos === 0 && !marcado("c_agitacao")) {
-    salvas = { fecha: false, motivo: "FALTAM SINAIS AUTONÔMICOS IPSILATERAIS OU AGITAÇÃO/INQUIETAÇÃO" };
+    salvas = { estado: "nao", motivo: "FALTAM SINAIS AUTONÔMICOS IPSILATERAIS OU AGITAÇÃO/INQUIETAÇÃO" };
+  } else if (!marcado("c_freq")) {
+    salvas = { estado: "nao", motivo: "FALTA A FREQUÊNCIA TÍPICA (1 A CADA 2 DIAS ATÉ 8 POR DIA)" };
   } else {
-    salvas = { fecha: true, motivo: "" };
+    salvas = porCrises(marcado("n5"), "FALTA CONFIRMAR ≥ 5 CRISES (ICHD-3 3.5)");
   }
 
   return [

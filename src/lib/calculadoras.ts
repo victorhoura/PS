@@ -51,6 +51,9 @@ export function acharCalculadora(slug: string): Calculadora | undefined {
   return CALCULADORAS.find((c) => c.slug === slug);
 }
 
+/** O que a resposta guarda para uma opção de radio (ver `Criterio.opcoes`). */
+export const valorDaOpcao = (o: { pontos: number; valor?: number }) => o.valor ?? o.pontos;
+
 /** Soma os pontos de todos os critérios respondidos. */
 export function somar(calc: Calculadora, r: Resposta): number {
   let total = 0;
@@ -58,7 +61,12 @@ export function somar(calc: Calculadora, r: Resposta): number {
     for (const c of g.criterios) {
       const v = r[c.id];
       if (v === undefined) continue;
-      total += c.opcoes ? v : v * (c.pontos ?? 0);
+      if (c.opcoes) {
+        const escolhida = c.opcoes.find((o) => valorDaOpcao(o) === v);
+        total += escolhida ? escolhida.pontos : v;
+      } else {
+        total += v * (c.pontos ?? 0);
+      }
     }
   }
   return total;
@@ -69,7 +77,7 @@ export function respostaInicial(calc: Calculadora): Resposta {
   const r: Resposta = {};
   for (const g of calc.grupos) {
     for (const c of g.criterios) {
-      r[c.id] = c.opcoes ? (c.padrao ?? c.opcoes[0].pontos) : 0;
+      r[c.id] = c.opcoes ? (c.padrao ?? valorDaOpcao(c.opcoes[0])) : 0;
     }
   }
   return r;

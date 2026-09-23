@@ -24,8 +24,16 @@ export interface Criterio {
   label: string;
   /** Checkbox: pontos quando marcado. Pode ser negativo. */
   pontos?: number;
-  /** Radio: lista de opções mutuamente exclusivas. */
-  opcoes?: { label: string; pontos: number }[];
+  /**
+   * Radio: lista de opções mutuamente exclusivas.
+   *
+   * A resposta guarda `valor` quando ele existe, e `pontos` quando não. O
+   * `valor` serve para duas opções que valem os mesmos pontos e querem dizer
+   * coisas diferentes — o "UN" da NIHSS vale zero como o "0", mas é outro
+   * achado. Guardando só os pontos, marcar um marcava os dois na tela, e o
+   * laudo escrevia o "0".
+   */
+  opcoes?: { label: string; pontos: number; valor?: number }[];
   /** Valor inicial de um radio. */
   padrao?: number;
 }

@@ -49,6 +49,19 @@ describe("registro de escores", () => {
     }
   });
 
+  it("REGRESSÃO: as opções de um radio guardam valores distintos", () => {
+    // Duas opções com o mesmo valor aparecem marcadas juntas e o laudo não
+    // sabe qual foi escolhida — era o "UN" da NIHSS, que valia 0 como o "0".
+    for (const c of CALCULADORAS) {
+      for (const k of c.grupos.flatMap((g) => g.criterios)) {
+        if (!k.opcoes) continue;
+        const valores = k.opcoes.map((o) => o.valor ?? o.pontos);
+        expect(new Set(valores).size, `${c.slug}/${k.id}`).toBe(valores.length);
+        if (k.padrao !== undefined) expect(valores, `${c.slug}/${k.id}: padrão`).toContain(k.padrao);
+      }
+    }
+  });
+
   it("campos numéricos começam vazios, não em zero", () => {
     for (const c of CALCULADORAS) {
       for (const campo of c.campos ?? []) {
@@ -92,6 +105,38 @@ describe("NIHSS", () => {
     const { laudo } = responder(nihss, { "9": 3 });
     expect(laudo).toContain("9. LINGUAGEM (AFASIA): 3 - MUDO/AFASIA GLOBAL");
     expect(laudo).toContain("1A. NÍVEL DE CONSCIÊNCIA: 0 - ALERTA");
+  });
+
+  it("REGRESSÃO: UN vale 0 no total, mas o laudo diz UN e não '0'", () => {
+    // O UN guardava 0 como o "0": as duas opções apareciam marcadas e o
+    // laudo escrevia "0 - SEM QUEDA" para um braço amputado.
+    const un = nihss.grupos.find((g) => g.criterios[0].id === "5a")!.criterios[0]
+      .opcoes!.find((o) => o.label.startsWith("UN"))!;
+    const { pontos, laudo } = responder(nihss, { "5a": un.valor!, "9": 2 });
+    expect(pontos).toBe(2);
+    expect(laudo).toContain("5A. MOTOR BRAÇO ESQUERDO: UN - AMPUTAÇÃO/ARTRODESE");
+    expect(laudo).toContain("ITENS NÃO TESTÁVEIS (UN), CONTADOS COMO 0: 5A");
+    expect(responder(nihss, {}).laudo).not.toContain("NÃO TESTÁVEIS");
+  });
+});
+
+describe("GLASGOW", () => {
+  const gcs = pegar("glasgow");
+
+  it("soma, classifica e desconta as pupilas no GCS-P", () => {
+    expect(responder(gcs, {}).resumo).toBe("GCS 15 · GCS-P 15 · LEVE (13–15)");
+    const { resumo } = responder(gcs, { e: 2, v: 2, m: 4, prs: 2 });
+    expect(resumo).toBe("GCS 8 · GCS-P 6 · GRAVE (3–8)");
+  });
+
+  it("intubado: V não testável soma E + M com sufixo T, sem classificar", () => {
+    // Marcar V1 num intubado derrubaria o total por um motivo não neurológico.
+    const vt = gcs.grupos[1].criterios[0].opcoes!.find((o) => o.label.startsWith("VT"))!;
+    const { resumo, laudo } = responder(gcs, { v: vt.valor!, e: 3, m: 5 });
+    expect(resumo).toBe("GCS 8T (E3 VT M5) · V NÃO TESTÁVEL");
+    expect(laudo).toContain("GLASGOW (GCS): 8T | E3 VT M5");
+    expect(laudo).not.toMatch(/(LEVE|MODERADO|GRAVE) \(\d/);
+    expect(laudo).toContain("O GCS-P NÃO SE APLICA");
   });
 });
 
@@ -844,6 +889,8 @@ describe("PROTOCOLO DE CEFALEIA", () => {
 
 describe("CLASSIFICAÇÃO DE CEFALEIA (ICHD-3)", () => {
   const ichd = pegar("cefaleia-ichd");
+  const MIGRANEA = { dur_migranea: 1, m_unilateral: 1, m_pulsatil: 1, m_nausea: 1 };
+  const SALVAS = { dur_salvas: 1, c_local: 1, c_severa: 1, c_freq: 1, c_miose: 1 };
 
   it("sem nada marcado, nenhum conjunto fecha", () => {
     const { resumo, laudo } = responder(ichd, {});
@@ -860,28 +907,32 @@ describe("CLASSIFICAÇÃO DE CEFALEIA (ICHD-3)", () => {
     expect(laudo).toContain("FALTA NÁUSEA/VÔMITO OU FOTOFOBIA + FONOFOBIA");
   });
 
-  it("migrânea fecha com duração + 2 características + náusea", () => {
-    const { resumo } = responder(ichd, {
-      dur_migranea: 1, m_unilateral: 1, m_pulsatil: 1, m_nausea: 1,
-    });
-    expect(resumo).toBe("TIPO PROVÁVEL: MIGRÂNEA (ICHD-3)");
+  it("migrânea fecha com ≥ 5 crises + duração + 2 características + náusea", () => {
+    expect(responder(ichd, { ...MIGRANEA, n5: 1 }).resumo).toBe("PREENCHE: MIGRÂNEA (ICHD-3)");
+  });
+
+  it("REGRESSÃO: sem o número de crises (critério A), é no máximo provável", () => {
+    // Uma crise só, por típica que seja, não é migrânea pela ICHD-3.
+    const { resumo, laudo } = responder(ichd, MIGRANEA);
+    expect(resumo).toBe("MIGRÂNEA (ICHD-3) PROVÁVEL · FALTA O Nº DE CRISES");
+    expect(laudo).toContain("FALTA CONFIRMAR ≥ 5 CRISES (ICHD-3 1.5.1)");
   });
 
   it("foto + fono substituem a náusea na migrânea", () => {
     const { resumo } = responder(ichd, {
-      dur_migranea: 1, m_unilateral: 1, m_pulsatil: 1, m_foto: 1, m_fono: 1,
+      dur_migranea: 1, m_unilateral: 1, m_pulsatil: 1, m_foto: 1, m_fono: 1, n5: 1,
     });
     expect(resumo).toContain("MIGRÂNEA");
   });
 
   it("uma característica só não basta", () => {
-    const { laudo } = responder(ichd, { dur_migranea: 1, m_unilateral: 1, m_nausea: 1 });
+    const { laudo } = responder(ichd, { dur_migranea: 1, m_unilateral: 1, m_nausea: 1, n5: 1 });
     expect(laudo).toContain("FALTAM ≥2 CARACTERÍSTICAS");
   });
 
   it("REGRESSÃO: foto e fono juntas impedem a tensional", () => {
-    const base = { dur_tensional: 1, t_bilateral: 1, t_aperto: 1, t_sem_nausea: 1 };
-    expect(responder(ichd, base).resumo).toContain("TENSIONAL");
+    const base = { dur_tensional: 1, t_bilateral: 1, t_aperto: 1, t_sem_nausea: 1, n10: 1 };
+    expect(responder(ichd, base).resumo).toBe("PREENCHE: TENSIONAL (ICHD-3)");
 
     const comAmbas = responder(ichd, { ...base, t_foto: 1, t_fono: 1 });
     expect(comAmbas.laudo).toContain("FOTOFOBIA E FONOFOBIA JUNTAS NÃO FECHAM TENSIONAL");
@@ -890,31 +941,37 @@ describe("CLASSIFICAÇÃO DE CEFALEIA (ICHD-3)", () => {
     expect(responder(ichd, { ...base, t_foto: 1 }).resumo).toContain("TENSIONAL");
   });
 
+  it("tensional pede ≥ 10 episódios, e o ≥ 5 da migrânea não serve", () => {
+    const base = { dur_tensional: 1, t_bilateral: 1, t_aperto: 1, t_sem_nausea: 1 };
+    expect(responder(ichd, { ...base, n5: 1 }).laudo).toContain("FALTA CONFIRMAR ≥ 10 EPISÓDIOS");
+  });
+
   it("tensional exige a confirmação explícita de ausência de náusea", () => {
     const { laudo } = responder(ichd, { dur_tensional: 1, t_bilateral: 1, t_aperto: 1 });
     expect(laudo).toContain("FALTA CONFIRMAR AUSÊNCIA DE NÁUSEA");
   });
 
-  it("salvas precisa de localização, intensidade e um autonômico", () => {
-    const semAuto = responder(ichd, { dur_salvas: 1, c_local: 1, c_severa: 1 });
+  it("salvas precisa de localização, intensidade, frequência e um autonômico", () => {
+    const semAuto = responder(ichd, { dur_salvas: 1, c_local: 1, c_severa: 1, c_freq: 1, n5: 1 });
     expect(semAuto.laudo).toContain("FALTAM SINAIS AUTONÔMICOS");
 
-    const comAuto = responder(ichd, { dur_salvas: 1, c_local: 1, c_severa: 1, c_miose: 1 });
-    expect(comAuto.resumo).toContain("SALVAS/CLUSTER");
+    expect(responder(ichd, { ...SALVAS, n5: 1 }).resumo).toBe("PREENCHE: SALVAS/CLUSTER (ICHD-3)");
 
     // Agitação substitui o autonômico.
     const comAgitacao = responder(ichd, {
-      dur_salvas: 1, c_local: 1, c_severa: 1, c_agitacao: 1,
+      dur_salvas: 1, c_local: 1, c_severa: 1, c_freq: 1, c_agitacao: 1, n5: 1,
     });
     expect(comAgitacao.resumo).toContain("SALVAS/CLUSTER");
+
+    // Sem a frequência típica (critério D), não fecha.
+    const { c_freq: _, ...semFrequencia } = SALVAS;
+    expect(responder(ichd, { ...semFrequencia, n5: 1 }).laudo).toContain("FALTA A FREQUÊNCIA TÍPICA");
   });
 
   it("mais de um conjunto fechando é sinalizado, não escondido", () => {
-    const { resumo, laudo } = responder(ichd, {
-      dur_migranea: 1, m_unilateral: 1, m_pulsatil: 1, m_nausea: 1,
-      dur_salvas: 1, c_local: 1, c_severa: 1, c_miose: 1,
-    });
+    const { resumo, laudo } = responder(ichd, { ...MIGRANEA, ...SALVAS, n5: 1 });
     expect(resumo).toContain("MAIS DE UM CONJUNTO");
     expect(laudo).toContain("REVISAR OS CRITÉRIOS");
   });
 });
+
