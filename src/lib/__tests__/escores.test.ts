@@ -276,6 +276,32 @@ describe("SOFA", () => {
     expect(laudo).toContain("DELTA SOFA (ATUAL - BASAL): +1");
     expect(laudo).not.toContain("COMPATÍVEL COM SEPSE");
   });
+
+  it("sem basal, cita a premissa do Sepsis-3 de basal zero", () => {
+    const { laudo } = responder(sofa, {}, { plaq: 80, bili: 3.0 });
+    expect(laudo).toContain("O SEPSIS-3 ASSUME BASAL 0");
+    // Total < 2 sem basal não diz nada sobre sepse.
+    expect(responder(sofa, {}, { plaq: 120 }).laudo).not.toContain("ASSUME BASAL 0");
+  });
+
+  it("REGRESSÃO: FiO2 em fração não vira domínio respiratório normal", () => {
+    // 0,5 lido como 0,5% dava PaO2/FiO2 de 18.000 e nota zero.
+    const { laudo } = responder(sofa, { suporte: 1 }, { fio2: 0.5, pao2: 90 });
+    expect(laudo).toContain("- RESPIRATÓRIO: —");
+    expect(laudo).toContain("FIO2 DEVE SER EM %");
+  });
+
+  it("S/F com SpO2 acima de 98% avisa que está fora da faixa validada", () => {
+    const fora = responder(sofa, { metodo: 1 }, { fio2: 21, spo2: 99 });
+    expect(fora.laudo).toContain("FORA DA FAIXA EM QUE O S/F FOI VALIDADO");
+    const dentro = responder(sofa, { metodo: 1 }, { fio2: 21, spo2: 95 });
+    expect(dentro.laudo).not.toContain("FORA DA FAIXA");
+  });
+
+  it("Glasgow fora de 3–15 não pontua", () => {
+    expect(responder(sofa, {}, { gcs: 2 }).laudo).toContain("- SNC: —");
+    expect(responder(sofa, {}, { gcs: 16 }).laudo).toContain("FORA DA ESCALA");
+  });
 });
 
 describe("ATLANTA", () => {

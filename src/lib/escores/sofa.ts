@@ -12,6 +12,12 @@
  * que um SOFA de 3 domínios somando 4, e ler o segundo como se fosse o
  * primeiro subestima a gravidade. Aqui isso sai no resumo, em cima, e não
  * numa ressalva no rodapé do laudo.
+ *
+ * Fontes conferidas: Vincent et al., Intensive Care Med 1996 (a tabela);
+ * Singer et al., JAMA 2016 (Sepsis-3: delta ≥ 2 e basal zero presumido);
+ * Pandharipande et al., Crit Care Med 2009 (cortes de SpO2/FiO2).
+ * O SOFA-2 (Ranzani et al., JAMA 2025) muda cortes e variáveis, mas o
+ * critério de sepse do Sepsis-3 continua definido sobre este SOFA.
  */
 
 import type { Calculadora, Resposta, Valores } from "./tipos";
@@ -35,6 +41,11 @@ function respiratorio(r: Resposta, v: Valores): Dominio {
   if (fio2 === null || fio2 <= 0) {
     return { nome: "RESPIRATÓRIO", nota: null, detalhe: "RESP: FIO2 NÃO INFORMADA." };
   }
+  // FiO2 digitada em fração (0,5) em vez de % (50) dava uma relação cem
+  // vezes maior e um domínio respiratório falsamente normal.
+  if (fio2 < 21 || fio2 > 100) {
+    return { nome: "RESPIRATÓRIO", nota: null, detalhe: "RESP: FIO2 DEVE SER EM % (21 A 100)." };
+  }
   const fracao = fio2 / 100;
   const suporte = r.suporte === 1;
   const porOximetria = r.metodo === 1;
@@ -48,6 +59,9 @@ function respiratorio(r: Resposta, v: Valores): Dominio {
         ? "RESP: MODO SPO2/FIO2 ESCOLHIDO, MAS SPO2 NÃO INFORMADA."
         : "RESP: MODO PAO2/FIO2 ESCOLHIDO, MAS PAO2 NÃO INFORMADA.",
     };
+  }
+  if (porOximetria && medida > 100) {
+    return { nome: "RESPIRATÓRIO", nota: null, detalhe: "RESP: SPO2 ACIMA DE 100%." };
   }
 
   const razao = medida / fracao;
@@ -69,10 +83,17 @@ function respiratorio(r: Resposta, v: Valores): Dominio {
   if (!suporte && nota > 2) nota = 2;
 
   const sigla = porOximetria ? "SPO2/FIO2" : "PAO2/FIO2";
+  // Os cortes de SpO2/FiO2 (Pandharipande 2009) foram derivados só com
+  // SpO2 ≤ 98%. Acima disso a curva da hemoglobina achata: a SpO2 deixa de
+  // acompanhar a PaO2, e a relação subestima a oxigenação.
+  const foraDaFaixa = porOximetria && medida > 98
+    ? " | SPO2 > 98%: FORA DA FAIXA EM QUE O S/F FOI VALIDADO, A NOTA PODE SUPERESTIMAR A " +
+      "DISFUNÇÃO — PREFERIR PAO2/FIO2"
+    : "";
   return {
     nome: "RESPIRATÓRIO",
     nota,
-    detalhe: `RESP: ${sigla} = ${Math.round(razao)} | SUPORTE: ${suporte ? "SIM" : "NÃO"}`,
+    detalhe: `RESP: ${sigla} = ${Math.round(razao)} | SUPORTE: ${suporte ? "SIM" : "NÃO"}${foraDaFaixa}`,
   };
 }
 
@@ -137,6 +158,9 @@ function snc(v: Valores): Dominio {
   const gcs = num(v, "gcs");
   if (gcs === null) return { nome: "SNC", nota: null, detalhe: "SNC: GCS NÃO INFORMADO." };
   const g = Math.round(gcs);
+  if (g < 3 || g > 15) {
+    return { nome: "SNC", nota: null, detalhe: "SNC: GLASGOW FORA DA ESCALA (3 A 15)." };
+  }
   const nota = g === 15 ? 0 : g >= 13 ? 1 : g >= 10 ? 2 : g >= 6 ? 3 : 4;
   return { nome: "SNC (GCS)", nota, detalhe: `SNC: GCS ${g}` };
 }
@@ -236,6 +260,15 @@ export const SOFA: Calculadora = {
         delta.push("- DELTA SOFA ≥ 2 SUGERE DISFUNÇÃO ORGÂNICA SIGNIFICATIVA.");
         delta.push("- COM INFECÇÃO SUSPEITA OU CONFIRMADA, É COMPATÍVEL COM SEPSE (SEPSIS-3).");
       }
+    } else if (total >= 2) {
+      // O Sepsis-3 manda assumir basal zero em quem não tem disfunção prévia
+      // conhecida. Um total parcial ≥ 2 também vale: domínio que falta só
+      // pode somar, nunca tirar.
+      delta.push(
+        "SEM SOFA BASAL INFORMADO: O SEPSIS-3 ASSUME BASAL 0 EM QUEM NÃO TEM DISFUNÇÃO ORGÂNICA " +
+          "PRÉVIA CONHECIDA. COM INFECÇÃO SUSPEITA OU CONFIRMADA, SOFA ≥ 2 É COMPATÍVEL COM SEPSE. " +
+          "COM DISFUNÇÃO CRÔNICA (DRC, CIRROSE), INFORMAR O BASAL.",
+      );
     }
 
     return cx([
@@ -257,6 +290,8 @@ export const SOFA: Calculadora = {
       "",
       "OBS:",
       "- SOFA COMPLETO É DIFERENTE DE qSOFA (TRIAGEM).",
+      "- MAIS DE UMA DROGA VASOATIVA: MARCAR A DE MAIOR PONTUAÇÃO. DOSES EM USO HÁ PELO MENOS 1 H.",
+      "- PACIENTE SEDADO: USAR O GLASGOW PRESUMIDO SEM A SEDAÇÃO.",
       "- USAR CONTEXTO CLÍNICO; NÃO SUBSTITUI JULGAMENTO MÉDICO.",
     ]);
   },
