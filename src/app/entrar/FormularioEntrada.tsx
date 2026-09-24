@@ -1,14 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { BotaoTema } from "@/components/BotaoTema";
 import { IconeCadeado } from "@/components/Icones";
 import { Logo } from "@/components/Logo";
 
-export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada: boolean }) {
+export function FormularioEntrada({
+  semSenhaConfigurada,
+  pedirCodigo,
+}: {
+  semSenhaConfigurada: boolean;
+  /** Com o autenticador configurado, a entrada pede também o código. */
+  pedirCodigo: boolean;
+}) {
   const [senha, setSenha] = useState("");
+  const [codigo, setCodigo] = useState("");
+  const campoSenha = useRef<HTMLInputElement>(null);
   const [erro, setErro] = useState("");
   const [enviando, setEnviando] = useState(false);
   const params = useSearchParams();
@@ -35,7 +44,7 @@ export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada
       const r = await fetch("/api/entrar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ senha }),
+        body: JSON.stringify({ senha, codigo }),
       });
       if (r.ok) {
         // NÃO apagar nada aqui. A limpeza do que ficou de versões antigas é
@@ -44,15 +53,24 @@ export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada
         // dados que ainda eram a única cópia.
         abrir();
       } else {
-        setErro(r.status === 503 ? "Senha não configurada no servidor." : "Senha incorreta.");
+        setErro(
+          r.status === 503
+            ? "Senha não configurada no servidor."
+            : pedirCodigo
+              ? "Senha ou código incorreto. Se errou o código, espere o próximo."
+              : "Senha incorreta.",
+        );
         setSenha("");
+        setCodigo("");
         setEnviando(false);
+        campoSenha.current?.focus();
       }
     } catch {
       // O app não guarda nada nesta máquina, então não há como conferir a
       // senha sem falar com o servidor.
       setErro("Sem conexão. O app precisa de internet para abrir.");
       setSenha("");
+      setCodigo("");
       setEnviando(false);
     }
   }
@@ -104,6 +122,7 @@ export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada
             </label>
             <input
               id="senha"
+              ref={campoSenha}
               type="password"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
@@ -117,6 +136,29 @@ export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada
               className="w-full rounded-lg border border-edge bg-panel px-3 py-3 text-center font-mono text-lg tracking-[0.35em] text-ink outline-none transition-colors focus:border-accent"
             />
 
+            {pedirCodigo && (
+              <>
+                <label
+                  htmlFor="codigo"
+                  className="mb-1.5 mt-3 block font-mono text-[9px] uppercase tracking-[0.18em] text-inkDim"
+                >
+                  Código do autenticador
+                </label>
+                <input
+                  id="codigo"
+                  value={codigo}
+                  onChange={(e) => setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  inputMode="numeric"
+                  // "one-time-code" não guarda nada: é o que deixa o celular
+                  // sugerir o código do próprio autenticador, e o navegador de
+                  // um computador público não tem o que oferecer aqui.
+                  autoComplete="one-time-code"
+                  placeholder="000000"
+                  className="w-full rounded-lg border border-edge bg-panel px-3 py-3 text-center font-mono text-lg tracking-[0.35em] text-ink outline-none transition-colors placeholder:text-inkDim/30 focus:border-accent"
+                />
+              </>
+            )}
+
             {erro && (
               <p role="alert" className="mt-2 text-center text-[11px] text-danger">
                 {erro}
@@ -125,7 +167,7 @@ export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada
 
             <button
               type="submit"
-              disabled={enviando || !senha}
+              disabled={enviando || !senha || (pedirCodigo && codigo.length !== 6)}
               className="transicao mt-3 w-full rounded-lg bg-accent px-4 py-2 text-[12px] font-bold tracking-[0.12em] text-accentInk hover:brightness-110 disabled:opacity-40"
             >
               {enviando ? "…" : "ENTRAR"}
@@ -134,7 +176,8 @@ export function FormularioEntrada({ semSenhaConfigurada }: { semSenhaConfigurada
         )}
 
         <p className="mt-6 text-center text-[10px] leading-relaxed text-inkDim/70">
-          A sessão dura 12 horas neste navegador. Use BLOQUEAR ao sair da máquina.
+          A sessão dura 12 horas neste navegador. Use BLOQUEAR ao sair da máquina
+          {pedirCodigo ? " — para voltar, senha e código de novo." : "."}
         </p>
       </div>
     </div>

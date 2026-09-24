@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import {
   derivar,
+  gastarCodigo,
   gravarAcesso,
   lerAcesso,
   novoSal,
   segredoDeAssinatura,
 } from "@/lib/acesso";
 import { criarCookie } from "@/lib/sessao";
-import { conferirCodigo, enderecoOtpauth, novoSegredoTotp } from "@/lib/totp";
+import { enderecoOtpauth, novoSegredoTotp } from "@/lib/totp";
 import { nuvemConfigurada } from "@/lib/supabase";
 
 /**
@@ -113,10 +114,16 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  if (!(await conferirCodigo(segredoTotp, codigo))) {
+  // O mesmo código que acabou de abrir o app não serve de novo aqui: cada
+  // código entra uma vez só, na entrada ou na troca.
+  const passo = await gastarCodigo(segredoTotp, codigo, acesso?.totp ? acesso.ultimoPasso : 0);
+  if (passo === null) {
     await new Promise((r) => setTimeout(r, 600));
     return NextResponse.json(
-      { erro: "codigo_invalido", mensagem: "Código do autenticador incorreto ou vencido." },
+      {
+        erro: "codigo_invalido",
+        mensagem: "Código do autenticador incorreto, vencido ou já usado. Espere o próximo.",
+      },
       { status: 401 },
     );
   }
@@ -127,6 +134,7 @@ export async function POST(req: Request) {
     hash: await derivar(nova, sal),
     sal,
     totp: segredoTotp,
+    ultimoPasso: passo,
   });
 
   /*

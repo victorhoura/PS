@@ -12,6 +12,14 @@
  * registro `acesso` no Supabase devolve o acesso pela senha da Vercel, que é
  * o caminho se você perder o celular do autenticador.
  *
+ * ── O código também na entrada ──
+ *
+ * Com o autenticador configurado, entrar (e desbloquear, que é a mesma tela)
+ * pede a senha E o código. Cada código só entra uma vez: o passo de 30
+ * segundos aceito fica gravado, e um código daquele passo ou de antes é
+ * recusado. Numa máquina pública, quem capturar o que você digitou não
+ * consegue repetir a entrada nem dentro do mesmo minuto.
+ *
  * ── Por que trocar a senha derruba todas as sessões ──
  *
  * O cookie de sessão é assinado com uma chave derivada da senha em vigor
@@ -21,6 +29,7 @@
  */
 
 import { lerRegistro, gravarRegistro, nuvemConfigurada } from "./supabase";
+import { passoDoCodigo } from "./totp";
 
 const CHAVE = "acesso";
 
@@ -35,6 +44,8 @@ export interface Acesso {
   sal: string;
   /** Segredo do autenticador, em base32. Null enquanto não configurado. */
   totp: string | null;
+  /** Último passo de 30 s cujo código foi aceito. Código de antes não entra. */
+  ultimoPasso: number;
 }
 
 function base64url(bytes: Uint8Array): string {
@@ -78,6 +89,7 @@ function comoAcesso(bruto: unknown): Acesso | null {
     hash: a.hash,
     sal: a.sal,
     totp: typeof a.totp === "string" ? a.totp : null,
+    ultimoPasso: typeof a.ultimoPasso === "number" ? a.ultimoPasso : 0,
   };
 }
 
@@ -143,4 +155,65 @@ export async function conferirSenha(enviada: string): Promise<boolean> {
 
   const daVercel = process.env.PS_SENHA;
   return Boolean(daVercel) && iguais(enviada, daVercel!);
+}
+
+/**
+ * A tela de entrada pergunta o código?
+ *
+ * Sim quando há autenticador — e também quando o banco não respondeu: sem
+ * banco ninguém entra mesmo, e esconder o campo só faria a tela mentir sobre
+ * o que vai ser pedido quando ele voltar.
+ */
+export async function pedeCodigoNaEntrada(): Promise<boolean> {
+  const r = await consultar();
+  return !r.ok || Boolean(r.acesso?.totp);
+}
+
+/**
+ * Confere e GASTA um código do autenticador.
+ *
+ * Devolve o passo aceito, ou null se o código não confere ou já foi usado
+ * (passo igual ou anterior ao último aceito). Quem chama grava o passo junto
+ * com o que mais for gravar.
+ */
+export async function gastarCodigo(
+  segredo: string,
+  codigo: string,
+  ultimoPasso: number,
+): Promise<number | null> {
+  const passo = await passoDoCodigo(segredo, codigo);
+  return passo !== null && passo > ultimoPasso ? passo : null;
+}
+
+/**
+ * Confere a entrada: senha e, havendo autenticador, o código.
+ *
+ * Senha e código são conferidos sempre os dois, e a resposta é uma só para
+ * qualquer falha — dizer "a senha está certa, falta o código" ensinaria a
+ * quem tenta adivinhar que ele já acertou metade.
+ */
+export async function conferirEntrada(senha: string, codigo: string): Promise<boolean> {
+  const r = await consultar();
+  if (!r.ok) return false;
+
+  const acesso = r.acesso;
+  if (!acesso) {
+    const daVercel = process.env.PS_SENHA;
+    return Boolean(daVercel) && iguais(senha, daVercel!);
+  }
+
+  const senhaCerta = iguais(await derivar(senha, acesso.sal), acesso.hash);
+  if (!acesso.totp) return senhaCerta;
+
+  const passo = await gastarCodigo(acesso.totp, codigo, acesso.ultimoPasso);
+  if (!senhaCerta || passo === null) return false;
+
+  // Sem conseguir gravar que o código foi usado, ele poderia ser usado de
+  // novo: melhor recusar a entrada do que abrir essa porta.
+  try {
+    await gravarAcesso({ ...acesso, ultimoPasso: passo });
+  } catch {
+    return false;
+  }
+  return true;
 }

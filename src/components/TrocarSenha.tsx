@@ -123,7 +123,7 @@ export function TrocarSenha() {
         <p className="mb-3 text-[11px] leading-relaxed text-inkDim">
           Para trocar a senha é preciso um aplicativo autenticador no seu celular — o Google
           Authenticator ou o Authy, por exemplo. Você escaneia um QR uma única vez; depois é só o
-          código de seis dígitos. Vale a pena que seja um app separado do que guarda as suas
+          código de seis dígitos, pedido também para entrar e para desbloquear o app. Vale a pena que seja um app separado do que guarda as suas
           senhas: é ter os dois em lugares diferentes que faz do segundo fator um segundo fator.
         </p>
         <button
@@ -248,6 +248,8 @@ export function TrocarSenha() {
       <p className="mt-2 text-[10px] leading-relaxed text-inkDim/70">
         Trocar a senha derruba a sessão em todos os computadores onde o app estiver aberto,
         inclusive num pen drive esquecido na máquina do hospital. Aqui você continua dentro.
+        O código do autenticador também é pedido para entrar e para desbloquear, e cada código
+        vale uma vez só.
       </p>
     </form>
   );

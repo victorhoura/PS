@@ -118,8 +118,21 @@ export async function conferirCodigo(
   digitado: string,
   agora = Date.now(),
 ): Promise<boolean> {
+  return (await passoDoCodigo(segredo, digitado, agora)) !== null;
+}
+
+/**
+ * Como `conferirCodigo`, mas diz QUAL janela de 30 segundos o código era — ou
+ * null se não confere. É o que permite recusar um código já usado: guardado
+ * o passo aceito, qualquer código daquele passo ou de antes não entra mais.
+ */
+export async function passoDoCodigo(
+  segredo: string,
+  digitado: string,
+  agora = Date.now(),
+): Promise<number | null> {
   const limpo = digitado.replace(/\D/g, "");
-  if (limpo.length !== DIGITOS) return false;
+  if (limpo.length !== DIGITOS) return null;
 
   const passo = Math.floor(agora / 1000 / JANELA_SEGUNDOS);
   for (const d of [0, -1, 1]) {
@@ -128,9 +141,9 @@ export async function conferirCodigo(
     // quantos dígitos do começo estavam certos.
     let dif = 0;
     for (let i = 0; i < DIGITOS; i++) dif |= esperado.charCodeAt(i) ^ limpo.charCodeAt(i);
-    if (dif === 0) return true;
+    if (dif === 0) return passo + d;
   }
-  return false;
+  return null;
 }
 
 const EMISSOR = "PS JAPA";

@@ -6,6 +6,7 @@ import {
   gerarCodigo,
   novoSegredoTotp,
   paraBase32,
+  passoDoCodigo,
 } from "@/lib/totp";
 
 /**
@@ -90,6 +91,14 @@ describe("conferência", () => {
     for (const ruim of ["", "12345", "1234567", "abcdef", "  "]) {
       expect(await conferirCodigo(SEGREDO_RFC, ruim, agora)).toBe(false);
     }
+  });
+
+  it("diz qual janela de 30 s o código era, para poder recusar repetição", async () => {
+    const passo = Math.floor(agora / 30_000);
+    expect(await passoDoCodigo(SEGREDO_RFC, await gerarCodigo(SEGREDO_RFC, agora), agora)).toBe(passo);
+    const anterior = await gerarCodigo(SEGREDO_RFC, agora - 30_000);
+    expect(await passoDoCodigo(SEGREDO_RFC, anterior, agora)).toBe(passo - 1);
+    expect(await passoDoCodigo(SEGREDO_RFC, "000000", agora)).toBeNull();
   });
 
   it("ignora espaço no meio do código digitado", async () => {
