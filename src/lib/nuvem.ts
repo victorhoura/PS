@@ -63,17 +63,34 @@ export async function lerDaNuvem<T>(chave: ChaveNuvem): Promise<RespostaNuvem<T>
 }
 
 /**
+ * Teto de um pedido com keepalive. O navegador aceita até 64 KiB somando
+ * todos os que estão no ar; acima disso o fetch nem sai. A folga cobre mais
+ * de uma chave pendente ao mesmo tempo.
+ */
+const TETO_KEEPALIVE = 60_000;
+
+/**
  * Grava e devolve se chegou. Diferente da versão anterior, que engolia o erro
  * e deixava o cache local segurar: sem cache local, engolir o erro é perder
  * a edição sem avisar.
+ *
+ * `saindo` é para quando a página está indo embora: aí só um pedido com
+ * keepalive sobrevive ao descarregamento. Conteúdo grande demais para ele
+ * vai do jeito normal — sai, mas pode não chegar.
  */
-export async function gravarNaNuvem(chave: ChaveNuvem, conteudo: unknown): Promise<boolean> {
+export async function gravarNaNuvem(
+  chave: ChaveNuvem,
+  conteudo: unknown,
+  saindo = false,
+): Promise<boolean> {
   definir({ tipo: "salvando" });
+  const corpo = JSON.stringify({ conteudo });
   try {
     const r = await fetch(`/api/nuvem/${chave}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ conteudo }),
+      body: corpo,
+      keepalive: saindo && new TextEncoder().encode(corpo).length <= TETO_KEEPALIVE,
     });
     if (!r.ok) {
       definir({ tipo: "erro", motivo: motivoDoStatus(r.status) });
@@ -88,17 +105,57 @@ export async function gravarNaNuvem(chave: ChaveNuvem, conteudo: unknown): Promi
 }
 
 /**
+ * O que o agrupamento ainda segura, por chave.
+ *
+ * Existe por causa do intervalo de espera: sem saber o que está pendente, o
+ * que você mexeu no último segundo morria com a página. Recarregar, fechar a
+ * aba ou BLOQUEAR logo depois de salvar — o gesto de quem termina num
+ * computador compartilhado — perdia a última alteração sem aviso nenhum.
+ */
+const pendentes = new Map<ChaveNuvem, { obter: () => unknown; timer: ReturnType<typeof setTimeout> }>();
+
+function enviarJa(chave: ChaveNuvem, saindo = false): Promise<boolean> {
+  const p = pendentes.get(chave);
+  if (!p) return Promise.resolve(true);
+  clearTimeout(p.timer);
+  pendentes.delete(chave);
+  return gravarNaNuvem(chave, p.obter(), saindo);
+}
+
+/**
  * Agrupa escritas seguidas numa só — digitar num campo dispararia uma
  * gravação por tecla. O estado vira "salvando" assim que há algo pendente,
  * não só quando a requisição sai, senão a tela diz "salvo" enquanto ainda há
  * texto esperando na fila.
  */
 export function comEspera<T>(chave: ChaveNuvem, ms = 1200): (obter: () => T) => void {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-
   return (obter) => {
-    clearTimeout(timer);
+    clearTimeout(pendentes.get(chave)?.timer);
     definir({ tipo: "salvando" });
-    timer = setTimeout(() => void gravarNaNuvem(chave, obter()), ms);
+    pendentes.set(chave, { obter, timer: setTimeout(() => void enviarJa(chave), ms) });
   };
+}
+
+/**
+ * Manda agora o que está esperando e diz se tudo chegou. O BLOQUEAR chama
+ * antes de derrubar a sessão: depois do /api/sair a nuvem já recusaria.
+ */
+export async function descarregarPendentes(): Promise<boolean> {
+  const envios = [...pendentes.keys()].map((chave) => enviarJa(chave));
+  return (await Promise.all(envios)).every(Boolean);
+}
+
+/** A página está indo embora: o que estiver esperando sai já, com keepalive. */
+export function mandarAntesDeSair(): void {
+  for (const chave of [...pendentes.keys()]) void enviarJa(chave, true);
+}
+
+// Fechar, recarregar ou sair do endereço dispara o pagehide. Esconder a aba
+// também conta: no celular, o sistema pode matar uma aba escondida sem que o
+// pagehide chegue a disparar.
+if (typeof window !== "undefined") {
+  window.addEventListener("pagehide", mandarAntesDeSair);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") mandarAntesDeSair();
+  });
 }

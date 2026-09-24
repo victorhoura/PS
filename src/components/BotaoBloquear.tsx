@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { apagarTudoDaMaquina } from "@/lib/limpeza";
+import { descarregarPendentes } from "@/lib/nuvem";
 import { IconeCadeado } from "./Icones";
 
 /**
@@ -29,6 +30,11 @@ export function BotaoBloquear({
 
   async function bloquear() {
     setSaindo(true);
+    // Antes de derrubar a sessão: o que você acabou de mexer pode ainda estar
+    // no agrupamento de 1,2 s, e depois do /api/sair a nuvem já não aceitaria.
+    // Com teto, para uma rede ruim não prender ninguém numa máquina que
+    // precisa ser trancada.
+    await Promise.race([descarregarPendentes(), new Promise((r) => setTimeout(r, 3000))]);
     try {
       await fetch("/api/sair", { method: "POST" });
     } catch {
