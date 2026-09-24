@@ -17,7 +17,11 @@ export default function Backup() {
   const [confirmandoLimpeza, setConfirmandoLimpeza] = useState(false);
   const arquivoRef = useRef<HTMLInputElement>(null);
 
-  const temCamada = resumo.novos + resumo.editados + resumo.removidos > 0;
+  // Apagar um original também é alteração: VOLTAR AO ORIGINAL o traz de
+  // volta, e a contagem do botão tem de dizer isso — antes, quem só tinha
+  // apagado originais lia "APAGA 0 ALTERAÇÕES" e mudava a lista mesmo assim.
+  const alteracoes = resumo.novos + resumo.editados + resumo.removidos;
+  const temCamada = alteracoes > 0;
 
   function baixar() {
     const blob = new Blob([exportar()], { type: "application/json" });
@@ -50,7 +54,7 @@ export default function Backup() {
       <div className="mb-6 grid grid-cols-3 gap-2 sm:max-w-md">
         <Contador rotulo="SEUS TEXTOS" valor={resumo.novos} cor="text-accent" />
         <Contador rotulo="EDITADOS" valor={resumo.editados} cor="text-warn" />
-        <Contador rotulo="OCULTOS" valor={resumo.removidos} cor="text-inkDim" />
+        <Contador rotulo="APAGADOS" valor={resumo.removidos} cor="text-inkDim" />
       </div>
 
       {aviso && (
@@ -103,8 +107,8 @@ export default function Backup() {
           VOLTAR AO ORIGINAL
         </h2>
         <p className="mb-3 text-[11px] leading-relaxed text-inkDim">
-          Apaga tudo que você criou e editou, devolvendo os {SNIPPETS.length} textos originais do
-          app. Baixe o backup antes.
+          Apaga tudo que você criou e editou e traz de volta os originais que você apagou: ficam
+          só os {SNIPPETS.length} textos originais do app. Baixe o backup antes.
         </p>
         {confirmandoLimpeza ? (
           <div className="flex gap-2">
@@ -116,7 +120,7 @@ export default function Backup() {
               }}
               className="transicao rounded-md bg-danger px-4 py-2 text-[11px] font-bold tracking-wide text-white hover:brightness-110"
             >
-              CONFIRMAR — APAGA {resumo.novos + resumo.editados} ALTERAÇÕES
+              CONFIRMAR — DESFAZ {alteracoes === 1 ? "1 ALTERAÇÃO" : `${alteracoes} ALTERAÇÕES`}
             </button>
             <button
               onClick={() => setConfirmandoLimpeza(false)}

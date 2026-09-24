@@ -26,7 +26,7 @@ interface Camada {
   versao: 1;
   /** id do texto original -> conteúdo que o substitui */
   editados: Record<string, { nome: string; texto: string; em: string }>;
-  /** ids de textos originais escondidos */
+  /** ids de textos originais apagados — lápides, porque a base não muda */
   removidos: string[];
   /** textos criados por você */
   novos: Snippet[];
@@ -193,8 +193,8 @@ export function remover(id: string): boolean {
     return gravarCamada({ ...c, novos: c.novos.filter((s) => s.id !== id) });
   }
 
-  // Original: esconde e descarta o override, para que restaurar depois
-  // devolva o texto do PS.py, não a última edição.
+  // Original: vira lápide e descarta o override, para que voltar ao original
+  // depois devolva o texto do PS.py, não a última edição.
   const editados = { ...c.editados };
   delete editados[id];
   return gravarCamada({

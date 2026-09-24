@@ -78,10 +78,17 @@ export function EditorTexto({
     );
   }
 
+  /**
+   * Seu ou original, o gesto é o mesmo: APAGAR. Antes o original só se
+   * "ocultava", como se os textos do PS.py fossem intocáveis — e não são,
+   * são seus também. Por baixo o original vira uma lápide na camada, porque a
+   * base embutida não muda; VOLTAR AO ORIGINAL, no backup, ainda o traz de
+   * volta. Na lista, apagou.
+   */
   function apagar() {
     if (!alvo) return;
     const ok = remover(alvo.id);
-    aoFechar(ok ? (proprio ? "Texto apagado." : "Texto do original escondido.") : "Não foi possível apagar.");
+    aoFechar(ok ? "Texto apagado." : "Não foi possível apagar.");
   }
 
   function voltarAoOriginal() {
@@ -202,14 +209,14 @@ export function EditorTexto({
                   onClick={apagar}
                   className="transicao rounded-md bg-danger px-3 py-2 text-[11px] font-bold tracking-wide text-white hover:brightness-110"
                 >
-                  CONFIRMAR {proprio ? "EXCLUSÃO" : "OCULTAR"}
+                  CONFIRMAR EXCLUSÃO
                 </button>
               ) : (
                 <button
                   onClick={() => setConfirmandoApagar(true)}
                   className="transicao rounded-md border border-danger/50 px-3 py-2 text-[11px] font-bold tracking-wide text-danger hover:bg-danger/10"
                 >
-                  {proprio ? "APAGAR" : "OCULTAR"}
+                  APAGAR
                 </button>
               ))}
           </div>

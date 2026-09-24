@@ -23,7 +23,7 @@ editar. Os 311 textos originais vêm embutidos no bundle e nunca são alterados:
 |---|---|
 | Criar | Entra no topo da categoria, marcado com ponto azul |
 | Editar um original | Grava um override; ponto âmbar; **Restaurar original** desfaz |
-| Ocultar um original | Grava uma lápide; restaurável a qualquer momento |
+| Apagar um original | **Apagar**, como um texto seu: some da lista. Por baixo grava uma lápide, e **Voltar ao original** (backup) o traz de volta |
 | Apagar um texto seu | Some de vez |
 
 As criações aparecem no `Ctrl+K` e nas contagens da barra lateral na hora.
