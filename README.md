@@ -11,7 +11,7 @@ formatador de laudos. Nada do que é digitado no formatador é persistido.
 | Parte | Conteúdo |
 |---|---|
 | Textos | 311 modelos em 10 categorias (anamnese, exame físico, CID, condutas, reavaliação, receitas, prescrições, fármacos, encaminhamento, notas); prescrições começa vazia, para os seus textos |
-| Escores | Alvarado, CURB-65, Glasgow, qSOFA, Wells (TVP) |
+| Escores | 21 escores e calculadoras: Alvarado, Atlanta, cefaleia (ICHD-3 e protocolo), Charcot/Reynolds, Cincinnati, CURB-65, Glasgow, Hinchey, hipo/hipercalemia, hipo/hipernatremia, NIHSS, qSOFA, sequência rápida IOT, SOFA, Tokyo (colangite e colecistite), Wells (TEP e TVP) |
 | Ferramentas | Formatador de exames (SHIFT/AFIP), conversor de letras, contador |
 
 ## Criar e editar textos

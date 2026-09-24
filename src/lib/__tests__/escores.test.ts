@@ -1025,3 +1025,109 @@ describe("CLASSIFICAÇÃO DE CEFALEIA (ICHD-3)", () => {
   });
 });
 
+describe("SEQUÊNCIA RÁPIDA IOT", () => {
+  const sri = pegar("sequencia-rapida-iot");
+  const CRIANCA = { publico: 1 };
+
+  it("não calcula sem o peso", () => {
+    const { resumo, laudo } = responder(sri, {});
+    expect(resumo).toBe("PREENCHA O PESO");
+    expect(laudo).toBe("PREENCHA O PESO.");
+  });
+
+  it("recusa peso fora da faixa de cada público, sem dar dose nenhuma", () => {
+    for (const [r, peso] of [[{}, 10], [{}, 301], [CRIANCA, 2], [CRIANCA, 120]] as const) {
+      const { resumo, laudo } = responder(sri, r, { peso });
+      expect(resumo, `${peso} kg`).toContain("PESO FORA DA FAIXA");
+      expect(laudo, `${peso} kg`).not.toContain(" ML");
+    }
+  });
+
+  it("adulto de 70 kg: cada droga em mg e em mL da ampola, conferido na mão", () => {
+    const { resumo, laudo } = responder(sri, {}, { peso: 70 });
+    expect(resumo).toBe("ADULTO · 70 KG");
+    expect(laudo).toContain("FENTANIL 50 MCG/ML: 70–140 MCG = 1,4–2,8 ML (1–2 MCG/KG)");
+    expect(laudo).toContain("LIDOCAÍNA 2% (20 MG/ML): 105 MG = 5,3 ML (1,5 MG/KG)");
+    expect(laudo).toContain("ETOMIDATO 2 MG/ML: 21 MG = 10,5 ML (0,3 MG/KG)");
+    expect(laudo).toContain("CETAMINA 50 MG/ML: 70–140 MG = 1,4–2,8 ML (1–2 MG/KG)");
+    expect(laudo).toContain("PROPOFOL 10 MG/ML: 70–140 MG = 7–14 ML (1–2 MG/KG)");
+    expect(laudo).toContain("MIDAZOLAM 5 MG/ML: 14 MG = 2,8 ML (0,2 MG/KG)");
+    expect(laudo).toContain("ROCURÔNIO 10 MG/ML: 84 MG = 8,4 ML (1,2 MG/KG)");
+    expect(laudo).toContain(
+      "SUCCINILCOLINA (100 MG EM 10 ML = 10 MG/ML): 70–105 MG = 7–10,5 ML (1–1,5 MG/KG)",
+    );
+    expect(laudo).toContain("SUGAMADEX 100 MG/ML: 1.120 MG = 11,2 ML (16 MG/KG)");
+  });
+
+  it("choque no adulto reduz só a indução, para as doses reduzidas do RSI trial", () => {
+    const { resumo, laudo } = responder(sri, { choque: 1 }, { peso: 70 });
+    expect(resumo).toContain("CHOQUE: INDUÇÃO REDUZIDA");
+    expect(laudo).toContain("ETOMIDATO 2 MG/ML: 14 MG = 7 ML (0,2 MG/KG)");
+    expect(laudo).toContain("CETAMINA 50 MG/ML: 70 MG = 1,4 ML (1 MG/KG)");
+    expect(laudo).toContain("PLENA: 0,3 MG/KG");
+    expect(laudo).toContain("EVITAR NO CHOQUE");
+    // O bloqueador não muda com o choque.
+    expect(laudo).toContain("ROCURÔNIO 10 MG/ML: 84 MG = 8,4 ML (1,2 MG/KG)");
+  });
+
+  it("criança de 18 kg: doses pediátricas, com as duas ampolas quando há duas", () => {
+    const { resumo, laudo } = responder(sri, CRIANCA, { peso: 18 });
+    expect(resumo).toBe("CRIANÇA/ADOLESCENTE · 18 KG");
+    expect(laudo).toContain(
+      "ATROPINA 0,25 MG/ML: 0,36 MG = 1,4 ML | 0,5 MG/ML: 0,72 ML (0,02 MG/KG; MÁX. 0,5 MG)",
+    );
+    expect(laudo).toContain("FENTANIL 50 MCG/ML: 18–36 MCG = 0,36–0,72 ML (1–2 MCG/KG)");
+    expect(laudo).toContain("CETAMINA 50 MG/ML: 18–36 MG = 0,36–0,72 ML (1–2 MG/KG)");
+    expect(laudo).toContain("ETOMIDATO 2 MG/ML: 5,4 MG = 2,7 ML (0,3 MG/KG; MÁX. 20 MG)");
+    expect(laudo).toContain(
+      "MIDAZOLAM 5 MG/ML: 1,8–3,6 MG = 0,36–0,72 ML | 1 MG/ML: 1,8–3,6 ML (0,1–0,2 MG/KG; MÁX. 10 MG)",
+    );
+    expect(laudo).toContain("PROPOFOL 10 MG/ML: 18–36 MG = 1,8–3,6 ML (1–2 MG/KG)");
+    expect(laudo).toContain("ROCURÔNIO 10 MG/ML: 18–21,6 MG = 1,8–2,2 ML (1–1,2 MG/KG)");
+    expect(laudo).toContain(
+      "SUCCINILCOLINA (100 MG EM 10 ML = 10 MG/ML): 18–36 MG = 1,8–3,6 ML (1–2 MG/KG)",
+    );
+  });
+
+  it("a dose máxima segura a criança grande", () => {
+    expect(responder(sri, CRIANCA, { peso: 30 }).laudo)
+      .toContain("ATROPINA 0,25 MG/ML: 0,5 MG = 2 ML | 0,5 MG/ML: 1 ML");
+    expect(responder(sri, CRIANCA, { peso: 80 }).laudo)
+      .toContain("ETOMIDATO 2 MG/ML: 20 MG = 10 ML");
+    expect(responder(sri, CRIANCA, { peso: 60 }).laudo)
+      .toContain("MIDAZOLAM 5 MG/ML: 6–10 MG = 1,2–2 ML | 1 MG/ML: 6–10 ML");
+  });
+
+  it("atropina sem o piso antigo de 0,1 mg (AHA 2015)", () => {
+    // 3 kg × 0,02 = 0,06 mg. Com o piso, sairia 0,1 mg.
+    expect(responder(sri, CRIANCA, { peso: 3 }).laudo)
+      .toContain("ATROPINA 0,25 MG/ML: 0,06 MG = 0,24 ML | 0,5 MG/ML: 0,12 ML");
+  });
+
+  it("choque na criança avisa do etomidato no choque séptico", () => {
+    const { resumo, laudo } = responder(sri, { ...CRIANCA, choque: 1 }, { peso: 18 });
+    expect(resumo).toContain("CHOQUE: VER NOTAS");
+    expect(laudo).toContain("EVITAR NO CHOQUE SÉPTICO");
+    expect(laudo).toContain("PERFIL HEMODINÂMICO FAVORÁVEL NO CHOQUE");
+  });
+
+  it("REGRESSÃO: não repete os pontos do modelo que divergem das fontes", () => {
+    for (const r of [{}, CRIANCA]) {
+      const { laudo } = responder(sri, r, { peso: 20 });
+      // Alfentanil a "55,4 mcg/mL" daria 9 a 10× o volume da ampola real.
+      expect(laudo).not.toContain("ALFENTANIL");
+      // Rocurônio é primeira linha com ou sem sugamadex no serviço.
+      expect(laudo).not.toContain("SOMENTE SE HOUVER");
+      // Lidocaína é opcional, não "sempre".
+      expect(laudo).toContain("LIDOCAÍNA 2% (20 MG/ML)");
+      expect(laudo).toContain("OPCIONAL: SEM BENEFÍCIO CLÍNICO DEMONSTRADO");
+      expect(laudo).not.toContain("SEMPRE");
+    }
+  });
+
+  it("peso com casa decimal sai com vírgula", () => {
+    expect(responder(sri, {}, { peso: 72.5 }).resumo).toBe("ADULTO · 72,5 KG");
+    expect(responder(sri, {}, { peso: 100 }).laudo).toContain("SUGAMADEX 100 MG/ML: 1.600 MG = 16 ML");
+  });
+});
+

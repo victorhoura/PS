@@ -20,6 +20,7 @@ import { ALVARADO, ATLANTA, HINCHEY } from "./escores/abdome";
 import { SOFA } from "./escores/sofa";
 import { CHARCOT, TOKYO_COLANGITE, TOKYO_COLECISTITE } from "./escores/vias-biliares";
 import { HIPERCALEMIA, HIPERNATREMIA, HIPOCALEMIA, HIPONATREMIA } from "./escores/eletrolitos";
+import { SEQUENCIA_RAPIDA } from "./escores/sequencia-rapida";
 
 export type { Calculadora, Campo, Criterio, Grupo, Resposta, Valores } from "./escores/tipos";
 
@@ -40,6 +41,7 @@ export const CALCULADORAS: Calculadora[] = [
   NIHSS,
   PROTOCOLO_CEFALEIA,
   QSOFA,
+  SEQUENCIA_RAPIDA,
   SOFA,
   TOKYO_COLANGITE,
   TOKYO_COLECISTITE,
