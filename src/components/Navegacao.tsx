@@ -20,7 +20,8 @@ export function Navegacao({
   variante = "lateral",
   aoNavegar,
 }: {
-  totais: Record<string, number>;
+  /** null enquanto os seus textos carregam: sem número, em vez do da base. */
+  totais: Record<string, number> | null;
   variante?: "lateral" | "cheia";
   aoNavegar?: () => void;
 }) {
@@ -56,7 +57,7 @@ export function Navegacao({
         return (
           <Link key={c.slug} href={href} onClick={aoNavegar} className={item(ativo)}>
             <span className="truncate">{c.label}</span>
-            <span className={contador(ativo)}>{totais[c.slug] ?? c.total}</span>
+            <span className={contador(ativo)}>{totais ? (totais[c.slug] ?? 0) : ""}</span>
           </Link>
         );
       })}

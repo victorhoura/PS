@@ -13,6 +13,8 @@
  * basta.
  */
 
+import { respostaAntecipada } from "./antecipar";
+
 export type ChaveNuvem = "cofre" | "textos" | "preferencias" | "modelos" | "links";
 
 export interface RespostaNuvem<T> {
@@ -57,7 +59,9 @@ function motivoDoStatus(status: number): string {
 }
 
 export async function lerDaNuvem<T>(chave: ChaveNuvem): Promise<RespostaNuvem<T>> {
-  const r = await fetch(`/api/nuvem/${chave}`, { cache: "no-store" });
+  // Os textos já podem estar a caminho desde o <head> (veja antecipar.ts).
+  const antecipada = chave === "textos" ? respostaAntecipada() : null;
+  const r = await (antecipada ?? fetch(`/api/nuvem/${chave}`, { cache: "no-store" }));
   if (!r.ok) throw new Error(motivoDoStatus(r.status));
   return (await r.json()) as RespostaNuvem<T>;
 }

@@ -73,6 +73,44 @@ describe("antes do BLOQUEAR", () => {
   });
 });
 
+describe("textos buscados já no <head>", () => {
+  it("a leitura aproveita a resposta que já estava a caminho, uma vez só", async () => {
+    const antecipada = {
+      ok: true,
+      status: 200,
+      json: async () => ({ conteudo: { novos: ["do head"] }, atualizadoEm: null }),
+    };
+    vi.stubGlobal("window", { __psTextos: Promise.resolve(antecipada), addEventListener() {} });
+    vi.stubGlobal("document", { addEventListener() {}, visibilityState: "visible" });
+    const n = await modulo();
+
+    const primeira = await n.lerDaNuvem<{ novos: string[] }>("textos");
+    expect(primeira.conteudo).toEqual({ novos: ["do head"] });
+    expect(pedidos).toHaveLength(0);
+
+    // Um corpo só se lê uma vez: a segunda leitura vai à rede.
+    await n.lerDaNuvem("textos");
+    expect(pedidos).toHaveLength(1);
+  });
+
+  it("só para os textos: as outras chaves vão direto à rede", async () => {
+    vi.stubGlobal("window", { __psTextos: Promise.resolve({}), addEventListener() {} });
+    vi.stubGlobal("document", { addEventListener() {}, visibilityState: "visible" });
+    const n = await modulo();
+    await n.lerDaNuvem("links");
+    expect(pedidos.map((p) => p.chave)).toEqual(["links"]);
+  });
+
+  it("falha do pedido antecipado vira erro da leitura, não silêncio", async () => {
+    const falha = Promise.reject(new TypeError("rede"));
+    falha.catch(() => {});
+    vi.stubGlobal("window", { __psTextos: falha, addEventListener() {} });
+    vi.stubGlobal("document", { addEventListener() {}, visibilityState: "visible" });
+    const n = await modulo();
+    await expect(n.lerDaNuvem("textos")).rejects.toThrow();
+  });
+});
+
 describe("página indo embora", () => {
   it("REGRESSÃO: o que estava no intervalo sai na hora, com keepalive", async () => {
     // Antes: apagar um texto e recarregar a página em menos de 1,2 s perdia o

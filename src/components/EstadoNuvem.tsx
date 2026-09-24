@@ -62,10 +62,11 @@ export function EstadoNuvem() {
 
   if (estado === "erro") {
     return (
-      <Faixa tom="danger">
+      <Faixa>
         <span>
           <strong>Sem acesso à nuvem.</strong> {motivo} Seus textos e o cofre moram lá e não ficam
-          guardados nesta máquina — nada se perdeu, mas o app está mostrando só a base.
+          guardados nesta máquina — nada se perdeu, mas o app está mostrando só a base, e editar
+          fica travado até a nuvem voltar, para não gravar por cima dos seus textos.
         </span>
         <button
           onClick={() => void recarregar()}
@@ -79,7 +80,7 @@ export function EstadoNuvem() {
 
   if (nuvem.tipo === "erro") {
     return (
-      <Faixa tom="danger">
+      <Faixa>
         <span>
           <strong>Não salvo.</strong> {nuvem.motivo} O que você acabou de escrever está só na tela e
           some se recarregar. Verifique a conexão e edite de novo para tentar outra vez.
@@ -88,26 +89,19 @@ export function EstadoNuvem() {
     );
   }
 
-  if (estado === "carregando") {
-    return (
-      <Faixa tom="inkDim">
-        <span>Carregando seus textos da nuvem…</span>
-      </Faixa>
-    );
-  }
-
+  // Carregando não ganha faixa: ela aparecia no alto e sumia um instante
+  // depois, empurrando a página para baixo e de volta. Quem mostra que os
+  // textos estão chegando é o lugar onde eles vão aparecer (a lista, os
+  // números do menu).
   return null;
 }
 
-function Faixa({ tom, children }: { tom: "danger" | "inkDim"; children: React.ReactNode }) {
-  const cor =
-    tom === "danger"
-      ? "border-danger/40 bg-danger/10 text-danger"
-      : "border-edge bg-panel/60 text-inkDim";
+/** A faixa de problema: só existe para o que precisa da sua atenção. */
+function Faixa({ children }: { children: React.ReactNode }) {
   return (
     <div
       role="status"
-      className={`flex items-center gap-3 border-b px-4 py-1.5 text-[11px] leading-relaxed ${cor}`}
+      className="flex items-center gap-3 border-b border-danger/40 bg-danger/10 px-4 py-1.5 text-[11px] leading-relaxed text-danger"
     >
       {children}
     </div>

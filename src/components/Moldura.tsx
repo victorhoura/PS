@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { emConfiguracoes } from "@/lib/configuracoes";
 import { contagens } from "@/lib/repositorio";
-import { useTextos } from "@/hooks/useTextos";
+import { useEstadoTextos, useTextos } from "@/hooks/useTextos";
 import { Navegacao } from "./Navegacao";
 import { PaletaComandos } from "./PaletaComandos";
 import { AvisoCopia } from "./AvisoCopia";
@@ -31,9 +31,11 @@ export function Moldura({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   // Contagem viva: o número ao lado da categoria acompanha o que você cria
-  // e apaga, em vez de repetir o total que veio do PS.py.
+  // e apaga, em vez de repetir o total que veio do PS.py. Enquanto os seus
+  // textos não chegam, não há número — o da base mudaria logo em seguida.
   const textos = useTextos();
-  const totais = contagens(textos);
+  const { estado } = useEstadoTextos();
+  const totais = estado === "carregando" ? null : contagens(textos);
 
   // Os listeners globais vivem fora do ciclo de render; leem o estado por ref
   // para não decidir com base num valor de uma renderização anterior.

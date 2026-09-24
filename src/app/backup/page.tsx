@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { exportar, importar } from "@/lib/repositorio";
-import { useResumo, useTextos } from "@/hooks/useTextos";
+import { useEstadoTextos, useResumo, useTextos } from "@/hooks/useTextos";
 
 /**
  * Seus textos moram no Supabase, não nesta máquina. Esta tela existe como
@@ -18,6 +18,9 @@ import { useResumo, useTextos } from "@/hooks/useTextos";
 export default function Backup() {
   const textos = useTextos();
   const resumo = useResumo();
+  // Baixar antes de os seus textos chegarem salvaria um arquivo vazio, e
+  // restaurar seria desfeito pela resposta que ainda vem.
+  const carregando = useEstadoTextos().estado === "carregando";
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
   const arquivoRef = useRef<HTMLInputElement>(null);
 
@@ -74,13 +77,15 @@ export default function Backup() {
         </p>
         <button
           onClick={baixar}
-          disabled={alteracoes === 0}
+          disabled={carregando || alteracoes === 0}
           className="transicao rounded-lg bg-accent px-5 py-2 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-30"
         >
           BAIXAR BACKUP
         </button>
-        {alteracoes === 0 && (
-          <span className="ml-3 text-[11px] text-inkDim">Nada seu para salvar ainda.</span>
+        {(carregando || alteracoes === 0) && (
+          <span className="ml-3 text-[11px] text-inkDim">
+            {carregando ? "Carregando seus textos…" : "Nada seu para salvar ainda."}
+          </span>
         )}
       </section>
 
@@ -98,13 +103,15 @@ export default function Backup() {
           type="file"
           accept="application/json,.json"
           onChange={carregar}
-          className="block w-full text-[11px] text-inkDim file:mr-3 file:cursor-pointer file:rounded file:border-0 file:bg-edge file:px-4 file:py-2 file:text-[11px] file:font-bold file:tracking-wide file:text-ink hover:file:bg-panelHover"
+          disabled={carregando}
+          className="block w-full text-[11px] text-inkDim file:mr-3 file:cursor-pointer file:rounded file:border-0 file:bg-edge file:px-4 file:py-2 file:text-[11px] file:font-bold file:tracking-wide file:text-ink hover:file:bg-panelHover disabled:opacity-40"
         />
       </section>
 
       <p className="mt-6 max-w-2xl text-[10px] leading-relaxed text-inkDim/70">
-        Total no app agora: {textos.length} textos. A sincronização entre computadores é
-        automática pela nuvem; o arquivo daqui é a cópia que sobra se o banco falhar.
+        {carregando ? "Carregando seus textos…" : `Total no app agora: ${textos.length} textos.`} A
+        sincronização entre computadores é automática pela nuvem; o arquivo daqui é a cópia que
+        sobra se o banco falhar.
       </p>
     </div>
   );

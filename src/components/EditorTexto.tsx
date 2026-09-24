@@ -2,7 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { CategoriaSlug, Snippet } from "@/lib/types";
-import { criar, editar, ehNovo, foiEditado, remover, restaurar } from "@/lib/repositorio";
+import {
+  criar,
+  editar,
+  ehNovo,
+  foiEditado,
+  motivoParaNaoGravar,
+  remover,
+  restaurar,
+} from "@/lib/repositorio";
 
 /**
  * Criar e editar um texto. Mesmo formulário para os dois casos: `alvo` nulo
@@ -69,13 +77,13 @@ export function EditorTexto({
     }
 
     const ok = criando ? criar(categoria, nome, texto) : editar(alvo.id, nome, texto);
-    aoFechar(
-      ok
-        ? criando
-          ? "Texto criado."
-          : "Texto salvo."
-        : "Salvo só nesta sessão: o navegador recusou gravar.",
-    );
+    // Recusado, a caixa fica aberta com o que você digitou: fechar aqui
+    // jogaria fora a receita inteira por causa de um segundo de carga.
+    if (!ok) {
+      setErro(motivoParaNaoGravar());
+      return;
+    }
+    aoFechar(criando ? "Texto criado." : "Texto salvo.");
   }
 
   /**
@@ -87,13 +95,20 @@ export function EditorTexto({
    */
   function apagar() {
     if (!alvo) return;
-    const ok = remover(alvo.id);
-    aoFechar(ok ? "Texto apagado." : "Não foi possível apagar.");
+    if (!remover(alvo.id)) {
+      setConfirmandoApagar(false);
+      setErro(motivoParaNaoGravar());
+      return;
+    }
+    aoFechar("Texto apagado.");
   }
 
   function voltarAoOriginal() {
     if (!alvo) return;
-    restaurar(alvo.id);
+    if (!restaurar(alvo.id)) {
+      setErro(motivoParaNaoGravar());
+      return;
+    }
     aoFechar("Texto original restaurado.");
   }
 

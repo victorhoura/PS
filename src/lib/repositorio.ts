@@ -12,10 +12,17 @@
  * disco é rastro para quem sentar depois. Em memória existe um cache de
  * leitura que vive enquanto a aba estiver aberta e morre com ela.
  *
- * Consequência que o resto do código precisa respeitar: a camada começa
- * VAZIA e só existe depois que `sincronizarTextos` responde. Enquanto isso o
- * estado é "carregando", não "você não tem nada" — a diferença entre as duas
- * coisas é a diferença entre esperar e achar que seus textos sumiram.
+ * Consequência que o resto do código precisa respeitar: a camada só existe
+ * depois que `sincronizarTextos` responde. Enquanto isso o estado é
+ * "carregando", e duas coisas decorrem dele:
+ *
+ * - Não há lista. Mostrar a base nesse meio-tempo era mostrar uma versão
+ *   antiga — com os textos que você apagou, sem os que você criou — e trocá-la
+ *   na frente de quem já estava lendo. Quem desenha lista mostra "carregando".
+ * - Não se grava. A camada em memória ainda é a vazia, e gravar a partir dela
+ *   mandaria para a nuvem só a alteração nova, por cima de todas as outras.
+ *   Vale igual com o banco fora ("erro"): ali a base serve para copiar, mas
+ *   não para editar.
  */
 
 import { CATEGORIAS, SNIPPETS } from "@/data/snippets";
@@ -75,8 +82,12 @@ function gravarCamada(c: Camada): boolean {
   return true;
 }
 
+/** Enquanto carrega: sempre o mesmo array, que o React compara por identidade. */
+const NADA: Snippet[] = [];
+
 /** Base + camada, já na ordem em que a lista desenha. */
 export function todos(): Snippet[] {
+  if (estadoTextos === "carregando") return NADA;
   if (listaCache) return listaCache;
 
   const c = lerCamada();
@@ -92,9 +103,12 @@ export function todos(): Snippet[] {
   return (listaCache = [...c.novos, ...base]);
 }
 
-/** Snapshot do servidor: só a base, sem camada — evita erro de hidratação. */
+/**
+ * Snapshot do servidor: o HTML nasce "carregando", sem lista — ele não tem
+ * como saber a sua camada, e desenhar a base ali era o que aparecia primeiro.
+ */
 export function todosNoServidor(): Snippet[] {
-  return SNIPPETS;
+  return NADA;
 }
 
 /**
@@ -155,7 +169,27 @@ function agora(): string {
   return new Date().toISOString();
 }
 
+/**
+ * Só se grava com a camada em mãos (veja o alto do arquivo).
+ *
+ * Fecha um risco que existia desde que a nuvem virou a única cópia: um texto
+ * criado no primeiro segundo do app, ou editado com o banco fora, subia uma
+ * camada com só ele dentro — e a nuvem trocava todos os seus textos por
+ * aquele um.
+ */
+function podeGravar(): boolean {
+  return estadoTextos === "pronto";
+}
+
+/** O que dizer quando `podeGravar` recusa. */
+export function motivoParaNaoGravar(): string {
+  return estadoTextos === "erro"
+    ? "Não salvo: sem acesso à nuvem, e salvar agora gravaria por cima dos seus textos. Use TENTAR DE NOVO na faixa vermelha e salve em seguida."
+    : "Não salvo: seus textos ainda estão chegando da nuvem. Espere um instante e salve de novo.";
+}
+
 export function criar(categoria: CategoriaSlug, nome: string, texto: string): boolean {
+  if (!podeGravar()) return false;
   const c = lerCamada();
   const novo: Snippet = {
     id: `novo:${categoria}:${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`,
@@ -169,6 +203,7 @@ export function criar(categoria: CategoriaSlug, nome: string, texto: string): bo
 }
 
 export function editar(id: string, nome: string, texto: string): boolean {
+  if (!podeGravar()) return false;
   const c = lerCamada();
 
   if (ehNovo(id)) {
@@ -187,6 +222,7 @@ export function editar(id: string, nome: string, texto: string): boolean {
 }
 
 export function remover(id: string): boolean {
+  if (!podeGravar()) return false;
   const c = lerCamada();
 
   if (ehNovo(id)) {
@@ -206,6 +242,7 @@ export function remover(id: string): boolean {
 
 /** Desfaz a edição de um texto original, devolvendo o conteúdo do PS.py. */
 export function restaurar(id: string): boolean {
+  if (!podeGravar()) return false;
   const c = lerCamada();
   const editados = { ...c.editados };
   delete editados[id];
@@ -228,6 +265,13 @@ export interface ResultadoImportacao {
 }
 
 export function importar(json: string): ResultadoImportacao {
+  // Restaurar substitui a camada inteira de propósito, então vale até com o
+  // banco fora — é justamente o socorro de quando a nuvem perdeu os textos.
+  // Só não durante a carga: a resposta que ainda vem desfaria a restauração.
+  if (estadoTextos === "carregando") {
+    return { ok: false, mensagem: "Espere seus textos terminarem de carregar e restaure de novo." };
+  }
+
   let lido: Partial<Camada> & { app?: string };
   try {
     lido = JSON.parse(json);
@@ -240,6 +284,8 @@ export function importar(json: string): ResultadoImportacao {
   }
 
   const novos = Array.isArray(lido.novos) ? lido.novos.filter(ehSnippet) : [];
+  // Depois de restaurar, a camada é conhecida: a do arquivo.
+  estadoTextos = "pronto";
   const gravou = gravarCamada({
     versao: 1,
     editados: typeof lido.editados === "object" && lido.editados ? lido.editados : {},
@@ -269,7 +315,7 @@ export interface Resumo {
   removidos: number;
 }
 
-/** Só a base, sem camada: é o que o HTML do servidor mostra. */
+/** Sem camada: é o que o HTML do servidor mostra, e o que vale enquanto carrega. */
 const RESUMO_VAZIO: Resumo = Object.freeze({ novos: 0, editados: 0, removidos: 0 });
 
 /**
@@ -278,6 +324,7 @@ const RESUMO_VAZIO: Resumo = Object.freeze({ novos: 0, editados: 0, removidos: 0
  * redesenhar para sempre.
  */
 export function resumoCamada(): Resumo {
+  if (estadoTextos === "carregando") return RESUMO_VAZIO;
   if (resumoCache) return resumoCache;
   const c = lerCamada();
   return (resumoCache = {
@@ -323,13 +370,14 @@ export async function sincronizarTextos(): Promise<void> {
   try {
     const resposta = await lerDaNuvem<Partial<Camada>>("textos");
     camadaCache = comoCamada(resposta.conteudo);
-    listaCache = null;
-    resumoCache = null;
     estadoTextos = "pronto";
   } catch (e) {
     estadoTextos = "erro";
     motivoErro = e instanceof Error ? e.message : "Não foi possível falar com a nuvem.";
   }
+  // A lista muda de "nenhuma" para a de verdade (ou para a base, no erro).
+  listaCache = null;
+  resumoCache = null;
   avisar();
 }
 

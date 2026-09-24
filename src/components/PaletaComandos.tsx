@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { CATEGORIAS } from "@/data/snippets";
 import { CALCULADORAS } from "@/lib/calculadoras";
 import { copiar, normalizar } from "@/lib/clipboard";
-import { useTextos } from "@/hooks/useTextos";
+import { useEstadoTextos, useTextos } from "@/hooks/useTextos";
 import { avisarCopia } from "./AvisoCopia";
 import { IconeBusca } from "./Icones";
 
@@ -85,6 +85,7 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
   const listaRef = useRef<HTMLUListElement>(null);
   const router = useRouter();
   const textos = useTextos();
+  const textosCarregando = useEstadoTextos().estado === "carregando";
 
   /**
    * Índice pré-normalizado. Refeito só quando os textos mudam — não a cada
@@ -203,7 +204,11 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
         </div>
 
         <ul ref={listaRef} className="anel-dentro min-h-0 flex-1 overflow-y-auto py-1">
-          {resultados.length === 0 && (
+          {/* Com os textos ainda chegando, "nada encontrado" seria mentira. */}
+          {textosCarregando && termo.trim() && (
+            <li className="px-4 py-2 text-[11px] text-inkDim">Carregando seus textos…</li>
+          )}
+          {resultados.length === 0 && !textosCarregando && (
             <li className="px-4 py-6 text-center text-xs text-inkDim">Nada encontrado.</li>
           )}
           {resultados.map((r, i) => (

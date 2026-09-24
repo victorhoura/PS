@@ -23,9 +23,9 @@ import {
 /**
  * Lê a lista de textos e redesenha sozinho quando algo é criado ou editado.
  *
- * O snapshot do servidor é só a base embutida: na hidratação o React usa ele,
- * e a camada vinda da nuvem entra no render seguinte. Sem isso o HTML do
- * servidor e o do cliente divergiriam.
+ * Enquanto a camada não chega, a lista é vazia — no servidor e no cliente —,
+ * e quem desenha mostra "carregando" (veja `useEstadoTextos`). Quando ela
+ * chega, entra a lista de verdade, de uma vez: nunca a base antes dela.
  */
 export function useTextos() {
   // Uma vez por carregamento; a função se protege de chamadas repetidas.
@@ -44,9 +44,9 @@ export function useResumo() {
 /**
  * Como está a carga da camada.
  *
- * Existe porque a nuvem virou a única cópia: enquanto ela não responde, a
- * lista mostra só os 311 textos da base, e sem este estado isso seria
- * indistinguível de "os seus textos sumiram".
+ * Existe porque a nuvem virou a única cópia: enquanto ela não responde não há
+ * lista, e sem este estado uma lista vazia seria indistinguível de "os seus
+ * textos sumiram". No erro, a lista volta a ser a base, só para copiar.
  */
 export function useEstadoTextos() {
   const estado = useSyncExternalStore(inscrever, estadoDosTextos, estadoNoServidor);

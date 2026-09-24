@@ -3,7 +3,7 @@
 import { CATEGORIAS } from "@/data/snippets";
 import { CALCULADORAS } from "@/lib/calculadoras";
 import { contagens } from "@/lib/repositorio";
-import { useTextos } from "@/hooks/useTextos";
+import { useEstadoTextos, useTextos } from "@/hooks/useTextos";
 import { Cartao, Secao } from "@/components/Cartao";
 import { Logo } from "@/components/Logo";
 
@@ -24,7 +24,9 @@ const FERRAMENTAS = [
  */
 export default function Home() {
   const textos = useTextos();
-  const totais = contagens(textos);
+  const { estado } = useEstadoTextos();
+  // Sem número enquanto os seus textos chegam: o da base mudaria na sua frente.
+  const totais = estado === "carregando" ? null : contagens(textos);
 
   const tecla = "rounded border border-edge bg-panel px-1 font-mono text-accent";
 
@@ -48,7 +50,7 @@ export default function Home() {
               key={c.slug}
               href={`/c/${c.slug}`}
               nome={c.label}
-              valor={totais[c.slug] ?? c.total}
+              valor={totais ? (totais[c.slug] ?? 0) : undefined}
             />
           ))}
         </div>

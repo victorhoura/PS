@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import type { CategoriaSlug, Snippet } from "@/lib/types";
 import { copiar, normalizar } from "@/lib/clipboard";
 import { daCategoria } from "@/lib/repositorio";
-import { useTextos } from "@/hooks/useTextos";
+import { useEstadoTextos, useTextos } from "@/hooks/useTextos";
 import { avisarCopia } from "./AvisoCopia";
 import { EditorTexto } from "./EditorTexto";
 import { IconeBusca, IconeEditar, IconeMais, IconeSeta } from "./Icones";
@@ -15,6 +15,8 @@ import { IconeBusca, IconeEditar, IconeMais, IconeSeta } from "./Icones";
  */
 export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: string }) {
   const lista = useTextos();
+  const { estado } = useEstadoTextos();
+  const carregando = estado === "carregando";
   const itens = useMemo(() => daCategoria(slug, lista), [slug, lista]);
 
   const [termo, setTermo] = useState("");
@@ -49,7 +51,7 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
       <header className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">{titulo}</h1>
         <span className="tabular font-mono text-[11px] text-inkDim">
-          {filtrados.length}/{itens.length}
+          {carregando ? "…" : `${filtrados.length}/${itens.length}`}
         </span>
       </header>
 
@@ -76,7 +78,9 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
         </button>
       </div>
 
-      {filtrados.length === 0 && (
+      {carregando && <Carregando />}
+
+      {!carregando && filtrados.length === 0 && (
         <p className="py-10 text-center text-xs text-inkDim">
           {itens.length === 0 ? "Categoria vazia. Crie o primeiro texto." : "Nada encontrado."}
         </p>
@@ -158,6 +162,31 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
           aoFechar={fecharEditor}
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * O lugar da lista enquanto seus textos chegam da nuvem.
+ *
+ * Antes aqui aparecia a base do PS.py e, um instante depois, a sua versão —
+ * com o texto que você criou surgindo e o que você apagou sumindo na sua
+ * frente. Barras vazias não mostram nada que depois mude de ideia.
+ */
+function Carregando() {
+  return (
+    <div role="status" aria-label="Carregando seus textos">
+      <p className="mb-2 text-[11px] text-inkDim">Carregando seus textos…</p>
+      <ul className="space-y-1" aria-hidden="true">
+        {[72, 55, 64, 48, 60, 52].map((largura, i) => (
+          <li key={i} className="flex h-8 items-center rounded-lg border border-edge bg-panel px-2.5">
+            <span
+              className="block h-2.5 rounded bg-edge motion-safe:animate-pulse"
+              style={{ width: `${largura}%` }}
+            />
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

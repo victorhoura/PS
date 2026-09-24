@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Moldura } from "@/components/Moldura";
 import { SCRIPT_TEMA } from "@/lib/tema";
+import { SCRIPT_TEXTOS } from "@/lib/antecipar";
 
 export const metadata: Metadata = {
   title: "PS JAPA",
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" data-tema="escuro" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEXTOS }} />
       </head>
       <body className="min-h-dvh antialiased">
         <Moldura>{children}</Moldura>
