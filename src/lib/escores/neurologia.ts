@@ -499,7 +499,7 @@ export const CEFALEIA_ICHD: Calculadora = {
     {
       titulo: "SALVAS — OBRIGATÓRIOS",
       criterios: [
-        { id: "c_local", label: "UNILATERAL ORBITÁRIA/SUPRAORBITÁRIA/TEMPORAL", pontos: 0 },
+        { id: "c_local", label: "UNILATERAL: ORBITÁRIA, SUPRAORBITÁRIA E/OU TEMPORAL", pontos: 0 },
         { id: "c_severa", label: "SEVERA OU MUITO SEVERA", pontos: 0 },
         { id: "c_freq", label: "FREQUÊNCIA DE 1 A CADA 2 DIAS ATÉ 8 POR DIA", pontos: 0 },
       ],

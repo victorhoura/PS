@@ -154,7 +154,10 @@ export function TrocarSenha() {
               className="inline-block h-36 w-36 shrink-0 rounded bg-white p-1.5 [&>svg]:h-full [&>svg]:w-full"
               dangerouslySetInnerHTML={{ __html: preparo.svg }}
             />
-            <div className="min-w-0 flex-1">
+            {/* basis-40: sem uma base, esta coluna cabia com largura zero ao
+                lado do QR numa janela estreita, e o COPIAR CÓDIGO vazava da
+                tela. Com ela, quando não há espaço, desce para baixo do QR. */}
+            <div className="min-w-0 flex-1 basis-40">
               <span className="mb-1 block font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim">
                 ou digite este código no app
               </span>

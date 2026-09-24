@@ -65,10 +65,16 @@ export function Calculadora({ slug }: { slug: string }) {
         <span className="font-mono text-sm font-bold leading-snug text-accent">{resumo}</span>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="space-y-4">
+      {/*
+        grid-cols-1, e não a coluna implícita: esta nasce do tamanho mínimo do
+        conteúdo, e um fieldset não encolhe abaixo do mínimo dele — o próprio
+        navegador o define assim. Numa janela de 240px a legenda mais longa da
+        cefaleia (ICHD-3) empurrava a tela para 299px, com rolagem de lado.
+      */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="min-w-0 space-y-4">
           {calc.campos?.length ? (
-            <fieldset className="rounded-lg border border-edge bg-panel p-3">
+            <fieldset className="min-w-0 rounded-lg border border-edge bg-panel p-3">
               <legend className="px-1 font-mono text-[10px] font-bold tracking-widest text-inkDim">
                 DADOS DO PACIENTE
               </legend>
@@ -101,7 +107,7 @@ export function Calculadora({ slug }: { slug: string }) {
           ) : null}
 
           {calc.grupos.map((g) => (
-            <fieldset key={g.titulo} className="rounded-lg border border-edge bg-panel p-3">
+            <fieldset key={g.titulo} className="min-w-0 rounded-lg border border-edge bg-panel p-3">
               <legend className="px-1 font-mono text-[10px] font-bold tracking-widest text-inkDim">
                 {g.titulo}
               </legend>
@@ -121,7 +127,7 @@ export function Calculadora({ slug }: { slug: string }) {
                           onChange={() => setResposta((r) => ({ ...r, [c.id]: valorDaOpcao(o) }))}
                           className="h-3.5 w-3.5 shrink-0 accent-[#2fb5d9]"
                         />
-                        <span className="text-[11px] leading-snug text-ink">{o.label}</span>
+                        <span className="min-w-0 break-words text-[11px] leading-snug text-ink">{o.label}</span>
                       </label>
                     ))}
                   </div>
@@ -138,7 +144,7 @@ export function Calculadora({ slug }: { slug: string }) {
                       }
                       className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-[#2fb5d9]"
                     />
-                    <span className="flex-1 text-[11px] leading-snug text-ink">{c.label}</span>
+                    <span className="min-w-0 flex-1 break-words text-[11px] leading-snug text-ink">{c.label}</span>
                     {/* Critério que não pontua — os da PERC, por exemplo — não
                         ganha selo: um "0" ao lado é ruído, não informação. */}
                     {c.pontos ? (
@@ -164,8 +170,8 @@ export function Calculadora({ slug }: { slug: string }) {
           </button>
         </div>
 
-        <div className="flex flex-col">
-          <pre className="min-h-48 flex-1 overflow-auto whitespace-pre-wrap rounded-lg border border-edge bg-panel px-3 py-3 font-mono text-[11px] leading-relaxed text-ink">
+        <div className="flex min-w-0 flex-col">
+          <pre className="min-h-48 flex-1 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-edge bg-panel px-3 py-3 font-mono text-[11px] leading-relaxed text-ink">
             {laudo}
           </pre>
           <button

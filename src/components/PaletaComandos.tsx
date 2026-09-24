@@ -223,7 +223,9 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
           ))}
         </ul>
 
-        <div className="flex gap-4 border-t border-edge bg-base/50 px-4 py-2 font-mono text-[10px] text-inkDim">
+        {/* Quebra em vez de vazar: numa janela de 240px as quatro dicas não
+            cabem numa linha só. */}
+        <div className="flex flex-wrap gap-x-4 gap-y-0.5 border-t border-edge bg-base/50 px-4 py-2 font-mono text-[10px] text-inkDim">
           <span>↑↓ navegar</span>
           <span>↵ copiar / abrir</span>
           <span>esc fechar</span>
