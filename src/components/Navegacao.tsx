@@ -8,7 +8,8 @@ import { CATEGORIAS } from "@/data/snippets";
  * A lista vertical de destinos, em duas formas:
  *
  *  - "lateral": a barra fixa do desktop, compacta, sempre visível;
- *  - "cheia": o menu que toma a janela inteira quando ela é estreita.
+ *  - "cheia": o menu que toma a janela inteira quando ela é estreita — e a
+ *    própria tela inicial, que é este mesmo menu.
  *
  * A altura da linha da "cheia" mora no CSS (`.linha-menu`), não aqui, porque
  * ela depende do PONTEIRO e não da largura: a mesma janela estreita é um
@@ -49,7 +50,7 @@ export function Navegacao({
   );
 
   return (
-    <nav className={`flex flex-col gap-px pb-4 ${cheia ? "px-2.5" : "px-2"}`}>
+    <nav aria-label="Menu principal" className={`flex flex-col gap-px pb-4 ${cheia ? "px-2.5" : "px-2"}`}>
       {grupo("Menu principal")}
       {CATEGORIAS.map((c) => {
         const href = `/c/${c.slug}`;
