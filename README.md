@@ -23,7 +23,7 @@ editar. Os 311 textos originais vêm embutidos no bundle e nunca são alterados:
 |---|---|
 | Criar | Entra no topo da categoria, marcado com ponto azul |
 | Editar um original | Grava um override; ponto âmbar; **Restaurar original** desfaz |
-| Apagar um original | **Apagar**, como um texto seu: some da lista. Por baixo grava uma lápide, e **Voltar ao original** (backup) o traz de volta |
+| Apagar um original | **Apagar**, como um texto seu: some da lista. Por baixo grava uma lápide; só volta restaurando um backup de antes |
 | Apagar um texto seu | Some de vez |
 
 As criações aparecem no `Ctrl+K` e nas contagens da barra lateral na hora.
@@ -34,9 +34,11 @@ descartar; o cabeçalho marca "não salvo" enquanto houver alteração pendente.
 
 ### Onde isso é guardado
 
-No Supabase, com o `localStorage` como cache de leitura e de uso offline. Abrir
-o app em outro computador traz tudo junto. A tela **BACKUP** continua existindo
-como rede de segurança.
+Só no Supabase: nada fica gravado no computador. Abrir o app em outro
+computador traz tudo junto. A tela **BACKUP** faz duas coisas, baixar uma cópia
+em arquivo e restaurar a partir dela: é a rede de segurança se o banco falhar.
+Não há "voltar ao original" — os textos do PS.py foram o ponto de partida, e a
+medicina muda.
 
 ## Nuvem
 

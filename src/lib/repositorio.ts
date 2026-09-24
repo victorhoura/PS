@@ -4,8 +4,8 @@
  * guardada no navegador, e é isso que este arquivo administra.
  *
  * A base nunca é alterada: editar um texto original grava um override, e
- * "restaurar" é apagar esse override. Apagar um original grava uma lápide,
- * não remove nada — por isso dá para voltar atrás em qualquer momento.
+ * "restaurar" é apagar esse override. Apagar um original grava uma lápide:
+ * o bundle continua igual, mas para quem usa o texto foi apagado.
  *
  * A camada mora SÓ no Supabase. Nada é gravado nesta máquina: o app roda
  * também em computador de uso compartilhado, e ali qualquer coisa deixada no
@@ -193,8 +193,8 @@ export function remover(id: string): boolean {
     return gravarCamada({ ...c, novos: c.novos.filter((s) => s.id !== id) });
   }
 
-  // Original: vira lápide e descarta o override, para que voltar ao original
-  // depois devolva o texto do PS.py, não a última edição.
+  // Original: vira lápide, e a edição dele sai junto — guardar o texto de
+  // algo apagado seria peso morto na camada e no backup.
   const editados = { ...c.editados };
   delete editados[id];
   return gravarCamada({
@@ -289,10 +289,6 @@ export function resumoCamada(): Resumo {
 
 export function resumoNoServidor(): Resumo {
   return RESUMO_VAZIO;
-}
-
-export function limparTudo(): boolean {
-  return gravarCamada(VAZIA);
 }
 
 // ------------------------------------------------------------ nuvem

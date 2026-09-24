@@ -247,19 +247,22 @@ describe("contagens", () => {
 });
 
 describe("backup", () => {
-  it("exporta e reimporta a camada inteira", async () => {
+  it("exporta e reimporta a camada inteira, numa sessão nova", async () => {
     const r = await carregarModulo();
     r.criar(CATEGORIA, "MEU TEXTO", "corpo");
-    const original = r.daCategoria(CATEGORIA).find((s) => !r.ehNovo(s.id))!;
+    const [original, apagado] = r.daCategoria(CATEGORIA).filter((s) => !r.ehNovo(s.id));
     r.editar(original.id, "MUDADO", "outro corpo");
-
+    r.remover(apagado.id);
     const json = r.exportar();
-    r.limparTudo();
-    expect(r.resumoCamada()).toEqual({ novos: 0, editados: 0, removidos: 0 });
 
-    expect(r.importar(json).ok).toBe(true);
-    expect(r.resumoCamada()).toMatchObject({ novos: 1, editados: 1 });
-    expect(r.todos().find((s) => s.id === original.id)!.nome).toBe("MUDADO");
+    // Outro computador, ou o banco zerado: a camada começa vazia.
+    const outra = await carregarModulo();
+    expect(outra.resumoCamada()).toEqual({ novos: 0, editados: 0, removidos: 0 });
+
+    expect(outra.importar(json).ok).toBe(true);
+    expect(outra.resumoCamada()).toEqual({ novos: 1, editados: 1, removidos: 1 });
+    expect(outra.todos().find((s) => s.id === original.id)!.nome).toBe("MUDADO");
+    expect(outra.todos().some((s) => s.id === apagado.id)).toBe(false);
   });
 
   it("recusa arquivo que não é backup do app", async () => {
@@ -361,8 +364,9 @@ describe("a nuvem é a única cópia", () => {
 
     const r = await carregarModulo();
     r.criar(CATEGORIA, "A", "a");
-    r.editar(r.daCategoria(CATEGORIA).find((x) => !r.ehNovo(x.id))!.id, "B", "b");
-    r.limparTudo();
+    const original = r.daCategoria(CATEGORIA).find((x) => !r.ehNovo(x.id))!;
+    r.editar(original.id, "B", "b");
+    r.remover(original.id);
 
     expect(escritas).toEqual([]);
   });

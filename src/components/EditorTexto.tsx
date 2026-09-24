@@ -82,8 +82,8 @@ export function EditorTexto({
    * Seu ou original, o gesto é o mesmo: APAGAR. Antes o original só se
    * "ocultava", como se os textos do PS.py fossem intocáveis — e não são,
    * são seus também. Por baixo o original vira uma lápide na camada, porque a
-   * base embutida não muda; VOLTAR AO ORIGINAL, no backup, ainda o traz de
-   * volta. Na lista, apagou.
+   * base embutida não muda; para quem usa, apagou, e só volta restaurando um
+   * backup de antes.
    */
   function apagar() {
     if (!alvo) return;
