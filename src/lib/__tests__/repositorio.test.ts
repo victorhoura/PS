@@ -176,6 +176,27 @@ describe("ordem da lista", () => {
     expect(nomes.indexOf("CEFALEIA")).toBeLessThan(nomes.indexOf("CERVICALGIA"));
   });
 
+  it("PRESCRIÇÕES começa vazia e fica logo abaixo de RECEITAS", async () => {
+    const r = await carregarModulo();
+    const { CATEGORIAS } = await import("@/data/snippets");
+    const slugs = CATEGORIAS.map((c) => c.slug);
+    expect(slugs.indexOf("prescricoes")).toBe(slugs.indexOf("receitas") + 1);
+    expect(r.daCategoria("prescricoes")).toHaveLength(0);
+    expect(r.contagens().prescricoes).toBe(0);
+  });
+
+  it("prescrição criada entra na categoria, em ordem alfabética", async () => {
+    const r = await carregarModulo();
+    r.criar("prescricoes", "SEPSE - PRESCRIÇÃO INICIAL", "x");
+    r.criar("prescricoes", "ASMA - CRISE", "y");
+
+    const nomes = r.daCategoria("prescricoes").map((s: { nome: string }) => s.nome);
+    expect(nomes).toEqual(["ASMA - CRISE", "SEPSE - PRESCRIÇÃO INICIAL"]);
+    expect(r.contagens().prescricoes).toBe(2);
+    // e não vaza para as receitas
+    expect(achar(r.daCategoria("receitas"), "ASMA - CRISE")).toBeUndefined();
+  });
+
   it("texto seu entra na ordem, não no topo", async () => {
     const r = await carregarModulo();
     r.criar(CATEGORIA, "ZZZ ULTIMA", "x");

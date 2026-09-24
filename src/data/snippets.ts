@@ -11,6 +11,8 @@ export const CATEGORIAS: Categoria[] = [
   { slug: "condutas", label: "CONDUTAS", sigla: "CD", total: 13 },
   { slug: "reavaliacao", label: "REAVALIAÇÃO", sigla: "RV", total: 5 },
   { slug: "receitas", label: "RECEITAS", sigla: "RX", total: 59 },
+  // Nasce vazia: não havia prescrições no PS.py. Os textos são os que você criar.
+  { slug: "prescricoes", label: "PRESCRIÇÕES", sigla: "PM", total: 0 },
   { slug: "farmacos", label: "FÁRMACOS", sigla: "FX", total: 110 },
   { slug: "encaminhamento", label: "ENCAMINHAMENTO", sigla: "ENC", total: 5 },
   { slug: "notas", label: "NOTAS", sigla: "NT", total: 7 },

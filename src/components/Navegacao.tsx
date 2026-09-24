@@ -50,7 +50,7 @@ export function Navegacao({
 
   return (
     <nav className={`flex flex-col gap-px pb-4 ${cheia ? "px-2.5" : "px-2"}`}>
-      {grupo("Textos")}
+      {grupo("Menu principal")}
       {CATEGORIAS.map((c) => {
         const href = `/c/${c.slug}`;
         const ativo = pathname === href;

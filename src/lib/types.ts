@@ -5,6 +5,7 @@ export type CategoriaSlug =
   | "condutas"
   | "reavaliacao"
   | "receitas"
+  | "prescricoes"
   | "farmacos"
   | "encaminhamento"
   | "notas";

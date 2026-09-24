@@ -104,11 +104,15 @@ export function todosNoServidor(): Snippet[] {
  * em que os textos foram escritos no PS.py não ajuda ninguém. As outras
  * quatro ficam como estão porque ali a ordem quer dizer alguma coisa —
  * condutas, reavaliação e encaminhamento seguem a sequência do atendimento.
+ *
+ * Prescrições entram com as receitas: começam vazias e crescem com o que
+ * você escreve, e numa lista que só cresce o gesto é procurar pelo nome.
  */
 const ALFABETICAS = new Set<CategoriaSlug>([
   "anamnese",
   "cid",
   "receitas",
+  "prescricoes",
   "farmacos",
   "notas",
 ]);

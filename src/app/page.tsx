@@ -44,7 +44,7 @@ export default function Home() {
         </p>
       </header>
 
-      <Secao titulo="Textos">
+      <Secao titulo="Menu principal">
         <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {CATEGORIAS.map((c) => (
             <Cartao

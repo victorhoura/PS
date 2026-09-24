@@ -10,7 +10,7 @@ formatador de laudos. Nada do que é digitado no formatador é persistido.
 
 | Parte | Conteúdo |
 |---|---|
-| Textos | 311 modelos em 9 categorias (anamnese, exame físico, CID, condutas, reavaliação, receitas, fármacos, encaminhamento, notas) |
+| Textos | 311 modelos em 10 categorias (anamnese, exame físico, CID, condutas, reavaliação, receitas, prescrições, fármacos, encaminhamento, notas); prescrições começa vazia, para os seus textos |
 | Escores | Alvarado, CURB-65, Glasgow, qSOFA, Wells (TVP) |
 | Ferramentas | Formatador de exames (SHIFT/AFIP), conversor de letras, contador |
 
