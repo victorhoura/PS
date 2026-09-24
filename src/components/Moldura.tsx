@@ -76,7 +76,7 @@ export function Moldura({ children }: { children: React.ReactNode }) {
    */
   const marca = (
     <Link href="/" className="flex min-w-0 items-center gap-2 overflow-hidden">
-      <Logo tamanho={20} className="shrink-0" />
+      <Logo tamanho={20} className="hidden shrink-0 min-[230px]:block" />
       {/*
         A marca vai sumindo de trás para frente conforme a janela aperta, e a
         logo é a última a sair — ela sozinha ainda identifica o app e leva
@@ -85,8 +85,12 @@ export function Moldura({ children }: { children: React.ReactNode }) {
         Sem isto os dois nomes não encolhiam (a logo não encolhe, e o texto
         não tem onde quebrar) e passavam POR BAIXO do botão Ctrl K, que é
         largura fixa: em vez de cortar, sobrepunha.
+
+        Os cortes vêm de medir a barra com os quatro botões da direita
+        (Ctrl K, engrenagem, tema, cadeado): o JAPA pede 74px de caixa e só
+        os tem a partir de 326px de janela; abaixo de 230px nem a logo cabe.
       */}
-      <span className="hidden shrink-0 font-mono text-sm font-bold tracking-[0.22em] text-accent min-[310px]:inline">
+      <span className="hidden shrink-0 font-mono text-sm font-bold tracking-[0.22em] text-accent min-[330px]:inline">
         JAPA
       </span>
       <span className="hidden truncate font-mono text-[9px] uppercase tracking-[0.14em] text-inkDim min-[440px]:inline">
@@ -95,6 +99,11 @@ export function Moldura({ children }: { children: React.ReactNode }) {
     </Link>
   );
 
+  /**
+   * Abaixo de 280px o "Ctrl K" sai e fica só a lupa: com a engrenagem ao
+   * lado da lua, a barra não comporta tudo, e a dica de teclado é o que
+   * menos falta faz — o atalho continua valendo.
+   */
   const botaoBusca = (
     <button
       onClick={() => setPaletaAberta(true)}
@@ -102,10 +111,31 @@ export function Moldura({ children }: { children: React.ReactNode }) {
       className="transicao flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-edge px-2.5 text-[11px] text-inkDim hover:bg-panelHover hover:text-ink"
     >
       <IconeBusca tamanho={14} />
-      <kbd className="font-mono text-[10px] text-accent">Ctrl K</kbd>
+      <kbd className="hidden font-mono text-[10px] text-accent min-[280px]:inline">Ctrl K</kbd>
     </button>
   );
 
+  const botaoConfiguracoes = (
+    <Link
+      href="/configuracoes"
+      aria-label="Configurações"
+      title="Configurações"
+      aria-current={pathname === "/configuracoes" ? "page" : undefined}
+      className={`transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-edge ${
+        pathname === "/configuracoes"
+          ? "bg-accent text-accentInk"
+          : "text-inkDim hover:bg-panelHover hover:text-ink"
+      }`}
+    >
+      <IconeEngrenagem />
+    </Link>
+  );
+
+  /**
+   * Engrenagem, tema e cadeado: o mesmo trio, na mesma ordem, nas duas
+   * formas do app. Antes a janela estreita punha CONFIGURAÇÕES no fim do
+   * menu, e o mesmo destino mudava de lugar conforme a largura.
+   */
   const barraTopo = (fechando: boolean) => (
     <div className="flex items-center gap-1.5 border-b border-edge bg-panel px-2 py-1.5">
       <button
@@ -118,6 +148,7 @@ export function Moldura({ children }: { children: React.ReactNode }) {
       </button>
       <div className="min-w-0 flex-1">{marca}</div>
       {botaoBusca}
+      {botaoConfiguracoes}
       <BotaoTema compacto />
       <BotaoBloquear compacto />
     </div>
@@ -187,19 +218,7 @@ export function Moldura({ children }: { children: React.ReactNode }) {
           máquina compartilhada — ele não foi para dentro das configurações.
         */}
         <div className="flex items-center gap-1 border-t border-edge px-2 py-2">
-          <Link
-            href="/configuracoes"
-            aria-label="Configurações"
-            title="Configurações"
-            aria-current={pathname === "/configuracoes" ? "page" : undefined}
-            className={`transicao flex h-8 w-8 items-center justify-center rounded-md border border-edge ${
-              pathname === "/configuracoes"
-                ? "bg-accent text-accentInk"
-                : "text-inkDim hover:bg-panelHover hover:text-ink"
-            }`}
-          >
-            <IconeEngrenagem />
-          </Link>
+          {botaoConfiguracoes}
           <BotaoTema compacto />
           <BotaoBloquear compacto />
         </div>

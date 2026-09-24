@@ -35,9 +35,6 @@ export default function Home() {
           <Logo tamanho={22} className="shrink-0" />
           <h1 className="font-mono text-base font-bold tracking-[0.2em] text-ink">JAPA</h1>
         </div>
-        <p className="mt-1 text-[10px] text-inkDim">
-          {textos.length} textos · {CALCULADORAS.length} escores · {FERRAMENTAS.length} ferramentas
-        </p>
         <p className="mt-1.5 text-[10px] leading-relaxed text-inkDim">
           <kbd className={tecla}>Ctrl K</kbd> busca em tudo · <kbd className={tecla}>Esc</kbd> volta
           para cá

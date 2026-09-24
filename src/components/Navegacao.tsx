@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CATEGORIAS } from "@/data/snippets";
-import { IconeEngrenagem } from "./Icones";
 
 /**
  * A lista vertical de destinos, em duas formas:
@@ -71,27 +70,11 @@ export function Navegacao({
       </Link>
 
       {/*
-        CONFIGURAÇÕES fica fora dos grupos acima, e não junto de APLICATIVOS e
-        LINKS: aqueles são o trabalho do plantão, que você abre o tempo todo;
-        BACKUP e PEN DRIVE moram lá dentro porque são de vez em quando.
-
-        Só aparece no menu de janela estreita. Na barra lateral ele é a
-        engrenagem do rodapé, ao lado do tema e do cadeado.
+        CONFIGURAÇÕES não entra nesta lista em nenhuma das duas formas: é a
+        engrenagem ao lado do tema e do cadeado — no rodapé da barra lateral e
+        na barra de topo da janela estreita. Os itens daqui são o trabalho do
+        plantão; BACKUP e PEN DRIVE, lá dentro, são de vez em quando.
       */}
-      {cheia && (
-        <div className="mt-3 border-t border-edge pt-2">
-          <Link
-            href="/configuracoes"
-            onClick={aoNavegar}
-            className={item(pathname === "/configuracoes")}
-          >
-            <span className="flex items-center gap-2">
-              <IconeEngrenagem tamanho={14} />
-              CONFIGURAÇÕES
-            </span>
-          </Link>
-        </div>
-      )}
     </nav>
   );
 }
