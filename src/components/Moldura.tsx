@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { emConfiguracoes } from "@/lib/configuracoes";
 import { contagens } from "@/lib/repositorio";
 import { useTextos } from "@/hooks/useTextos";
 import { Navegacao } from "./Navegacao";
@@ -122,7 +123,7 @@ export function Moldura({ children }: { children: React.ReactNode }) {
       title="Configurações"
       aria-current={pathname === "/configuracoes" ? "page" : undefined}
       className={`transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-edge ${
-        pathname === "/configuracoes"
+        emConfiguracoes(pathname)
           ? "bg-accent text-accentInk"
           : "text-inkDim hover:bg-panelHover hover:text-ink"
       }`}

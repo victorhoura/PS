@@ -100,7 +100,7 @@ senha-mestra antes: o arquivo só substitui o cofre depois de provar que decifra
 
 Botão de cadeado: apaga o cookie de sessão e volta para a tela de senha. É para
 o computador compartilhado — você levanta da mesa e tranca, em vez de deixar a
-sessão aberta por 180 dias para quem sentar depois.
+sessão aberta por 12 horas para quem sentar depois.
 
 O proxy manda `Cache-Control: no-store` nas páginas protegidas. Sem isso o
 bloqueio não valeria: o navegador reexibiria a página do próprio cache ao
@@ -164,8 +164,15 @@ Sem essa variável o app **fica aberto** e a tela de entrada avisa — é
 deliberado: uma variável esquecida não pode trancar o plantão para fora.
 
 O que vai para o navegador é um cookie `HttpOnly` + `Secure` + `SameSite=Lax`,
-assinado com HMAC-SHA256 por uma chave derivada da senha. Dura 180 dias, então
-se entra uma vez por computador. Trocar `PS_SENHA` invalida todas as sessões.
+assinado com HMAC-SHA256 por uma chave derivada da senha. Dura 12 horas — um
+plantão — porque o app roda também em computador compartilhado. Trocar a senha
+invalida todas as sessões.
+
+Pelo app, a senha se troca em **Configurações → SEGURANÇA**, que também
+configura o código do autenticador (pedido então para entrar, desbloquear e
+trocar a senha). As configurações ficam assim: **tema** e **bloquear** soltos
+na tela; **SEGURANÇA**, **BACKUP** e **DOWNLOAD** (o app do pen drive) como
+tópicos com página própria.
 
 Não é autenticação de usuário: é uma tranca só. Conta de verdade, com sessão
 revogável, entra junto com o Supabase.

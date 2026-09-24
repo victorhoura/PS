@@ -73,7 +73,7 @@ export function Navegacao({
         CONFIGURAÇÕES não entra nesta lista em nenhuma das duas formas: é a
         engrenagem ao lado do tema e do cadeado — no rodapé da barra lateral e
         na barra de topo da janela estreita. Os itens daqui são o trabalho do
-        plantão; BACKUP e PEN DRIVE, lá dentro, são de vez em quando.
+        plantão; SEGURANÇA, BACKUP e DOWNLOAD, lá dentro, são de vez em quando.
       */}
     </nav>
   );

@@ -1,7 +1,8 @@
 import { Secao } from "@/components/Cartao";
 
 /**
- * Onde pegar o app para o pen drive.
+ * DOWNLOAD: onde pegar o app para o pen drive. O tópico se chamava PEN
+ * DRIVE; o nome mudou para dizer o que se faz aqui, que é baixar.
  *
  * Os arquivos moram num Release do GitHub, de tag fixa: o endereço não muda
  * de uma compilação para a outra, então esta página aponta para lá e não
@@ -38,7 +39,7 @@ export default function Baixar() {
   return (
     <div className="p-3 lg:p-4">
       <header className="mb-4">
-        <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">PEN DRIVE</h1>
+        <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">DOWNLOAD</h1>
         <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-inkDim">
           Para usar o app em computador do hospital sem deixar rastro nele: o cookie, o histórico,
           o cache e os PDFs ficam no pen drive, não na máquina. Precisa de internet — nenhum dos

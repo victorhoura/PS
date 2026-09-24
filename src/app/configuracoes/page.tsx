@@ -3,36 +3,27 @@
 import Link from "next/link";
 import { Secao } from "@/components/Cartao";
 import { BotaoBloquear } from "@/components/BotaoBloquear";
-import { TrocarSenha } from "@/components/TrocarSenha";
 import { IconeLua, IconeSol } from "@/components/Icones";
 import { useTema } from "@/hooks/useTema";
+import { TOPICOS_CONFIGURACOES } from "@/lib/configuracoes";
 import { aplicarTema, type Tema } from "@/lib/tema";
 
 /**
- * Tudo que é ajuste do app, num lugar só: tema, trancar a tela, a cópia de
- * segurança e o app do pen drive.
+ * Tudo que é ajuste do app, num lugar só.
  *
- * Antes BACKUP e PEN DRIVE ficavam no menu ao lado de APLICATIVOS e LINKS,
- * que são o trabalho do plantão. Não são a mesma coisa — estes aqui você abre
- * de vez em quando, e aqueles o tempo todo.
+ * Soltos aqui ficam só os dois de um toque: o tema e o BLOQUEAR. O resto é
+ * tópico com página própria — SEGURANÇA, BACKUP e DOWNLOAD —, porque são
+ * formulários e explicações que se abrem de vez em quando e, empilhados
+ * nesta tela, a transformavam num corredor.
+ *
+ * Antes BACKUP e o DOWNLOAD (que se chamava PEN DRIVE) ficavam no menu ao
+ * lado de APLICATIVOS e LINKS, que são o trabalho do plantão. Não são a
+ * mesma coisa — estes aqui você abre de vez em quando, e aqueles o tempo todo.
  */
 
 const TEMAS: { valor: Tema; nome: string; Icone: typeof IconeSol }[] = [
   { valor: "escuro", nome: "ESCURO", Icone: IconeLua },
   { valor: "claro", nome: "CLARO", Icone: IconeSol },
-];
-
-const ATALHOS = [
-  {
-    href: "/backup",
-    nome: "BACKUP",
-    nota: "Baixar uma cópia dos seus textos, ou restaurar a partir de uma.",
-  },
-  {
-    href: "/baixar",
-    nome: "PEN DRIVE",
-    nota: "O app para usar em computador do hospital sem deixar rastro nele.",
-  },
 ];
 
 export default function Configuracoes() {
@@ -71,10 +62,6 @@ export default function Configuracoes() {
         </p>
       </Secao>
 
-      <Secao titulo="Senha do app">
-        <TrocarSenha />
-      </Secao>
-
       <Secao titulo="Sessão">
         <BotaoBloquear destaque />
         <p className="mt-2 max-w-2xl text-[10px] leading-relaxed text-inkDim/70">
@@ -84,8 +71,8 @@ export default function Configuracoes() {
       </Secao>
 
       <Secao titulo="Mais">
-        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
-          {ATALHOS.map((a) => (
+        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3">
+          {TOPICOS_CONFIGURACOES.map((a) => (
             <Link
               key={a.href}
               href={a.href}
