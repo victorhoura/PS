@@ -15,10 +15,10 @@ export default function FormatadorLabs() {
   }
 
   return (
-    <div className="flex h-full flex-col p-3 lg:p-4">
+    <div className="pagina flex h-full flex-col">
       <header className="mb-4">
         <h1 className="titulo-pagina">FORMATADOR DE EXAMES</h1>
-        <p className="mt-0.5 text-[11px] text-inkDim">
+        <p className="subtitulo">
           Cole o laudo do SHIFT/AFIP. A linha compacta sai pronta para o prontuário.
         </p>
       </header>
@@ -51,23 +51,20 @@ export default function FormatadorLabs() {
             )}
           </output>
 
-          <div className="mt-2 flex gap-2">
+          <div className="rodape-acoes mt-2.5">
             <button
               onClick={() => void copiarSaida()}
               disabled={!saida}
-              className="transicao flex-1 rounded-lg bg-accent px-4 py-2 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-30"
+              className="botao botao-primario w-full sm:w-auto sm:px-5"
             >
               COPIAR
             </button>
-            <button
-              onClick={() => setBruto("")}
-              className="transicao rounded-lg border border-edge bg-panel px-4 py-2 text-[12px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
-            >
+            <button onClick={() => setBruto("")} className="botao botao-secundario w-full sm:w-auto">
               LIMPAR
             </button>
           </div>
 
-          <p className="mt-3 text-[10px] leading-relaxed text-inkDim">
+          <p className="nota mt-3">
             Confira sempre a linha antes de colar no prontuário. O formatador lê o texto do
             laudo por padrão de escrita — se o laboratório mudar o layout, algum valor pode
             deixar de ser reconhecido.

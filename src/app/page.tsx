@@ -19,10 +19,12 @@ export default function Home() {
   // Sem número enquanto os seus textos chegam: o da base mudaria na sua frente.
   const totais = estado === "carregando" ? null : contagens(textos);
 
+  // Em tela larga, uma coluna no centro: o menu esticado de ponta a ponta de
+  // um monitor deixava cada número a um palmo do nome da categoria.
   return (
-    <>
+    <div className="mx-auto w-full max-w-md lg:pt-4">
       <h1 className="sr-only">Menu principal</h1>
       <Navegacao totais={totais} variante="cheia" />
-    </>
+    </div>
   );
 }

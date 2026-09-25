@@ -14,6 +14,7 @@ import { GerenciadorModelos } from "@/components/GerenciadorModelos";
 import { carregarPreferencias, definirPreferencia, preferenciasAtuais } from "@/lib/preferencias";
 import { avisarCopia } from "@/components/AvisoCopia";
 import { Bloco, Campo, Erro } from "@/components/FormularioPdf";
+import { IconeEditar } from "@/components/Icones";
 
 const MEDICO_PADRAO = "VICTOR M. HOURA";
 
@@ -210,10 +211,11 @@ export default function GeradorApac() {
   );
 
   return (
-    <div className="p-3 sm:p-4 lg:px-7 lg:py-6">
+    // Mais larga que as outras páginas: formulário e laudo lado a lado.
+    <div className="pagina max-w-7xl">
       <header className="mb-4">
         <h1 className="titulo-pagina">GERADOR DE APAC</h1>
-        <p className="mt-0.5 text-[11px] text-inkDim">
+        <p className="subtitulo">
           Preenche o laudo oficial e devolve o PDF pronto para imprimir. Nenhum dado de paciente sai
           deste computador.
         </p>
@@ -233,7 +235,7 @@ export default function GeradorApac() {
                 aria-label="Modelo pronto"
                 value=""
                 onChange={(e) => aplicarModelo(e.target.value)}
-                className="h-9 min-w-0 flex-1 rounded-lg border border-edge bg-panel px-2.5 text-[12px] text-ink outline-none focus:border-accent"
+                className="campo min-w-0 flex-1 cursor-pointer"
               >
                 <option value="">
                   {modelos.length
@@ -246,12 +248,17 @@ export default function GeradorApac() {
                   </option>
                 ))}
               </select>
+              {/* Abaixo de 360px fica só o lápis: com a palavra, a lista de
+                  modelos ao lado encolhia até mostrar "Escolha para p". */}
               <button
                 type="button"
                 onClick={() => setGerenciando(true)}
-                className="transicao shrink-0 rounded-lg border border-edge bg-panel px-3 text-[11px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+                aria-label="Gerenciar modelos"
+                title="Gerenciar modelos"
+                className="botao botao-secundario w-9 px-0 min-[360px]:w-auto min-[360px]:px-3"
               >
-                GERENCIAR
+                <IconeEditar tamanho={14} />
+                <span className="hidden min-[360px]:inline">GERENCIAR</span>
               </button>
             </div>
           </Bloco>
@@ -392,10 +399,10 @@ export default function GeradorApac() {
                 value={campos.justificativa}
                 onChange={(e) => mudar("justificativa", e.target.value.toUpperCase())}
                 spellCheck={false}
-                className="w-full resize-y rounded-xl border border-edge bg-panel px-3.5 py-2.5 shadow-cartao font-mono text-[11px] leading-relaxed text-ink outline-none focus:border-accent"
+                className="campo resize-y font-mono text-[11px]"
               />
               {erros.justificativa && <Erro texto={erros.justificativa} />}
-              <p className="mt-1 text-[10px] leading-relaxed text-inkDim/70">
+              <p className="nota mt-1">
                 O campo do formulário tem {LINHAS_JUSTIFICATIVA} linhas. O que passar disso não é
                 impresso, e o aviso aparece junto do laudo depois de gerar.
               </p>
@@ -423,19 +430,11 @@ export default function GeradorApac() {
             />
           </Bloco>
 
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="submit"
-              disabled={gerando}
-              className="transicao flex-1 rounded-lg bg-accent px-4 py-2 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 disabled:opacity-40"
-            >
+          <div className="rodape-acoes">
+            <button type="submit" disabled={gerando} className="botao botao-primario w-full sm:w-auto sm:px-5">
               {gerando ? "GERANDO…" : "GERAR APAC"}
             </button>
-            <button
-              type="button"
-              onClick={limpar}
-              className="transicao rounded-lg border border-edge bg-panel px-4 py-2 text-[12px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
-            >
+            <button type="button" onClick={limpar} className="botao botao-secundario w-full sm:w-auto">
               LIMPAR
             </button>
           </div>
@@ -463,17 +462,11 @@ export default function GeradorApac() {
                 title="APAC gerada"
                 className="h-[62vh] w-full rounded-xl border border-edge bg-panel shadow-cartao xl:h-[calc(100vh-14rem)]"
               />
-              <div className="mt-2 flex gap-2">
-                <button
-                  onClick={imprimir}
-                  className="transicao flex-1 rounded-lg bg-accent px-4 py-2 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110"
-                >
+              <div className="rodape-acoes mt-2.5">
+                <button onClick={imprimir} className="botao botao-primario w-full sm:w-auto sm:px-5">
                   IMPRIMIR
                 </button>
-                <button
-                  onClick={baixar}
-                  className="transicao rounded-lg border border-edge bg-panel px-4 py-2 text-[12px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
-                >
+                <button onClick={baixar} className="botao botao-secundario w-full sm:w-auto">
                   BAIXAR
                 </button>
               </div>
@@ -491,7 +484,7 @@ export default function GeradorApac() {
                 </div>
               )}
 
-              <p className="mt-3 text-[10px] leading-relaxed text-inkDim">
+              <p className="nota mt-3">
                 Confira o laudo na tela antes de assinar. O que não couber nos campos do formulário
                 é encolhido até caber — e a justificativa para na sexta linha.
               </p>

@@ -170,7 +170,7 @@ export function Moldura({ children }: { children: React.ReactNode }) {
           role="dialog"
           aria-modal="true"
           aria-label="Menu"
-          className="fixed inset-0 z-40 flex flex-col bg-base lg:hidden"
+          className="esmaecer fixed inset-0 z-40 flex flex-col bg-base lg:hidden"
         >
           {/* Mesma altura da barra de topo, para abrir e fechar o menu não
               deslocar nada na tela. */}

@@ -100,12 +100,12 @@ export function EditorTexto({
     // Clicar fora NÃO fecha: aqui se digita receita, e perder o texto por um
     // clique torto ao lado da caixa é o tipo de coisa que faz desistir de usar.
     // A saída é sempre deliberada: Salvar, Cancelar ou Esc.
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-[2px] p-4 pt-[6vh]">
+    <div className="esmaecer fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4 pt-[6vh] backdrop-blur-[2px]">
       <div
         role="dialog"
         aria-modal="true"
         aria-label={criando ? "Criar texto" : "Editar texto"}
-        className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-edge bg-panel shadow-painel"
+        className="surgir flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-edge bg-panel shadow-painel"
       >
         <header className="flex items-center justify-between gap-3 border-b border-edge px-4 py-3">
           <h2 className="text-[13px] font-semibold tracking-wide text-ink">
@@ -127,7 +127,7 @@ export function EditorTexto({
               setErro("");
             }}
             placeholder="Ex.: AMIGDALITE"
-            className="mb-4 w-full rounded-lg border border-edge bg-base px-3 py-2 text-[12px] font-semibold tracking-wide text-ink outline-none placeholder:text-inkDim/50 focus:border-accent"
+            className="campo mb-4 font-semibold tracking-wide"
           />
 
           <label htmlFor="ed-texto" className="mb-1.5 block rotulo">
@@ -143,7 +143,7 @@ export function EditorTexto({
             rows={14}
             spellCheck={false}
             placeholder="O texto que vai para a área de transferência…"
-            className="w-full resize-y rounded-lg border border-edge bg-base px-3 py-2 font-mono text-[11px] leading-relaxed text-ink outline-none placeholder:text-inkDim/50 focus:border-accent"
+            className="campo resize-y font-mono text-[11px]"
           />
 
           {erro && (
@@ -163,13 +163,13 @@ export function EditorTexto({
             <button
               onClick={() => setConfirmandoDescarte(false)}
               autoFocus
-              className="transicao h-8 w-full rounded-lg bg-accent px-4 text-[11px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 sm:w-auto"
+              className="botao botao-sm botao-primario w-full sm:w-auto"
             >
               CONTINUAR EDITANDO
             </button>
             <button
               onClick={() => aoFechar()}
-              className="transicao h-8 w-full rounded-lg border border-danger/40 px-3 text-[11px] font-semibold tracking-wide text-danger hover:bg-danger/10 sm:w-auto"
+              className="botao botao-sm botao-perigo w-full sm:w-auto"
             >
               DESCARTAR
             </button>
@@ -179,31 +179,31 @@ export function EditorTexto({
         <footer className="rodape-acoes border-t border-edge bg-base/30 px-4 py-3">
           <button
             onClick={salvar}
-            className="transicao h-9 w-full rounded-lg bg-accent px-3 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 sm:w-auto sm:px-5"
+            className="botao botao-primario w-full sm:w-auto sm:px-5"
           >
             SALVAR
           </button>
           <button
             onClick={tentarFechar}
-            className="transicao h-9 w-full rounded-lg border border-edge px-3 text-[12px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink sm:w-auto sm:px-4"
+            className="botao botao-secundario w-full sm:w-auto"
           >
             CANCELAR
           </button>
 
-          <span className="hidden text-[10.5px] text-inkDim/60 sm:inline">Ctrl+Enter salva</span>
+          <span className="hidden text-[10px] text-inkDim/70 sm:inline">Ctrl+Enter salva</span>
 
           {!criando &&
             (confirmandoApagar ? (
               <button
                 onClick={apagar}
-                className="transicao col-span-2 h-9 w-full rounded-lg bg-danger px-3 text-[11px] font-semibold tracking-wide text-white hover:brightness-110 sm:ml-auto sm:w-auto"
+                className="botao botao-perigo-cheio col-span-2 w-full sm:ml-auto sm:w-auto"
               >
                 CONFIRMAR EXCLUSÃO
               </button>
             ) : (
               <button
                 onClick={() => setConfirmandoApagar(true)}
-                className="transicao col-span-2 h-9 w-full rounded-lg border border-danger/40 px-3 text-[11px] font-semibold tracking-wide text-danger hover:bg-danger/10 sm:ml-auto sm:w-auto"
+                className="botao botao-perigo col-span-2 w-full sm:ml-auto sm:w-auto"
               >
                 APAGAR
               </button>

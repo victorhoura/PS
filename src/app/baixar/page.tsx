@@ -37,10 +37,10 @@ const OPCOES = [
 
 export default function Baixar() {
   return (
-    <div className="p-3 sm:p-4 lg:px-7 lg:py-6">
+    <div className="pagina">
       <header className="mb-5">
         <h1 className="titulo-pagina">DOWNLOAD</h1>
-        <p className="mt-1.5 max-w-2xl text-[11px] leading-relaxed text-inkDim">
+        <p className="subtitulo">
           Para usar o app em computador do hospital sem deixar rastro nele: o cookie, o histórico,
           o cache e os PDFs ficam no pen drive, não na máquina. Precisa de internet — nenhum dos
           dois guarda cópia do app.
@@ -67,11 +67,7 @@ export default function Baixar() {
               <div className="mt-auto pt-3">
                 <a
                   href={`${RELEASE}/${o.arquivo}`}
-                  className={`transicao block rounded-lg px-4 py-2 text-center text-[12px] font-semibold tracking-wide ${
-                    o.destaque
-                      ? "bg-accent text-accentInk shadow-cartao hover:brightness-110"
-                      : "border border-edge text-inkDim hover:bg-panelHover hover:text-ink"
-                  }`}
+                  className={`botao w-full ${o.destaque ? "botao-primario" : "botao-secundario"}`}
                 >
                   BAIXAR
                 </a>

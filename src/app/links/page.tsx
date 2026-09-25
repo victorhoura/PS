@@ -25,21 +25,21 @@ export default function Links() {
   }
 
   return (
-    <div className="p-3 sm:p-4 lg:px-7 lg:py-6">
+    <div className="pagina">
       <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h1 className="titulo-pagina">LINKS</h1>
         <button
           onClick={() => setEditor("novo")}
           aria-label="Novo link"
           title="Novo link"
-          className="transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-accentInk shadow-cartao hover:brightness-110"
+          className="botao botao-sm botao-icone botao-primario"
         >
           <IconeMais tamanho={16} traco={2} />
         </button>
       </header>
 
       {links.length === 0 && (
-        <p className="py-8 text-center text-xs text-inkDim">
+        <p className="vazio mb-6">
           Nenhum link. Use o + para acrescentar o primeiro.
         </p>
       )}
@@ -49,16 +49,18 @@ export default function Links() {
           {/*
             `items-start` porque um cartão pode abrir: sem isso a célula
             vizinha da mesma linha da grade esticaria junto, sem ter o que
-            mostrar no espaço que ganhou.
+            mostrar no espaço que ganhou. Só na grade (sm:): na janela
+            estreita a coleção é uma coluna, e ali o mesmo `items-start`
+            encolhia cada linha ao tamanho do nome.
           */}
-          <div className="grid grid-cols-1 items-start gap-1.5 sm:grid-cols-2">
+          <div className="colecao sm:grid-cols-2 sm:items-start">
             {itens.map((l) => {
               const aberto = expandido === l.id;
               return (
                 <div
                   key={l.id}
-                  className={`anel-dentro transicao overflow-hidden rounded-xl border bg-panel shadow-cartao ${
-                    aberto ? "border-accent/50" : "border-edge hover:border-accent/40"
+                  className={`transicao ${
+                    aberto ? "bg-accent/[0.05] sm:border-accent/50" : "hover:bg-panelHover sm:hover:border-accent/40"
                   }`}
                 >
                   <div className="flex items-stretch">
@@ -76,9 +78,9 @@ export default function Links() {
                       href={l.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="transicao flex min-w-0 flex-1 items-center px-3 py-2 hover:bg-panelHover"
+                      className="flex min-w-0 flex-1 items-center px-3 py-[7px]"
                     >
-                      <span className="truncate text-[12.5px] font-semibold text-ink">
+                      <span className={`truncate text-[12px] font-semibold ${aberto ? "text-accent" : "text-ink"}`}>
                         {l.nome}
                       </span>
                     </a>
@@ -86,17 +88,17 @@ export default function Links() {
                       onClick={() => setEditor(l)}
                       aria-label={`Editar ${l.nome}`}
                       title={`Editar ${l.nome}`}
-                      className="transicao flex w-8 shrink-0 items-center justify-center text-inkDim/70 hover:bg-panelHover hover:text-accent"
+                      className="transicao flex w-8 shrink-0 items-center justify-center text-inkDim/70 hover:text-accent"
                     >
-                      <IconeEditar tamanho={12} />
+                      <IconeEditar tamanho={13} />
                     </button>
                     <button
                       onClick={() => setExpandido(aberto ? null : l.id)}
                       aria-expanded={aberto}
                       aria-label={aberto ? `Recolher ${l.nome}` : `Ver endereço de ${l.nome}`}
-                      className="transicao flex w-8 shrink-0 items-center justify-center text-inkDim hover:bg-panelHover hover:text-ink"
+                      className="transicao flex w-8 shrink-0 items-center justify-center text-inkDim hover:text-ink"
                     >
-                      <IconeSeta aberto={aberto} tamanho={12} />
+                      <IconeSeta aberto={aberto} tamanho={13} />
                     </button>
                   </div>
                   {aberto && (

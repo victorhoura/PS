@@ -17,6 +17,9 @@ import Link from "next/link";
  *
  * A nota vai truncada, e não quebrando em três linhas: assim os cartões da
  * grade têm todos a mesma altura, e o texto inteiro continua no `title`.
+ *
+ * A moldura não é dele: vem da `.colecao` onde ele mora (globals.css) — uma
+ * caixa com divisórias na janela estreita, cartões soltos na larga.
  */
 export function Cartao({
   href,
@@ -38,12 +41,12 @@ export function Cartao({
   externo?: boolean;
 }) {
   const caixa =
-    "transicao block min-w-0 rounded-xl border border-edge bg-panel px-3 py-2 shadow-cartao hover:border-accent/50 hover:bg-panelHover";
+    "transicao block min-w-0 px-3 py-2 hover:bg-panelHover sm:hover:border-accent/50";
 
   const miolo = (
     <>
       <span className="flex min-w-0 items-center gap-2">
-        <span className="truncate text-[12.5px] font-semibold text-ink">{nome}</span>
+        <span className="truncate text-[12px] font-semibold text-ink">{nome}</span>
         {valor !== undefined && (
           <span className="tabular ml-auto shrink-0 text-[11px] font-medium text-inkDim">
             {valor}

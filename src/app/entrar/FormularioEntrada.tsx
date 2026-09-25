@@ -107,7 +107,7 @@ export function FormularioEntrada({
                 senha ficaria preso nesta tela. */}
             <Link
               href="/"
-              className="transicao mt-3 block rounded-lg bg-accent px-4 py-2.5 text-center text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110"
+              className="botao botao-primario mt-3 w-full"
             >
               CONTINUAR ASSIM MESMO
             </Link>
@@ -165,14 +165,14 @@ export function FormularioEntrada({
             <button
               type="submit"
               disabled={enviando || !senha || (pedirCodigo && codigo.length !== 6)}
-              className="transicao mt-4 h-10 w-full rounded-lg bg-accent px-4 text-[12px] font-semibold tracking-[0.08em] text-accentInk shadow-cartao hover:brightness-110 disabled:opacity-40"
+              className="botao botao-primario mt-4 h-10 w-full tracking-[0.08em]"
             >
               {enviando ? "…" : "ENTRAR"}
             </button>
           </form>
         )}
 
-        <p className="mt-5 text-center text-[10.5px] leading-relaxed text-inkDim/70">
+        <p className="nota mt-5 text-center">
           A sessão dura 12 horas neste navegador. Use BLOQUEAR ao sair da máquina
           {pedirCodigo ? " — para voltar, senha e código de novo." : "."}
         </p>

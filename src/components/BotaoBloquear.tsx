@@ -66,7 +66,7 @@ export function BotaoBloquear({
       disabled={saindo}
       className={
         destaque
-          ? "transicao flex h-8 items-center gap-2 rounded-lg border border-danger/40 px-4 text-[11px] font-semibold tracking-wide text-danger hover:bg-danger/10 disabled:opacity-50"
+          ? "botao botao-perigo"
           : "transicao flex w-full items-center gap-2 rounded-lg px-3 py-2 text-[11px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink disabled:opacity-50"
       }
     >

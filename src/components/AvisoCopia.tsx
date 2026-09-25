@@ -43,7 +43,7 @@ export function AvisoCopia() {
     >
       {/* Fundo sólido, e a cor só no ícone: o aviso passa por cima de
           qualquer tela, e um fundo translúcido tingido lia mal sobre texto. */}
-      <div className="flex items-center gap-2 rounded-xl border border-edge bg-panel px-3.5 py-2 text-[12px] font-medium text-ink shadow-painel">
+      <div className="surgir flex items-center gap-2 rounded-xl border border-edge bg-panel px-3.5 py-2 text-[12px] font-medium text-ink shadow-painel">
         <span
           className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
             aviso.ok ? "bg-ok/15 text-ok" : "bg-danger/15 text-danger"

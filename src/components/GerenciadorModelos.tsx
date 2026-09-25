@@ -56,30 +56,35 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
   const ocultos = escondidos(tipo);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-[2px] p-4 pt-[6vh]">
+    <div className="esmaecer fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4 pt-[6vh] backdrop-blur-[2px]">
       <div
         ref={caixa}
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label="Modelos prontos"
-        className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-edge bg-panel shadow-painel outline-none"
+        className="surgir flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-edge bg-panel shadow-painel outline-none"
       >
-        <header className="flex items-center gap-3 border-b border-edge px-4 py-3">
-          <h2 className="text-[13px] font-semibold uppercase tracking-wide text-ink">
+        <header className="flex items-center gap-2 border-b border-edge py-3 pl-4 pr-2.5">
+          <h2 className="min-w-0 truncate text-[13px] font-semibold uppercase tracking-wide text-ink">
             {editando === null
               ? "MODELOS PRONTOS"
               : editando === "novo"
                 ? "NOVO MODELO"
                 : "EDITAR MODELO"}
           </h2>
-          <span className="tabular ml-auto text-[11px] font-medium text-inkDim">
-            {editando === null ? `${modelos.length}` : ""}
+          <span className="ml-auto flex shrink-0 items-center gap-1">
+            {editando === null && (
+              // Abaixo de 360px o número sai, para o título caber inteiro.
+              <span className="tabular hidden rounded-full bg-panelHover px-2 py-0.5 text-[11px] font-medium text-inkDim min-[360px]:inline">
+                {modelos.length}
+              </span>
+            )}
           </span>
           <button
             onClick={aoFechar}
             aria-label="Fechar"
-            className="transicao flex h-8 w-8 items-center justify-center rounded-lg text-inkDim hover:bg-panelHover hover:text-ink"
+            className="botao botao-sm botao-icone botao-fantasma"
           >
             <IconeFechar tamanho={14} />
           </button>
@@ -89,23 +94,35 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
           <>
             <div className="min-h-0 flex-1 overflow-y-auto p-3">
               {modelos.length === 0 && (
-                <p className="px-2 py-10 text-center text-[11px] leading-relaxed text-inkDim">
-                  Nenhum modelo ainda. Crie o primeiro — ele passa a aparecer no seletor do
-                  formulário, com tudo preenchido.
+                <p className="vazio">
+                  Nenhum modelo ainda. Use o + para criar o primeiro — ele passa a aparecer no
+                  seletor do formulário, com tudo preenchido.
                 </p>
               )}
 
-              <ul className="space-y-1.5">
+              {/*
+                Uma caixa só com divisórias, como as listas de texto, e os
+                botões com a largura dos da lista (32px). Com 40px cada um e o
+                "×" digitado como letra, os dois comiam o nome do modelo no
+                painel estreito.
+              */}
+              <ul
+                className={`anel-dentro divide-y divide-edge overflow-hidden rounded-xl border border-edge bg-base/40 ${
+                  modelos.length === 0 ? "hidden" : ""
+                }`}
+              >
                 {modelos.map((m) => (
                   <li
                     key={m.id}
-                    className="transicao flex items-stretch anel-dentro overflow-hidden rounded-lg border border-edge bg-base"
+                    className={`transicao flex items-stretch ${
+                      confirmando === m.id ? "bg-danger/[0.06]" : "hover:bg-panelHover"
+                    }`}
                   >
-                    <div className="min-w-0 flex-1 px-3 py-2">
-                      <span className="block truncate text-[12px] font-semibold tracking-wide text-ink">
+                    <div className="min-w-0 flex-1 py-2 pl-3 pr-1">
+                      <span className="block truncate text-[12px] font-semibold text-ink">
                         {m.nome}
                       </span>
-                      <span className="mt-0.5 block truncate text-[10px] text-inkDim">
+                      <span className="mt-0.5 block truncate text-[11px] text-inkDim">
                         {resumo(m)}
                       </span>
                     </div>
@@ -114,17 +131,17 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
                       onClick={() => setEditando(m)}
                       aria-label={`Editar ${m.nome}`}
                       title={`Editar ${m.nome}`}
-                      className="transicao flex w-10 shrink-0 items-center justify-center text-inkDim hover:bg-panelHover hover:text-accent"
+                      className="transicao flex w-8 shrink-0 items-center justify-center text-inkDim/70 hover:text-accent"
                     >
-                      <IconeEditar tamanho={14} />
+                      <IconeEditar tamanho={13} />
                     </button>
                     <button
                       onClick={() => setConfirmando(m.id)}
                       aria-label={`Excluir ${m.nome}`}
                       title={`Excluir ${m.nome}`}
-                      className="transicao flex w-10 shrink-0 items-center justify-center font-mono text-[15px] text-inkDim hover:bg-danger/10 hover:text-danger"
+                      className="transicao mr-1 flex w-8 shrink-0 items-center justify-center text-inkDim/70 hover:text-danger"
                     >
-                      ×
+                      <IconeFechar tamanho={13} />
                     </button>
                   </li>
                 ))}
@@ -132,28 +149,26 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
             </div>
 
             {confirmando && (
-              <div className="flex flex-wrap items-center gap-2 border-t border-danger/40 bg-danger/10 px-4 py-2 text-[11px] text-inkDim">
-                <span>
+              <div className="grid grid-cols-2 gap-2 border-t border-danger/30 bg-danger/[0.07] px-4 py-3 sm:flex sm:flex-wrap sm:items-center">
+                <span className="col-span-2 text-center text-[11px] leading-relaxed text-inkDim sm:mr-auto sm:text-left">
                   Excluir <strong className="text-ink">{modelos.find((m) => m.id === confirmando)?.nome}</strong>?
                   {!ehNovo(confirmando) && " Dá para trazer de volta com RESTAURAR."}
                 </span>
-                <div className="ml-auto flex gap-2">
-                  <button
-                    onClick={() => setConfirmando(null)}
-                    className="transicao rounded border border-edge px-2.5 py-1 font-bold text-inkDim hover:bg-panelHover hover:text-ink"
-                  >
-                    CANCELAR
-                  </button>
-                  <button
-                    onClick={() => {
-                      remover(tipo, confirmando);
-                      setConfirmando(null);
-                    }}
-                    className="transicao rounded bg-danger px-2.5 py-1 font-bold text-base"
-                  >
-                    EXCLUIR
-                  </button>
-                </div>
+                <button
+                  onClick={() => setConfirmando(null)}
+                  className="botao botao-sm botao-secundario w-full sm:w-auto"
+                >
+                  CANCELAR
+                </button>
+                <button
+                  onClick={() => {
+                    remover(tipo, confirmando);
+                    setConfirmando(null);
+                  }}
+                  className="botao botao-sm botao-perigo-cheio w-full sm:w-auto"
+                >
+                  EXCLUIR
+                </button>
               </div>
             )}
 
@@ -162,7 +177,7 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
                 onClick={() => setEditando("novo")}
                 aria-label="Novo modelo"
                 title="Novo modelo"
-                className="transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-accentInk shadow-cartao hover:brightness-110"
+                className="botao botao-sm botao-icone botao-primario"
               >
                 <IconeMais tamanho={16} traco={2} />
               </button>
@@ -170,7 +185,7 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
               {ocultos > 0 && (
                 <button
                   onClick={() => restaurarBase(tipo)}
-                  className="transicao rounded-lg border border-edge px-3 py-2 text-[11px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+                  className="botao botao-sm botao-secundario"
                 >
                   {ocultos === 1 ? "RESTAURAR 1 ORIGINAL" : `RESTAURAR OS ${ocultos} ORIGINAIS`}
                 </button>
@@ -293,18 +308,11 @@ function Formulario({
         )}
       </div>
 
-      <footer className="flex gap-2 border-t border-edge px-4 py-3">
-        <button
-          type="submit"
-          className="transicao flex-1 rounded-lg bg-accent px-4 py-2 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110"
-        >
+      <footer className="rodape-acoes border-t border-edge bg-base/30 px-4 py-3">
+        <button type="submit" className="botao botao-primario w-full sm:w-auto sm:px-5">
           SALVAR
         </button>
-        <button
-          type="button"
-          onClick={aoFechar}
-          className="transicao rounded-lg border border-edge px-4 py-2 text-[12px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
-        >
+        <button type="button" onClick={aoFechar} className="botao botao-secundario w-full sm:w-auto">
           CANCELAR
         </button>
       </footer>
@@ -339,7 +347,7 @@ function Campo({
         autoFocus={autoFocus}
         autoComplete="off"
         spellCheck={false}
-        className="h-8 w-full rounded-lg border border-edge bg-base px-3 text-[12px] text-ink outline-none focus:border-accent"
+        className="campo"
       />
     </div>
   );
@@ -378,7 +386,7 @@ function Area({
         value={valor}
         onChange={(e) => aoMudar(e.target.value.toUpperCase())}
         spellCheck={false}
-        className="w-full resize-y rounded-lg border border-edge bg-base px-3 py-2 font-mono text-[11px] leading-relaxed text-ink outline-none focus:border-accent"
+        className="campo resize-y font-mono text-[11px]"
       />
     </div>
   );

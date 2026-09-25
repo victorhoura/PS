@@ -56,7 +56,7 @@ export function Calculadora({ slug }: { slug: string }) {
     "transicao flex cursor-pointer gap-2.5 rounded-lg px-2 py-[7px] text-ink/90 hover:bg-panelHover has-[:checked]:bg-accent/[0.08] has-[:checked]:text-ink";
 
   return (
-    <div className="p-3 sm:p-4 lg:px-7 lg:py-6">
+    <div className="pagina">
       <header className="mb-4">
         <h1 className="titulo-pagina">{calc.nome}</h1>
         <p className="subtitulo">{calc.subtitulo}</p>
@@ -113,7 +113,7 @@ export function Calculadora({ slug }: { slug: string }) {
                           [campo.id]: e.target.value === "" ? null : Number(e.target.value),
                         }))
                       }
-                      className="tabular h-9 w-full rounded-lg border border-edge bg-base px-3 text-[13px] font-medium text-ink outline-none"
+                      className="campo tabular text-[13px] font-medium"
                     />
                   </label>
                 ))}
@@ -162,7 +162,7 @@ export function Calculadora({ slug }: { slug: string }) {
                         ganha selo: um "0" ao lado é ruído, não informação. */}
                     {c.pontos ? (
                       <span
-                        className={`tabular shrink-0 rounded-md px-1.5 py-px text-[10.5px] font-semibold ${
+                        className={`tabular shrink-0 rounded-full px-1.5 py-px text-[11px] font-semibold ${
                           c.pontos < 0 ? "bg-warn/10 text-warn" : "bg-panelHover text-inkDim"
                         }`}
                       >
@@ -177,19 +177,19 @@ export function Calculadora({ slug }: { slug: string }) {
 
           <button
             onClick={zerar}
-            className="transicao h-9 w-full rounded-lg border border-edge bg-panel px-4 text-[12px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+            className="botao botao-secundario w-full"
           >
             ZERAR
           </button>
         </div>
 
         <div className="flex min-w-0 flex-col">
-          <pre className="min-h-48 flex-1 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-edge bg-panel px-4 py-3.5 font-mono text-[11.5px] leading-relaxed text-ink shadow-cartao">
+          <pre className="min-h-48 flex-1 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-edge bg-panel px-4 py-3.5 font-mono text-[11px] leading-relaxed text-ink shadow-cartao">
             {laudo}
           </pre>
           <button
             onClick={() => void copiarLaudo()}
-            className="transicao mt-2.5 h-10 w-full rounded-lg bg-accent px-4 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110"
+            className="botao botao-primario mt-2.5 w-full"
           >
             COPIAR RESULTADO
           </button>

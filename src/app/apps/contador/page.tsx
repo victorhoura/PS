@@ -62,7 +62,7 @@ export default function Contador() {
 
       <button
         onClick={() => setN(0)}
-        className="transicao mt-8 rounded-lg border border-edge px-4 py-1.5 text-[11px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+        className="botao botao-sm botao-secundario mt-8"
       >
         ZERAR
       </button>

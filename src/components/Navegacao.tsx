@@ -44,7 +44,7 @@ export function Navegacao({
     ].join(" ");
 
   const contador = (ativo: boolean) =>
-    `tabular shrink-0 text-[10.5px] font-medium ${
+    `tabular shrink-0 text-[11px] font-medium ${
       ativo ? "text-accent/80" : "text-inkDim/70"
     }`;
 

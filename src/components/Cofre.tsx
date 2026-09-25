@@ -213,7 +213,7 @@ export function Cofre() {
         </p>
         <button
           onClick={() => location.reload()}
-          className="transicao h-8 rounded-lg border border-edge px-4 text-[12px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+          className="botao botao-secundario"
         >
           TENTAR DE NOVO
         </button>
@@ -234,21 +234,21 @@ export function Cofre() {
           <input
             type="password" value={senha} onChange={(e) => { setSenha(e.target.value); setErro(""); }}
             placeholder="Senha-mestra (mín. 8)" autoComplete="new-password"
-            className="h-9 rounded-lg border border-edge bg-base px-3 text-[13px] text-ink outline-none"
+            className="campo"
           />
           <input
             type="password" value={senha2} onChange={(e) => { setSenha2(e.target.value); setErro(""); }}
             placeholder="Repita a senha-mestra" autoComplete="new-password"
-            className="h-9 rounded-lg border border-edge bg-base px-3 text-[13px] text-ink outline-none"
+            className="campo"
           />
           {erro && <p role="alert" className="text-[11px] text-danger">{erro}</p>}
           <button
             type="submit" disabled={ocupado || !senha || !senha2}
-            className="transicao h-9 rounded-lg bg-accent px-4 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 disabled:opacity-40"
+            className="botao botao-primario"
           >
             {ocupado ? "CIFRANDO…" : "CRIAR COFRE"}
           </button>
-          <label className="transicao mt-1 cursor-pointer text-center text-[10px] text-inkDim underline decoration-dotted hover:text-ink">
+          <label className="transicao mt-1 cursor-pointer text-center text-[11px] text-inkDim underline decoration-dotted underline-offset-2 hover:text-accent">
             importar cofre de outro computador
             <input
               type="file"
@@ -273,16 +273,16 @@ export function Cofre() {
           <input
             type="password" value={senha} onChange={(e) => { setSenha(e.target.value); setErro(""); }}
             placeholder="Senha-mestra" autoComplete="off"
-            className="h-9 rounded-lg border border-edge bg-base px-3 text-[13px] text-ink outline-none"
+            className="campo"
           />
           {erro && <p role="alert" className="text-[11px] text-danger">{erro}</p>}
           <button
             type="submit" disabled={ocupado || !senha}
-            className="transicao h-9 rounded-lg bg-accent px-4 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 disabled:opacity-40"
+            className="botao botao-primario"
           >
             {ocupado ? "ABRINDO…" : "DESTRANCAR"}
           </button>
-          <label className="transicao mt-1 cursor-pointer text-center text-[10px] text-inkDim underline decoration-dotted hover:text-ink">
+          <label className="transicao mt-1 cursor-pointer text-center text-[11px] text-inkDim underline decoration-dotted underline-offset-2 hover:text-accent">
             importar cofre de outro computador
             <input
               type="file"
@@ -367,28 +367,27 @@ function VistaCofre({
         título e o TRANCAR saía para fora da tela. Justamente o TRANCAR, que
         é o que você aperta com pressa ao se levantar da mesa.
       */}
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
+      {/*
+        Estreita: EDITAR e EXPORTAR em metades iguais e o TRANCAR embaixo, na
+        largura toda — o mesmo arranjo dos rodapés, em vez dos três quebrando
+        em zigue-zague. Larga: os três numa linha, à direita do título.
+      */}
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-x-2 gap-y-2.5">
         <h2 className="flex items-center gap-2 rotulo text-accent">
           <IconeCadeado tamanho={13} /> Cofre aberto
         </h2>
-        <div className="flex flex-wrap gap-1.5">
-          <button
-            onClick={aoEditar}
-            className="transicao rounded-lg border border-edge px-2.5 py-1.5 text-[11px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
-          >
+        <div className="grid w-full grid-cols-2 gap-1.5 sm:flex sm:w-auto">
+          <button onClick={aoEditar} className="botao botao-sm botao-secundario">
             EDITAR
           </button>
           <button
             onClick={aoExportar}
             title="Baixa o cofre cifrado, para levar a outro computador"
-            className="transicao rounded-lg border border-edge px-2.5 py-1.5 text-[11px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+            className="botao botao-sm botao-secundario"
           >
             EXPORTAR
           </button>
-          <button
-            onClick={aoTrancar}
-            className="transicao rounded-lg border border-edge px-2.5 py-1.5 text-[11px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
-          >
+          <button onClick={aoTrancar} className="botao botao-sm botao-secundario col-span-2">
             TRANCAR
           </button>
         </div>
@@ -420,18 +419,18 @@ function VistaCofre({
               placeholder="Ex.: 3A"
               maxLength={4}
               autoComplete="off"
-              className="h-8 w-24 rounded-lg border border-edge bg-base px-3 text-center font-mono text-[13px] uppercase tracking-widest text-ink outline-none"
+              className="campo campo-compacto w-24 text-center font-mono text-[13px] uppercase tracking-widest"
             />
             <button
               type="submit"
               disabled={combinacao.length < 2}
-              className="transicao flex h-8 items-center gap-1.5 rounded-lg bg-accent px-4 text-[11px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 disabled:opacity-40"
+              className="botao botao-sm botao-primario"
             >
-              <IconeCopiar tamanho={14} /> COPIAR
+              <IconeCopiar tamanho={13} /> COPIAR
             </button>
           </div>
           {erroChave && <p role="alert" className="mt-1.5 text-[11px] text-danger">{erroChave}</p>}
-          <p className="mt-1.5 text-[10px] text-inkDim/70">
+          <p className="nota mt-1.5">
             O valor vai direto para a área de transferência e nunca aparece na tela.
           </p>
         </form>
@@ -453,15 +452,18 @@ function LinhaCredencial({ credencial }: { credencial: Credencial }) {
   return (
     <div className="rounded-lg border border-edge bg-base px-3 py-2.5">
       <div className="mb-1.5 flex items-center justify-between gap-2">
-        <span className="truncate text-[12px] font-semibold tracking-wide text-ink">
+        <span className="truncate text-[12px] font-semibold text-ink">
           {credencial.rotulo || "(sem nome)"}
         </span>
         {credencial.nota && (
-          <span className="shrink-0 text-[10px] text-inkDim">{credencial.nota}</span>
+          <span className="shrink-0 text-[11px] text-inkDim">{credencial.nota}</span>
         )}
       </div>
 
-      <div className="flex flex-wrap gap-1.5">
+      {/* Estreita: os dois lado a lado em metades iguais, ou um embaixo do
+          outro com a largura toda quando não cabem — nunca um solto à
+          esquerda. Larga: selos na linha. */}
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(88px,1fr))] gap-1.5 sm:flex sm:flex-wrap">
         {credencial.usuario && (
           <BotaoCopiar rotulo="USUÁRIO" valor={credencial.usuario} nome={`Usuário ${credencial.rotulo}`} />
         )}
@@ -477,9 +479,9 @@ function BotaoCopiar({ rotulo, valor, nome }: { rotulo: string; valor: string; n
   return (
     <button
       onClick={async () => avisarCopia(nome, await copiar(valor))}
-      className="transicao flex items-center gap-1.5 rounded-lg border border-edge px-2.5 py-1 text-[10px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-accent"
+      className="botao botao-sm botao-secundario px-2 sm:px-3"
     >
-      <IconeCopiar tamanho={12} /> {rotulo}
+      <IconeCopiar tamanho={13} /> {rotulo}
     </button>
   );
 }
@@ -527,14 +529,14 @@ function FormularioCofre({
                 value={c.rotulo}
                 onChange={(e) => atualizar(c.id, "rotulo", e.target.value)}
                 placeholder="Nome (ex.: SISS)"
-                className="h-8 min-w-0 flex-1 rounded-lg border border-edge bg-panel px-2.5 text-[12px] text-ink outline-none"
+                className="campo campo-compacto min-w-0 flex-1 bg-panel"
               />
               <button
                 onClick={() => setCredenciais((cs) => cs.filter((x) => x.id !== c.id))}
                 aria-label="Remover"
-                className="transicao flex h-8 w-8 items-center justify-center rounded-lg border border-danger/40 text-danger hover:bg-danger/10"
+                className="botao botao-sm botao-icone botao-perigo"
               >
-                <IconeFechar tamanho={14} />
+                <IconeFechar tamanho={13} />
               </button>
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -543,7 +545,7 @@ function FormularioCofre({
                 onChange={(e) => atualizar(c.id, "usuario", e.target.value)}
                 placeholder="Usuário"
                 autoComplete="off"
-                className="h-8 rounded-lg border border-edge bg-panel px-2.5 text-[12px] text-ink outline-none"
+                className="campo campo-compacto bg-panel"
               />
               <input
                 type="password"
@@ -551,7 +553,7 @@ function FormularioCofre({
                 onChange={(e) => atualizar(c.id, "senha", e.target.value)}
                 placeholder="Senha"
                 autoComplete="new-password"
-                className="h-8 rounded-lg border border-edge bg-panel px-2.5 text-[12px] text-ink outline-none"
+                className="campo campo-compacto bg-panel"
               />
             </div>
           </div>
@@ -560,7 +562,7 @@ function FormularioCofre({
 
       <button
         onClick={() => setCredenciais((cs) => [...cs, novaCredencial()])}
-        className="transicao mt-2 flex items-center gap-1.5 rounded-lg border border-edge px-3 py-1.5 text-[11px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+        className="botao botao-sm botao-secundario mt-2"
       >
         <IconeMais tamanho={13} /> CREDENCIAL
       </button>
@@ -569,7 +571,7 @@ function FormularioCofre({
         <h3 className="mb-1.5 rotulo">
           Cartão de chave dinâmica
         </h3>
-        <p className="mb-2.5 text-[10px] leading-relaxed text-inkDim">
+        <p className="nota mb-2.5">
           Transcreva o cartão. Deixe em branco se preferir manter o cartão só no papel — é a
           opção mais segura, já que ele é o seu segundo fator.
         </p>
@@ -602,7 +604,7 @@ function FormularioCofre({
                         maxLength={4}
                         aria-label={`Célula ${l}${grade.colunas[j]}`}
                         autoComplete="off"
-                        className="h-8 w-12 rounded-lg border border-edge bg-base text-center font-mono text-[13px] text-ink outline-none"
+                        className="campo campo-compacto w-12 px-0 text-center font-mono text-[13px]"
                       />
                     </td>
                   ))}
@@ -625,13 +627,13 @@ function FormularioCofre({
             })
           }
           disabled={ocupado}
-          className="transicao h-9 w-full rounded-lg bg-accent px-3 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 disabled:opacity-40 sm:w-auto sm:px-5"
+          className="botao botao-primario w-full sm:w-auto sm:px-5"
         >
           {ocupado ? "CIFRANDO…" : "SALVAR"}
         </button>
         <button
           onClick={aoCancelar}
-          className="transicao h-9 w-full rounded-lg border border-edge px-3 text-[12px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink sm:w-auto sm:px-4"
+          className="botao botao-secundario w-full sm:w-auto"
         >
           CANCELAR
         </button>
@@ -643,7 +645,7 @@ function FormularioCofre({
               location.reload();
             });
           }}
-          className="transicao col-span-2 h-9 w-full rounded-lg border border-danger/40 px-3 text-[11px] font-semibold tracking-wide text-danger hover:bg-danger/10 sm:ml-auto sm:w-auto"
+          className="botao botao-perigo col-span-2 w-full sm:ml-auto sm:w-auto"
         >
           APAGAR COFRE
         </button>

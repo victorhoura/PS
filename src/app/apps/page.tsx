@@ -16,11 +16,11 @@ const FERRAMENTAS = [
  */
 export default function Apps() {
   return (
-    <div className="p-3 sm:p-4 lg:px-7 lg:py-6">
+    <div className="pagina">
       <h1 className="mb-4 titulo-pagina">APLICATIVOS</h1>
 
       <Secao titulo="Escores">
-        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="colecao sm:grid-cols-2 lg:grid-cols-3">
           {CALCULADORAS.map((c) => (
             <Cartao key={c.slug} href={`/apps/${c.slug}`} nome={c.nome} nota={c.subtitulo} />
           ))}
@@ -28,7 +28,7 @@ export default function Apps() {
       </Secao>
 
       <Secao titulo="Ferramentas">
-        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="colecao sm:grid-cols-2 lg:grid-cols-3">
           {FERRAMENTAS.map((f) => (
             <Cartao key={f.href} href={f.href} nome={f.nome} nota={f.nota} />
           ))}
@@ -36,7 +36,7 @@ export default function Apps() {
       </Secao>
 
       <Secao titulo="Ferramenta de apoio">
-        <p className="max-w-2xl text-[11px] leading-relaxed text-inkDim">
+        <p className="subtitulo mt-0">
           Escores e calculadoras servem de auxílio à decisão, não a substituem. A conduta é
           sempre médica: confira o resultado com o quadro clínico e com o protocolo do serviço.
         </p>

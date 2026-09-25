@@ -70,7 +70,7 @@ export function EstadoNuvem() {
         </span>
         <button
           onClick={() => void recarregar()}
-          className="transicao shrink-0 rounded-lg border border-current px-2.5 py-0.5 font-semibold"
+          className="botao botao-sm botao-perigo w-full sm:w-auto"
         >
           TENTAR DE NOVO
         </button>
@@ -96,12 +96,18 @@ export function EstadoNuvem() {
   return null;
 }
 
-/** A faixa de problema: só existe para o que precisa da sua atenção. */
+/**
+ * A faixa de problema: só existe para o que precisa da sua atenção.
+ *
+ * Estreita, o texto em cima e o botão embaixo com a largura toda. Lado a
+ * lado, numa janela de 268px, o botão espremia o texto numa coluna de 80px e
+ * a faixa ficava com catorze linhas de altura.
+ */
 function Faixa({ children }: { children: React.ReactNode }) {
   return (
     <div
       role="status"
-      className="flex items-center gap-3 border-b border-danger/40 bg-danger/10 px-4 py-1.5 text-[11px] leading-relaxed text-danger"
+      className="flex flex-col gap-2 border-b border-danger/30 bg-danger/10 px-4 py-2 text-[11px] leading-relaxed text-danger sm:flex-row sm:items-center sm:gap-3"
     >
       {children}
     </div>

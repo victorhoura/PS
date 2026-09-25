@@ -93,18 +93,16 @@ export function EditorLink({
     aoFechar("Link excluído.");
   }
 
-  const campo =
-    "w-full rounded-lg border border-edge bg-base px-3 py-2 text-[12px] text-ink outline-none placeholder:text-inkDim/50 focus:border-accent";
   const rotulo = "mb-1.5 block rotulo";
 
   return (
     // Clicar fora não fecha, como no editor de textos: a saída é deliberada.
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-[2px] p-4 pt-[8vh]">
+    <div className="esmaecer fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4 pt-[8vh] backdrop-blur-[2px]">
       <div
         role="dialog"
         aria-modal="true"
         aria-label={criando ? "Novo link" : "Editar link"}
-        className="flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-edge bg-panel shadow-painel"
+        className="surgir flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-edge bg-panel shadow-painel"
       >
         <header className="flex items-center justify-between gap-3 border-b border-edge px-4 py-3">
           <h2 className="text-[13px] font-semibold tracking-wide text-ink">
@@ -126,7 +124,7 @@ export function EditorLink({
               setErro("");
             }}
             placeholder="Ex.: SISS — HOSPITAL GUARULHOS"
-            className={`${campo} mb-4 font-semibold tracking-wide`}
+            className="campo mb-4 font-semibold tracking-wide"
           />
 
           <label htmlFor="li-url" className={rotulo}>
@@ -143,9 +141,9 @@ export function EditorLink({
             spellCheck={false}
             autoComplete="off"
             placeholder="hospitalarguarulhos.sissonline.com.br"
-            className={`${campo} mb-1 font-mono text-[11px]`}
+            className="campo mb-1 font-mono text-[11px]"
           />
-          <p className="mb-4 text-[10px] text-inkDim/70">
+          <p className="nota mb-4">
             Pode colar o endereço inteiro. Sem o “https://” na frente, ele é acrescentado.
           </p>
 
@@ -160,7 +158,9 @@ export function EditorLink({
             e criar um grupo novo é uma opção explícita da própria lista.
           */}
           {criandoGrupo ? (
-            <div className="flex gap-2">
+            // Estreita, o campo fica com a largura toda e o botão desce: lado a
+            // lado, o botão espremia o campo a quase nada numa janela de 240px.
+            <div className="flex flex-col gap-2 sm:flex-row">
               <input
                 id="li-grupo"
                 value={grupo}
@@ -170,7 +170,7 @@ export function EditorLink({
                 }}
                 autoFocus={grupos.length > 0}
                 placeholder="Nome do grupo novo"
-                className={campo}
+                className="campo"
               />
               {grupos.length > 0 && (
                 <button
@@ -179,7 +179,7 @@ export function EditorLink({
                     setCriandoGrupo(false);
                     setGrupo(grupos[0]);
                   }}
-                  className="transicao shrink-0 rounded-lg border border-edge px-3 text-[11px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+                  className="botao botao-secundario"
                 >
                   VOLTAR À LISTA
                 </button>
@@ -198,7 +198,7 @@ export function EditorLink({
                   setGrupo(e.target.value);
                 }
               }}
-              className={`${campo} cursor-pointer`}
+              className="campo cursor-pointer"
             >
               {grupos.map((g) => (
                 <option key={g} value={g}>
@@ -208,7 +208,7 @@ export function EditorLink({
               <option value={NOVO_GRUPO}>+ criar um grupo novo…</option>
             </select>
           )}
-          <p className="mt-1 text-[10px] text-inkDim/70">
+          <p className="nota mt-1">
             É o título da seção onde o link aparece.
           </p>
 
@@ -228,13 +228,13 @@ export function EditorLink({
             <button
               onClick={() => setConfirmandoDescarte(false)}
               autoFocus
-              className="transicao h-8 w-full rounded-lg bg-accent px-4 text-[11px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 sm:w-auto"
+              className="botao botao-sm botao-primario w-full sm:w-auto"
             >
               CONTINUAR EDITANDO
             </button>
             <button
               onClick={() => aoFechar()}
-              className="transicao h-8 w-full rounded-lg border border-danger/40 px-3 text-[11px] font-semibold tracking-wide text-danger hover:bg-danger/10 sm:w-auto"
+              className="botao botao-sm botao-perigo w-full sm:w-auto"
             >
               DESCARTAR
             </button>
@@ -244,13 +244,13 @@ export function EditorLink({
         <footer className="rodape-acoes border-t border-edge bg-base/30 px-4 py-3">
           <button
             onClick={salvar}
-            className="transicao h-9 w-full rounded-lg bg-accent px-3 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 sm:w-auto sm:px-5"
+            className="botao botao-primario w-full sm:w-auto sm:px-5"
           >
             SALVAR
           </button>
           <button
             onClick={tentarFechar}
-            className="transicao h-9 w-full rounded-lg border border-edge px-3 text-[12px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink sm:w-auto sm:px-4"
+            className="botao botao-secundario w-full sm:w-auto"
           >
             CANCELAR
           </button>
@@ -259,14 +259,14 @@ export function EditorLink({
             (confirmandoApagar ? (
               <button
                 onClick={apagar}
-                className="transicao col-span-2 h-9 w-full rounded-lg bg-danger px-3 text-[11px] font-semibold tracking-wide text-white hover:brightness-110 sm:ml-auto sm:w-auto"
+                className="botao botao-perigo-cheio col-span-2 w-full sm:ml-auto sm:w-auto"
               >
                 CONFIRMAR EXCLUSÃO
               </button>
             ) : (
               <button
                 onClick={() => setConfirmandoApagar(true)}
-                className="transicao col-span-2 h-9 w-full rounded-lg border border-danger/40 px-3 text-[11px] font-semibold tracking-wide text-danger hover:bg-danger/10 sm:ml-auto sm:w-auto"
+                className="botao botao-perigo col-span-2 w-full sm:ml-auto sm:w-auto"
               >
                 EXCLUIR
               </button>

@@ -78,9 +78,7 @@ export function Campo({
         autoComplete="off"
         spellCheck={false}
         aria-invalid={Boolean(erro)}
-        className={`mt-auto h-8 w-full rounded-lg border bg-panel px-3 text-[12px] text-ink outline-none transition-colors ${
-          erro ? "border-danger" : "border-edge focus:border-accent"
-        }`}
+        className={`campo campo-compacto mt-auto ${erro ? "border-danger" : ""}`}
       />
       {erro && <Erro texto={erro} />}
     </div>
@@ -89,7 +87,7 @@ export function Campo({
 
 export function Erro({ texto }: { texto: string }) {
   return (
-    <p role="alert" className="mt-1 text-[10px] text-danger">
+    <p role="alert" className="mt-1 text-[11px] text-danger">
       {texto}
     </p>
   );
@@ -138,11 +136,7 @@ export function Opcoes<T extends string>({
               type="button"
               aria-pressed={escolhido}
               onClick={() => aoMudar(escolhido ? "" : o.valor)}
-              className={`transicao h-8 flex-1 rounded-lg border px-3 text-[11px] font-semibold tracking-wide ${
-                escolhido
-                  ? "border-accent bg-accent/15 text-accent"
-                  : "border-edge bg-panel text-inkDim hover:bg-panelHover hover:text-ink"
-              }`}
+              className="opcao flex-1"
             >
               {o.texto}
             </button>

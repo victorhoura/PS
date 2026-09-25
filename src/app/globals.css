@@ -65,12 +65,63 @@ body {
   /* Algarismos da Inter com o 1 e o 4 mais fáceis de distinguir num laudo. */
   font-feature-settings: "cv05", "cv08";
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* No toque, o clarão cinza do navegador por cima de cada botão. */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Texto selecionado no tom do app, e não no azul do sistema. */
+::selection {
+  background: rgb(var(--accent) / 0.25);
 }
 
 /*
- * As três peças de texto que se repetem em toda tela. Viraram classe para a
- * aparência morar num lugar só: antes cada página repetia a mesma sequência
- * de utilitários, e mudar o título do app era mudar treze arquivos.
+ * Campo de número sem as setinhas do navegador: elas ocupavam o canto de
+ * cada campo das calculadoras e ninguém as usa — digita-se o peso. As setas
+ * do teclado continuam somando e subtraindo.
+ */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/*
+ * Lista de escolha com a seta desenhada, e não a do sistema: a do Windows é
+ * um triângulo preto que não muda com o tema. O cinza serve aos dois temas.
+ */
+select.campo {
+  appearance: none;
+  padding-right: 2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.625rem center;
+  background-size: 14px;
+  text-overflow: ellipsis;
+}
+
+/*
+ * O sistema visual do app, num lugar só.
+ *
+ * Cada peça que se repete — título, botão, campo, seletor, lista — é uma
+ * classe aqui, e as telas só a usam. Antes cada tela escrevia a própria
+ * sequência de utilitários, e o resultado era o que a auditoria achou: sete
+ * alturas de botão (25 a 40px), cantos de 4, 6 e 8px no mesmo tipo de botão,
+ * três jeitos de marcar a opção escolhida, fonte em meio-passo (10,5 / 11,5 /
+ * 12,5px) para a mesma função. Cada detalhe corrigido numa tela continuava
+ * errado nas outras.
+ *
+ * Escala de texto — cinco passos, e só eles:
+ *   10px  rótulo em maiúsculas, nota de rodapé, dica
+ *   11px  texto de apoio, botão pequeno, contador, selo
+ *   12px  corpo: nome de item, campo, botão
+ *   13px  destaque: título de janela, resultado
+ *   14px  título da página
  */
 @layer components {
   /*
@@ -84,13 +135,75 @@ body {
     @apply text-[14px] font-semibold leading-tight tracking-[0.02em] text-ink;
   }
 
-  /* Linha de apoio embaixo do título. */
+  /* Texto de apoio embaixo do título: uma frase que explica a tela. */
   .subtitulo {
-    @apply mt-1 text-[12px] leading-snug text-inkDim;
+    @apply mt-1 max-w-2xl text-[11px] leading-relaxed text-inkDim;
+  }
+
+  /* Nota de rodapé: o aviso miúdo embaixo de um bloco. */
+  .nota {
+    @apply text-[10px] leading-relaxed text-inkDim/80;
+  }
+
+  /* Rótulo de seção e de campo: "MENU PRINCIPAL", "SENHA NOVA", "TEMA". */
+  .rotulo {
+    @apply text-[10px] font-semibold uppercase tracking-[0.07em] text-inkDim;
   }
 
   /*
-   * Fileira de botões no pé das janelas de edição: texto, link e cofre.
+   * A página: o mesmo respiro em toda tela e, em monitor grande, uma largura
+   * máxima. Sem ela uma lista de textos ia de ponta a ponta de uma tela de
+   * 1920px, com o lápis a um palmo do nome.
+   */
+  .pagina {
+    @apply mx-auto w-full max-w-5xl p-3 sm:p-4 lg:px-7 lg:py-6;
+  }
+
+  /* ------------------------------------------------------------ botões */
+
+  /*
+   * Botão: duas alturas (36px, e 32px com .botao-sm) e quatro papéis.
+   * Maiúsculas com um respiro entre as letras — em maiúscula a Inter fica
+   * apertada sem ele.
+   */
+  .botao {
+    @apply inline-flex h-9 shrink-0 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-4 text-[12px] font-semibold tracking-[0.03em] motion-safe:transition motion-safe:duration-100 disabled:cursor-not-allowed;
+  }
+  .botao-sm {
+    @apply h-8 px-3 text-[11px];
+  }
+  /* Só o ícone: o quadrado da altura do botão. */
+  .botao-icone {
+    @apply w-9 px-0;
+  }
+  .botao-sm.botao-icone {
+    @apply w-8;
+  }
+
+  /*
+   * Desabilitado vira cinza neutro, e não o acento desbotado: no tema escuro
+   * o ciano a 40% virava um verde-lama que parecia defeito, não "espere".
+   */
+  .botao-primario {
+    @apply bg-accent text-accentInk shadow-cartao hover:brightness-110 disabled:bg-edge disabled:text-inkDim disabled:shadow-none disabled:hover:brightness-100;
+  }
+  .botao-secundario {
+    @apply border border-edge bg-panel text-inkDim hover:bg-panelHover hover:text-ink disabled:opacity-50 disabled:hover:bg-panel disabled:hover:text-inkDim;
+  }
+  .botao-perigo {
+    @apply border border-danger/40 text-danger hover:bg-danger/10 disabled:opacity-50;
+  }
+  .botao-perigo-cheio {
+    @apply bg-danger text-white hover:brightness-110;
+  }
+  /* Sem moldura, para ações que acompanham um item (lápis, fechar). */
+  .botao-fantasma {
+    @apply text-inkDim hover:bg-panelHover hover:text-ink;
+  }
+
+  /*
+   * Fileira de botões no pé das janelas de edição: texto, link, cofre e
+   * modelos — e embaixo dos resultados (COPIAR / LIMPAR).
    *
    * Larga, é uma linha só — SALVAR e CANCELAR à esquerda, o de apagar
    * empurrado para a direita. Estreita, essa mesma linha quebrava em
@@ -106,9 +219,82 @@ body {
     @apply grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center;
   }
 
-  /* Rótulo de seção e de campo: "MENU PRINCIPAL", "SENHA NOVA", "TEMA". */
-  .rotulo {
-    @apply text-[10px] font-semibold uppercase tracking-[0.07em] text-inkDim;
+  /* ---------------------------------------------------------- seletor */
+
+  /*
+   * Escolher uma entre poucas opções: tema, modo do conversor, sexo e
+   * unidade da SADT. Antes eram três desenhos — botões soltos com a escolha
+   * em ciano sólido, botões soltos com a escolha em ciano claro, e o do tema,
+   * numa moldura. Agora é um só: a moldura, com a escolha tingida. A opção
+   * marcada é a que tem aria-pressed="true".
+   */
+  .segmentado {
+    @apply inline-flex gap-0.5 rounded-lg border border-edge bg-panel p-0.5 shadow-cartao;
+  }
+  .segmento {
+    @apply inline-flex h-[30px] min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[6px] px-3 text-[11px] font-semibold tracking-[0.03em] text-inkDim motion-safe:transition-colors motion-safe:duration-100 hover:bg-panelHover hover:text-ink;
+  }
+  .segmento[aria-pressed="true"] {
+    @apply bg-accent/15 text-accent hover:bg-accent/15 hover:text-accent;
+  }
+
+  /*
+   * A mesma escolha quando as opções podem quebrar de linha (sexo, unidade e
+   * prioridade da SADT): botões soltos, com a marcada no mesmo tom do seletor.
+   */
+  .opcao {
+    @apply inline-flex h-8 min-w-0 items-center justify-center whitespace-nowrap rounded-lg border border-edge bg-panel px-3 text-[11px] font-semibold tracking-[0.03em] text-inkDim motion-safe:transition-colors motion-safe:duration-100 hover:bg-panelHover hover:text-ink;
+  }
+  .opcao[aria-pressed="true"] {
+    @apply border-accent/40 bg-accent/10 text-accent hover:bg-accent/15 hover:text-accent;
+  }
+
+  /* ------------------------------------------------------------ campos */
+
+  /*
+   * Campo de digitar, lista de escolha e caixa de texto: a mesma moldura.
+   * Duas alturas, como os botões — 36px, e 32px (.campo-compacto) nos
+   * formulários densos, como APAC e SADT.
+   */
+  .campo {
+    @apply h-9 w-full rounded-lg border border-edge bg-base px-3 text-[12px] text-ink outline-none placeholder:text-inkDim/50 motion-safe:transition-colors motion-safe:duration-100;
+  }
+  .campo-compacto {
+    @apply h-8 px-2.5;
+  }
+  textarea.campo {
+    @apply h-auto py-2 leading-relaxed;
+  }
+
+  /* ---------------------------------------------------------- coleções */
+
+  /*
+   * Coleção de itens: CID, aplicativos, links, tópicos de configuração.
+   *
+   * Estreita, é uma caixa só com divisórias — o mesmo desenho das listas de
+   * texto. Antes cada item era um cartão solto com sombra, e 96 CIDs viravam
+   * 96 retângulos empilhados no painel. Larga (a partir de 640px), vira
+   * grade de cartões soltos, onde as colunas pedem que cada um tenha borda.
+   * O número de colunas fica no próprio elemento (sm:grid-cols-2 etc.).
+   */
+  .colecao {
+    @apply flex flex-col overflow-hidden rounded-xl border border-edge bg-panel shadow-cartao;
+  }
+  .colecao > * + * {
+    border-top: 1px solid rgb(var(--edge));
+  }
+  @media (min-width: 640px) {
+    .colecao {
+      @apply grid gap-1.5 overflow-visible rounded-none border-0 bg-transparent shadow-none;
+    }
+    .colecao > * {
+      @apply overflow-hidden rounded-xl border border-edge bg-panel shadow-cartao;
+    }
+  }
+
+  /* Estado vazio: "Categoria vazia", "Nenhum link", "Nada encontrado". */
+  .vazio {
+    @apply rounded-xl border border-dashed border-edge px-4 py-8 text-center text-[12px] leading-relaxed text-inkDim;
   }
 }
 
@@ -119,6 +305,31 @@ body {
       background-color 90ms ease,
       border-color 90ms ease,
       color 90ms ease;
+  }
+
+  /*
+   * Janela, Ctrl K e aviso entram em 140ms: sobem 6px e acendem. Sem isso
+   * surgiam num estalo por cima da tela. Curto de propósito — é o tempo de o
+   * olho notar que algo abriu, não de esperar por ele.
+   */
+  .surgir {
+    animation: surgir 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .esmaecer {
+    animation: esmaecer 120ms ease-out;
+  }
+}
+
+@keyframes surgir {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.99);
+  }
+}
+
+@keyframes esmaecer {
+  from {
+    opacity: 0;
   }
 }
 
@@ -184,7 +395,8 @@ body {
  * botão, sem sair dele. Marca-se o CARTÃO, não cada botão: assim um botão
  * novo que entrar na linha já nasce certo.
  */
-.anel-dentro :focus-visible {
+.anel-dentro :focus-visible,
+.colecao :focus-visible {
   outline-offset: -2px;
 }
 
@@ -223,7 +435,7 @@ body {
  */
 .linha-menu {
   padding: 0.4375rem 0.75rem;
-  font-size: 12.5px;
+  font-size: 12px;
 }
 
 @media (pointer: coarse) {

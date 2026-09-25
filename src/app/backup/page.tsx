@@ -46,25 +46,27 @@ export default function Backup() {
   }
 
   return (
-    <div className="p-3 sm:p-4 lg:px-7 lg:py-6">
-      <h1 className="mb-1 titulo-pagina">BACKUP</h1>
-      <p className="mb-6 max-w-2xl text-[11px] leading-relaxed text-inkDim">
-        Seus textos ficam guardados na nuvem e acompanham você em qualquer computador. Aqui você
-        baixa uma cópia em arquivo, para o caso de o banco falhar, e restaura a partir dela.
-      </p>
+    <div className="pagina">
+      <header className="mb-5">
+        <h1 className="titulo-pagina">BACKUP</h1>
+        <p className="subtitulo">
+          Seus textos ficam guardados na nuvem e acompanham você em qualquer computador. Aqui você
+          baixa uma cópia em arquivo, para o caso de o banco falhar, e restaura a partir dela.
+        </p>
+      </header>
 
       {aviso && (
         <p
           role="status"
-          className={`mb-4 max-w-2xl rounded-lg border px-3 py-2 text-[11px] ${
-            aviso.ok ? "border-ok/40 bg-ok/10 text-ok" : "border-danger/40 bg-danger/10 text-danger"
+          className={`mb-4 max-w-2xl rounded-xl border px-3 py-2 text-[11px] ${
+            aviso.ok ? "border-ok/30 bg-ok/10 text-ok" : "border-danger/30 bg-danger/10 text-danger"
           }`}
         >
           {aviso.texto}
         </p>
       )}
 
-      <section className="mb-6 max-w-2xl rounded-xl border border-edge bg-panel p-4 shadow-cartao">
+      <section className="mb-4 max-w-2xl rounded-xl border border-edge bg-panel p-4 shadow-cartao">
         <h2 className="mb-1.5 rotulo">
           FAZER BACKUP
         </h2>
@@ -78,14 +80,16 @@ export default function Backup() {
         <button
           onClick={baixar}
           disabled={carregando || alteracoes === 0}
-          className="transicao rounded-lg bg-accent px-5 py-2 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-30"
+          className="botao botao-primario"
         >
           BAIXAR BACKUP
         </button>
+        {/* Na linha de baixo, e não colado ao botão: ao lado, numa janela
+            estreita, a frase quebrava pela metade embaixo dele. */}
         {(carregando || alteracoes === 0) && (
-          <span className="ml-3 text-[11px] text-inkDim">
+          <p className="nota mt-2">
             {carregando ? "Carregando seus textos…" : "Nada seu para salvar ainda."}
-          </span>
+          </p>
         )}
       </section>
 
@@ -98,17 +102,31 @@ export default function Backup() {
           <strong className="text-warn">Substitui</strong> o que estiver lá agora, em todos os
           computadores.
         </p>
-        <input
-          ref={arquivoRef}
-          type="file"
-          accept="application/json,.json"
-          onChange={carregar}
-          disabled={carregando}
-          className="block w-full text-[11px] text-inkDim file:mr-3 file:cursor-pointer file:rounded-lg file:border file:border-solid file:border-edge file:bg-panelHover file:px-4 file:py-2 file:text-[11px] file:font-semibold file:tracking-wide file:text-ink hover:file:border-accent/40 disabled:opacity-40"
-        />
+        {/*
+          Um botão do app no lugar do campo de arquivo do navegador, que
+          escrevia "Choose File / No file chosen" (ou o equivalente no idioma
+          do Windows) com o desenho do sistema. O campo continua ali, invisível
+          mas focável pelo teclado; o anel aparece no botão.
+        */}
+        <label
+          aria-disabled={carregando}
+          className={`botao botao-secundario cursor-pointer has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent ${
+            carregando ? "pointer-events-none opacity-50" : ""
+          }`}
+        >
+          ESCOLHER ARQUIVO…
+          <input
+            ref={arquivoRef}
+            type="file"
+            accept="application/json,.json"
+            onChange={carregar}
+            disabled={carregando}
+            className="sr-only"
+          />
+        </label>
       </section>
 
-      <p className="mt-6 max-w-2xl text-[10px] leading-relaxed text-inkDim/70">
+      <p className="nota mt-6 max-w-2xl">
         {carregando ? "Carregando seus textos…" : `Total no app agora: ${textos.length} textos.`} A
         sincronização entre computadores é automática pela nuvem; o arquivo daqui é a cópia que
         sobra se o banco falhar.

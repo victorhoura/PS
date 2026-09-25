@@ -113,8 +113,6 @@ export function TrocarSenha() {
     return <p className="text-[11px] text-inkDim">…</p>;
   }
 
-  const campo =
-    "h-9 w-full rounded-lg border border-edge bg-base px-3 text-[13px] text-ink outline-none";
 
   // Ainda sem autenticador: o primeiro passo é combinar um.
   if (!estado.temAutenticador && !preparo) {
@@ -129,7 +127,7 @@ export function TrocarSenha() {
         <button
           onClick={() => void preparar()}
           disabled={ocupado}
-          className="transicao h-9 rounded-lg bg-accent px-4 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 disabled:opacity-40"
+          className="botao botao-primario w-full px-3 sm:w-auto sm:px-4"
         >
           {ocupado ? "GERANDO…" : "CONFIGURAR AUTENTICADOR"}
         </button>
@@ -170,9 +168,9 @@ export function TrocarSenha() {
               <button
                 type="button"
                 onClick={() => void copiarSegredo(preparo.segredo)}
-                className="transicao mt-2 flex items-center gap-1.5 rounded-lg border border-edge px-2.5 py-1 text-[10px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-accent"
+                className="botao botao-sm botao-secundario mt-2"
               >
-                <IconeCopiar tamanho={12} /> COPIAR CÓDIGO
+                <IconeCopiar tamanho={13} /> COPIAR CÓDIGO
               </button>
             </div>
           </div>
@@ -183,14 +181,14 @@ export function TrocarSenha() {
             defeito, mas parece, e é por isso que o caminho recomendado ali em
             cima é escanear de dentro do autenticador.
           */}
-          <p className="mt-3 border-t border-edge pt-2 text-[10px] leading-relaxed text-inkDim/70">
+          <p className="nota mt-3 border-t border-edge pt-2">
             <strong>No iPhone, pela câmera é diferente:</strong> abre o app Senhas numa tela de
             “Nova Senha” pedindo usuário e senha. Ele está criando uma entrada para guardar o
             código dentro dela — funciona, mas aí a sua senha e o segundo fator passam a morar no
             mesmo cofre, que é justamente o que o segundo fator existe para evitar. Prefira
             escanear de dentro do autenticador, ou colar o código acima nele.
           </p>
-          <p className="mt-2 text-[10px] leading-relaxed text-inkDim/70">
+          <p className="nota mt-2">
             Guarde o código escrito num lugar seguro: é com ele que você reconfigura o autenticador
             se trocar de celular. O autenticador só fica valendo quando você concluir a troca aqui
             embaixo.
@@ -208,7 +206,7 @@ export function TrocarSenha() {
             value={nova}
             onChange={(e) => { setNova(e.target.value); setErro(""); }}
             autoComplete="new-password"
-            className={campo}
+            className="campo"
           />
         </label>
         <label className="block">
@@ -220,7 +218,7 @@ export function TrocarSenha() {
             value={confirmacao}
             onChange={(e) => { setConfirmacao(e.target.value); setErro(""); }}
             autoComplete="new-password"
-            className={campo}
+            className="campo"
           />
         </label>
       </div>
@@ -236,7 +234,7 @@ export function TrocarSenha() {
           maxLength={7}
           placeholder="000000"
           autoComplete="one-time-code"
-          className={`${campo} text-center font-mono tracking-[0.3em]`}
+          className="campo text-center font-mono text-[13px] tracking-[0.3em]"
         />
       </label>
 
@@ -246,12 +244,12 @@ export function TrocarSenha() {
       <button
         type="submit"
         disabled={ocupado || !nova || !confirmacao || codigo.length < 6}
-        className="transicao mt-4 h-9 rounded-lg bg-accent px-4 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 disabled:opacity-40"
+        className="botao botao-primario mt-4"
       >
         {ocupado ? "TROCANDO…" : "TROCAR SENHA"}
       </button>
 
-      <p className="mt-3 text-[10px] leading-relaxed text-inkDim/70">
+      <p className="nota mt-3">
         Trocar a senha derruba a sessão em todos os computadores onde o app estiver aberto,
         inclusive num pen drive esquecido na máquina do hospital. Aqui você continua dentro.
         O código do autenticador também é pedido para entrar e para desbloquear, e cada código

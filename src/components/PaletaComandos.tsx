@@ -171,14 +171,14 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-[2px] p-4 pt-[10vh]"
+      className="esmaecer fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4 pt-[10vh] backdrop-blur-[2px]"
       onClick={aoFechar}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Buscar"
-        className="flex max-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-edge bg-panel shadow-painel"
+        className="surgir flex max-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-edge bg-panel shadow-painel"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2.5 border-b border-edge px-4">
@@ -209,7 +209,7 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
             <li className="px-3 py-2 text-[11px] text-inkDim">Carregando seus textos…</li>
           )}
           {resultados.length === 0 && !textosCarregando && (
-            <li className="px-4 py-6 text-center text-xs text-inkDim">Nada encontrado.</li>
+            <li className="px-4 py-8 text-center text-[12px] text-inkDim">Nada encontrado.</li>
           )}
           {resultados.map((r, i) => (
             <li key={r.chave}>
@@ -227,7 +227,7 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
                 >
                   {r.titulo}
                 </span>
-                <span className="shrink-0 rounded-md bg-panelHover px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-inkDim">
+                <span className="shrink-0 rounded-full bg-panelHover px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-inkDim">
                   {r.contexto}
                 </span>
               </button>
@@ -237,7 +237,7 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
 
         {/* Quebra em vez de vazar: numa janela de 240px as quatro dicas não
             cabem numa linha só. */}
-        <div className="flex flex-wrap gap-x-4 gap-y-0.5 border-t border-edge bg-base/40 px-4 py-2 text-[10.5px] text-inkDim">
+        <div className="flex flex-wrap gap-x-4 gap-y-0.5 border-t border-edge bg-base/40 px-4 py-2 text-[10px] text-inkDim">
           <span>↑↓ navegar</span>
           <span>↵ copiar / abrir</span>
           <span>esc fechar</span>
