@@ -31,7 +31,7 @@ export default function Configuracoes() {
 
   return (
     <div className="p-3 sm:p-4 lg:px-7 lg:py-6">
-      <h1 className="mb-5 titulo-pagina">CONFIGURAÇÕES</h1>
+      <h1 className="mb-4 titulo-pagina">CONFIGURAÇÕES</h1>
 
       <Secao titulo="Tema">
         <div className="inline-flex gap-0.5 rounded-lg border border-edge bg-panel p-0.5 shadow-cartao">

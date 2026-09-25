@@ -32,9 +32,9 @@ export default function Links() {
           onClick={() => setEditor("novo")}
           aria-label="Novo link"
           title="Novo link"
-          className="transicao flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accentInk shadow-cartao hover:brightness-110"
+          className="transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-accentInk shadow-cartao hover:brightness-110"
         >
-          <IconeMais tamanho={18} traco={2} />
+          <IconeMais tamanho={16} traco={2} />
         </button>
       </header>
 

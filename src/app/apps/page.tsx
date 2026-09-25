@@ -17,7 +17,7 @@ const FERRAMENTAS = [
 export default function Apps() {
   return (
     <div className="p-3 sm:p-4 lg:px-7 lg:py-6">
-      <h1 className="mb-5 titulo-pagina">APLICATIVOS</h1>
+      <h1 className="mb-4 titulo-pagina">APLICATIVOS</h1>
 
       <Secao titulo="Escores">
         <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3">

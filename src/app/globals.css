@@ -73,9 +73,15 @@ body {
  * de utilitários, e mudar o título do app era mudar treze arquivos.
  */
 @layer components {
-  /* Título da página: "RECEITAS", "CURB-65", "CONFIGURAÇÕES". */
+  /*
+   * Título da página: "RECEITAS", "CURB-65", "CONFIGURAÇÕES".
+   *
+   * 14px, dois passos acima do nome de cada item (12px). A 17px, em
+   * maiúsculas, ele pesava mais que a lista inteira no painel estreito — e o
+   * título só diz onde você está; o que se lê ali é a lista.
+   */
   .titulo-pagina {
-    @apply text-[17px] font-semibold leading-tight tracking-[0.01em] text-ink;
+    @apply text-[14px] font-semibold leading-tight tracking-[0.02em] text-ink;
   }
 
   /* Linha de apoio embaixo do título. */
@@ -125,7 +131,7 @@ body {
   ):focus-visible {
   outline: none;
   border-color: rgb(var(--accent) / 0.8);
-  box-shadow: 0 0 0 3px rgb(var(--accent) / 0.16);
+  box-shadow: 0 0 0 2px rgb(var(--accent) / 0.16);
 }
 
 /*

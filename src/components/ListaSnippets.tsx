@@ -48,17 +48,23 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
 
   return (
     <div className="p-3 sm:p-4 lg:px-7 lg:py-6">
-      <header className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+      <header className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h1 className="titulo-pagina">{titulo}</h1>
         <span className="tabular rounded-full bg-panelHover px-2 py-0.5 text-[11px] font-medium text-inkDim">
           {carregando ? "…" : `${filtrados.length}/${itens.length}`}
         </span>
       </header>
 
-      <div className="mb-4 flex gap-2">
+      {/*
+        Filtro e "+" com 32px, a altura exata de uma linha da lista: a barra
+        de cima não pode parecer maior que o conteúdo que ela filtra. Com
+        36px, e o halo do foco em volta, ela ocupava o espaço de uma linha e
+        meia no painel estreito.
+      */}
+      <div className="mb-3 flex gap-2">
         <div className="relative min-w-0 flex-1">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-inkDim/60">
-            <IconeBusca tamanho={14} />
+          <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-inkDim/60">
+            <IconeBusca tamanho={13} />
           </span>
           <input
             value={termo}
@@ -66,7 +72,7 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
             placeholder="Filtrar nesta categoria…"
             aria-label={`Filtrar ${titulo}`}
             autoFocus
-            className="h-9 w-full rounded-lg border border-edge bg-panel pl-9 pr-3 text-[13px] text-ink shadow-cartao outline-none transition-colors placeholder:text-inkDim/60"
+            className="h-8 w-full rounded-lg border border-edge bg-panel pl-8 pr-2.5 text-[12px] text-ink shadow-cartao outline-none transition-colors placeholder:text-inkDim/60"
           />
         </div>
         {/* Só o "+": o nome aparece ao parar o mouse em cima e é o que o
@@ -76,9 +82,9 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
           onClick={() => setEditor("novo")}
           aria-label="Novo texto"
           title="Novo texto"
-          className="transicao flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accentInk shadow-cartao hover:brightness-110"
+          className="transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-accentInk shadow-cartao hover:brightness-110"
         >
-          <IconeMais tamanho={18} traco={2} />
+          <IconeMais tamanho={16} traco={2} />
         </button>
       </div>
 

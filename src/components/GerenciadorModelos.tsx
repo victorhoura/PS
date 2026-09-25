@@ -162,9 +162,9 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
                 onClick={() => setEditando("novo")}
                 aria-label="Novo modelo"
                 title="Novo modelo"
-                className="transicao flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accentInk shadow-cartao hover:brightness-110"
+                className="transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-accentInk shadow-cartao hover:brightness-110"
               >
-                <IconeMais tamanho={18} traco={2} />
+                <IconeMais tamanho={16} traco={2} />
               </button>
 
               {ocultos > 0 && (
