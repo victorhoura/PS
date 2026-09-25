@@ -6,12 +6,18 @@
  * dá o mesmo desenho em qualquer máquina do hospital.
  */
 
-type Props = { className?: string; tamanho?: number };
+type Props = {
+  className?: string;
+  tamanho?: number;
+  /** Espessura do traço, na escala do desenho (24). */
+  traco?: number;
+};
 
 function Svg({
   children,
   className = "",
   tamanho = 16,
+  traco = 1.75,
 }: Props & { children: React.ReactNode }) {
   return (
     <svg
@@ -20,7 +26,7 @@ function Svg({
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.75}
+      strokeWidth={traco}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"

@@ -160,10 +160,11 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
             <footer className="flex flex-wrap items-center gap-2 border-t border-edge bg-base/30 px-4 py-3">
               <button
                 onClick={() => setEditando("novo")}
-                className="transicao flex items-center gap-1.5 rounded-lg bg-accent px-3.5 py-2 text-[11px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110"
+                aria-label="Novo modelo"
+                title="Novo modelo"
+                className="transicao flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accentInk shadow-cartao hover:brightness-110"
               >
-                <IconeMais tamanho={14} />
-                NOVO MODELO
+                <IconeMais tamanho={18} traco={2} />
               </button>
 
               {ocultos > 0 && (

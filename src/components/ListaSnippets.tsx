@@ -69,12 +69,16 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
             className="h-9 w-full rounded-lg border border-edge bg-panel pl-9 pr-3 text-[13px] text-ink shadow-cartao outline-none transition-colors placeholder:text-inkDim/60"
           />
         </div>
+        {/* Só o "+": o nome aparece ao parar o mouse em cima e é o que o
+            leitor de tela anuncia. A largura que o "NOVO" ocupava volta
+            para o filtro, que numa janela de 240px cortava o próprio aviso. */}
         <button
           onClick={() => setEditor("novo")}
-          className="transicao flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-[12px] font-semibold text-accentInk shadow-cartao hover:brightness-110"
+          aria-label="Novo texto"
+          title="Novo texto"
+          className="transicao flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accentInk shadow-cartao hover:brightness-110"
         >
-          <IconeMais tamanho={14} />
-          NOVO
+          <IconeMais tamanho={18} traco={2} />
         </button>
       </div>
 

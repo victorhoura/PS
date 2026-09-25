@@ -16,7 +16,7 @@ formatador de laudos. Nada do que é digitado no formatador é persistido.
 
 ## Criar e editar textos
 
-Cada categoria tem **+ NOVO** ao lado da busca, e cada item um **✎** para
+Cada categoria tem um **+** ao lado da busca, e cada item um **✎** para
 editar. Os 311 textos originais vêm embutidos no bundle e nunca são alterados:
 
 | Ação | O que acontece |

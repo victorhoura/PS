@@ -30,16 +30,17 @@ export default function Links() {
         <h1 className="titulo-pagina">LINKS</h1>
         <button
           onClick={() => setEditor("novo")}
-          className="transicao flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-[12px] font-semibold text-accentInk shadow-cartao hover:brightness-110"
+          aria-label="Novo link"
+          title="Novo link"
+          className="transicao flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accentInk shadow-cartao hover:brightness-110"
         >
-          <IconeMais tamanho={14} />
-          NOVO
+          <IconeMais tamanho={18} traco={2} />
         </button>
       </header>
 
       {links.length === 0 && (
         <p className="py-8 text-center text-xs text-inkDim">
-          Nenhum link. Use NOVO para acrescentar o primeiro.
+          Nenhum link. Use o + para acrescentar o primeiro.
         </p>
       )}
 
