@@ -21,8 +21,8 @@ editar. Os 311 textos originais vêm embutidos no bundle e nunca são alterados:
 
 | Ação | O que acontece |
 |---|---|
-| Criar | Entra no topo da categoria, marcado com ponto azul |
-| Editar um original | Grava um override; ponto âmbar; **Restaurar original** desfaz |
+| Criar | Entra na lista na hora: em ordem alfabética nas categorias grandes (anamnese, CID, receitas, prescrições, fármacos, notas), no topo nas outras |
+| Editar um original | Grava a sua versão por cima; a base não muda. Não há "restaurar original": voltar atrás é restaurar um backup |
 | Apagar um original | **Apagar**, como um texto seu: some da lista. Por baixo grava uma lápide; só volta restaurando um backup de antes |
 | Apagar um texto seu | Some de vez |
 

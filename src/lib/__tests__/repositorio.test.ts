@@ -97,7 +97,7 @@ describe("editar", () => {
 
     const depois = r.todos().find((s) => s.id === alvo.id)!;
     expect(depois.nome).toBe("NOVO NOME");
-    expect(r.foiEditado(alvo.id)).toBe(true);
+    expect(r.resumoCamada()).toMatchObject({ editados: 1, removidos: 0 });
   });
 
   it("edita um texto seu no lugar", async () => {
@@ -112,28 +112,27 @@ describe("editar", () => {
   });
 });
 
-describe("remover e restaurar", () => {
-  it("esconde um original e devolve com restaurar", async () => {
+describe("remover", () => {
+  it("apaga um original: some da lista e fica uma lápide na camada", async () => {
     const r = await carregarPronto();
     const alvo = r.daCategoria(CATEGORIA).find((s) => !r.ehNovo(s.id))!;
 
     r.remover(alvo.id);
-    expect(r.todos().find((s) => s.id === alvo.id)).toBeUndefined();
 
-    r.restaurar(alvo.id);
-    expect(r.todos().find((s) => s.id === alvo.id)).toMatchObject({ nome: alvo.nome });
+    expect(r.todos().find((s) => s.id === alvo.id)).toBeUndefined();
+    expect(r.resumoCamada()).toMatchObject({ removidos: 1 });
   });
 
-  it("restaurar devolve o texto do PS.py, não a última edição", async () => {
+  it("apagar um original editado leva a edição junto", async () => {
+    // Guardar o texto de algo apagado seria peso morto na camada e no backup.
     const r = await carregarPronto();
     const alvo = r.daCategoria(CATEGORIA).find((s) => !r.ehNovo(s.id))!;
 
     r.editar(alvo.id, "EDITADO", "corpo editado");
     r.remover(alvo.id);
-    r.restaurar(alvo.id);
 
-    expect(r.todos().find((s) => s.id === alvo.id)!.texto).toBe(alvo.texto);
-    expect(r.foiEditado(alvo.id)).toBe(false);
+    expect(r.todos().find((s) => s.id === alvo.id)).toBeUndefined();
+    expect(r.resumoCamada()).toMatchObject({ editados: 0, removidos: 1 });
   });
 
   it("apaga um texto seu de vez", async () => {
@@ -314,7 +313,6 @@ describe("a nuvem é a única cópia", () => {
     expect(r.criar(CATEGORIA, "CEDO DEMAIS", "x")).toBe(false);
     expect(r.editar("qualquer", "X", "y")).toBe(false);
     expect(r.remover("qualquer")).toBe(false);
-    expect(r.restaurar("qualquer")).toBe(false);
     expect(r.importar(JSON.stringify({ app: "ps-japa", novos: [] })).ok).toBe(false);
     expect(r.motivoParaNaoGravar()).toMatch(/chegando da nuvem/);
 

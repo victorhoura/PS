@@ -2,15 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { CategoriaSlug, Snippet } from "@/lib/types";
-import {
-  criar,
-  editar,
-  ehNovo,
-  foiEditado,
-  motivoParaNaoGravar,
-  remover,
-  restaurar,
-} from "@/lib/repositorio";
+import { criar, editar, motivoParaNaoGravar, remover } from "@/lib/repositorio";
 
 /**
  * Criar e editar um texto. Mesmo formulário para os dois casos: `alvo` nulo
@@ -32,9 +24,6 @@ export function EditorTexto({
   const [confirmandoApagar, setConfirmandoApagar] = useState(false);
   const [confirmandoDescarte, setConfirmandoDescarte] = useState(false);
   const nomeRef = useRef<HTMLInputElement>(null);
-
-  const editado = alvo ? foiEditado(alvo.id) : false;
-  const proprio = alvo ? ehNovo(alvo.id) : true;
 
   const alterado = nome !== (alvo?.nome ?? "") || texto !== (alvo?.texto ?? "");
 
@@ -92,6 +81,10 @@ export function EditorTexto({
    * são seus também. Por baixo o original vira uma lápide na camada, porque a
    * base embutida não muda; para quem usa, apagou, e só volta restaurando um
    * backup de antes.
+   *
+   * Pelo mesmo motivo não há mais RESTAURAR ORIGINAL, nem o aviso "texto
+   * original" no cabeçalho: o que vale é o que está na camada, e voltar atrás
+   * — de uma edição ou de uma exclusão — é sempre pelo backup.
    */
   function apagar() {
     if (!alvo) return;
@@ -101,15 +94,6 @@ export function EditorTexto({
       return;
     }
     aoFechar("Texto apagado.");
-  }
-
-  function voltarAoOriginal() {
-    if (!alvo) return;
-    if (!restaurar(alvo.id)) {
-      setErro(motivoParaNaoGravar());
-      return;
-    }
-    aoFechar("Texto original restaurado.");
   }
 
   return (
@@ -127,10 +111,7 @@ export function EditorTexto({
           <h2 className="text-[13px] font-semibold tracking-wide text-ink">
             {criando ? "NOVO TEXTO" : "EDITAR TEXTO"}
           </h2>
-          <span className="flex items-center gap-2 text-[11px] text-inkDim">
-            {alterado && <span className="font-medium text-warn">não salvo</span>}
-            {!criando && !proprio && (editado ? "original editado" : "texto original")}
-          </span>
+          {alterado && <span className="text-[11px] font-medium text-warn">não salvo</span>}
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
@@ -172,69 +153,61 @@ export function EditorTexto({
           )}
         </div>
 
+        {/* Estreita, a pergunta e os dois botões empilham na largura toda,
+            centrados; larga, tudo numa linha como antes. */}
         {confirmandoDescarte && (
-          <div className="flex flex-wrap items-center gap-2 border-t border-warn/40 bg-warn/10 px-4 py-3">
-            <span className="mr-1 text-[11px] font-semibold text-warn">
+          <div className="grid gap-2 border-t border-warn/40 bg-warn/10 px-4 py-3 sm:flex sm:flex-wrap sm:items-center">
+            <span className="text-center text-[11px] font-semibold text-warn sm:mr-1 sm:text-left">
               Descartar o que você digitou?
             </span>
             <button
               onClick={() => setConfirmandoDescarte(false)}
               autoFocus
-              className="transicao rounded-lg bg-accent px-4 py-1.5 text-[11px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110"
+              className="transicao h-8 w-full rounded-lg bg-accent px-4 text-[11px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 sm:w-auto"
             >
               CONTINUAR EDITANDO
             </button>
             <button
               onClick={() => aoFechar()}
-              className="transicao rounded-lg border border-danger/40 px-3 py-1.5 text-[11px] font-semibold tracking-wide text-danger hover:bg-danger/10"
+              className="transicao h-8 w-full rounded-lg border border-danger/40 px-3 text-[11px] font-semibold tracking-wide text-danger hover:bg-danger/10 sm:w-auto"
             >
               DESCARTAR
             </button>
           </div>
         )}
 
-        <footer className="flex flex-wrap items-center gap-2 border-t border-edge bg-base/30 px-4 py-3">
+        <footer className="rodape-acoes border-t border-edge bg-base/30 px-4 py-3">
           <button
             onClick={salvar}
-            className="transicao rounded-lg bg-accent px-5 py-2 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110"
+            className="transicao h-9 w-full rounded-lg bg-accent px-3 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 sm:w-auto sm:px-5"
           >
             SALVAR
           </button>
           <button
             onClick={tentarFechar}
-            className="transicao rounded-lg border border-edge px-4 py-2 text-[12px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+            className="transicao h-9 w-full rounded-lg border border-edge px-3 text-[12px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink sm:w-auto sm:px-4"
           >
             CANCELAR
           </button>
 
           <span className="hidden text-[10.5px] text-inkDim/60 sm:inline">Ctrl+Enter salva</span>
 
-          <div className="ml-auto flex gap-2">
-            {!criando && editado && (
+          {!criando &&
+            (confirmandoApagar ? (
               <button
-                onClick={voltarAoOriginal}
-                className="transicao rounded-lg border border-edge px-3 py-2 text-[11px] font-semibold tracking-wide text-warn hover:bg-panelHover"
+                onClick={apagar}
+                className="transicao col-span-2 h-9 w-full rounded-lg bg-danger px-3 text-[11px] font-semibold tracking-wide text-white hover:brightness-110 sm:ml-auto sm:w-auto"
               >
-                RESTAURAR ORIGINAL
+                CONFIRMAR EXCLUSÃO
               </button>
-            )}
-            {!criando &&
-              (confirmandoApagar ? (
-                <button
-                  onClick={apagar}
-                  className="transicao rounded-lg bg-danger px-3 py-2 text-[11px] font-semibold tracking-wide text-white hover:brightness-110"
-                >
-                  CONFIRMAR EXCLUSÃO
-                </button>
-              ) : (
-                <button
-                  onClick={() => setConfirmandoApagar(true)}
-                  className="transicao rounded-lg border border-danger/40 px-3 py-2 text-[11px] font-semibold tracking-wide text-danger hover:bg-danger/10"
-                >
-                  APAGAR
-                </button>
-              ))}
-          </div>
+            ) : (
+              <button
+                onClick={() => setConfirmandoApagar(true)}
+                className="transicao col-span-2 h-9 w-full rounded-lg border border-danger/40 px-3 text-[11px] font-semibold tracking-wide text-danger hover:bg-danger/10 sm:ml-auto sm:w-auto"
+              >
+                APAGAR
+              </button>
+            ))}
         </footer>
       </div>
     </div>

@@ -613,8 +613,9 @@ function FormularioCofre({
         </div>
       </div>
 
-      {/* Mesma razão do cabeçalho: em janela estreita estes três estouravam. */}
-      <div className="mt-4 flex flex-wrap gap-2 border-t border-edge pt-3">
+      {/* Em janela estreita estes três estouravam, e depois quebravam em
+          zigue-zague: ver .rodape-acoes em globals.css. */}
+      <div className="rodape-acoes mt-4 border-t border-edge pt-3">
         <button
           onClick={() =>
             aoSalvar({
@@ -624,13 +625,13 @@ function FormularioCofre({
             })
           }
           disabled={ocupado}
-          className="transicao rounded-lg bg-accent px-5 py-2 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 disabled:opacity-40"
+          className="transicao h-9 w-full rounded-lg bg-accent px-3 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 disabled:opacity-40 sm:w-auto sm:px-5"
         >
           {ocupado ? "CIFRANDO…" : "SALVAR"}
         </button>
         <button
           onClick={aoCancelar}
-          className="transicao rounded-lg border border-edge px-4 py-2 text-[12px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+          className="transicao h-9 w-full rounded-lg border border-edge px-3 text-[12px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink sm:w-auto sm:px-4"
         >
           CANCELAR
         </button>
@@ -642,7 +643,7 @@ function FormularioCofre({
               location.reload();
             });
           }}
-          className="transicao ml-auto rounded-lg border border-danger/40 px-3 py-2 text-[11px] font-semibold tracking-wide text-danger hover:bg-danger/10"
+          className="transicao col-span-2 h-9 w-full rounded-lg border border-danger/40 px-3 text-[11px] font-semibold tracking-wide text-danger hover:bg-danger/10 sm:ml-auto sm:w-auto"
         >
           APAGAR COFRE
         </button>

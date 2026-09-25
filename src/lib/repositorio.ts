@@ -3,9 +3,11 @@
  * sempre offline. O que você cria ou edita fica por cima, numa camada
  * guardada no navegador, e é isso que este arquivo administra.
  *
- * A base nunca é alterada: editar um texto original grava um override, e
- * "restaurar" é apagar esse override. Apagar um original grava uma lápide:
- * o bundle continua igual, mas para quem usa o texto foi apagado.
+ * A base nunca é alterada: editar um texto original grava um override por
+ * cima dele, e apagar um original grava uma lápide — o bundle continua igual,
+ * mas para quem usa o texto foi apagado. Não há "voltar ao original": o que
+ * vale é a camada, e desfazer uma edição ou uma exclusão é restaurar um
+ * backup.
  *
  * A camada mora SÓ no Supabase. Nada é gravado nesta máquina: o app roda
  * também em computador de uso compartilhado, e ali qualquer coisa deixada no
@@ -151,10 +153,6 @@ export function ehNovo(id: string): boolean {
   return id.startsWith("novo:");
 }
 
-export function foiEditado(id: string): boolean {
-  return !ehNovo(id) && id in lerCamada().editados;
-}
-
 /** Contagem por categoria já refletindo criações e remoções. */
 export function contagens(lista = todos()): Record<string, number> {
   const n: Record<string, number> = {};
@@ -237,19 +235,6 @@ export function remover(id: string): boolean {
     ...c,
     editados,
     removidos: c.removidos.includes(id) ? c.removidos : [...c.removidos, id],
-  });
-}
-
-/** Desfaz a edição de um texto original, devolvendo o conteúdo do PS.py. */
-export function restaurar(id: string): boolean {
-  if (!podeGravar()) return false;
-  const c = lerCamada();
-  const editados = { ...c.editados };
-  delete editados[id];
-  return gravarCamada({
-    ...c,
-    editados,
-    removidos: c.removidos.filter((r) => r !== id),
   });
 }
 

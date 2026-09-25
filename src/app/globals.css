@@ -89,6 +89,23 @@ body {
     @apply mt-1 text-[12px] leading-snug text-inkDim;
   }
 
+  /*
+   * Fileira de botões no pé das janelas de edição: texto, link e cofre.
+   *
+   * Larga, é uma linha só — SALVAR e CANCELAR à esquerda, o de apagar
+   * empurrado para a direita. Estreita, essa mesma linha quebrava em
+   * zigue-zague: dois botões colados à esquerda em cima e um sozinho à
+   * direita embaixo, nenhum centrado no espaço que tinha.
+   *
+   * Abaixo de 640px vira grade de duas colunas: SALVAR e CANCELAR dividem a
+   * linha em metades iguais, e o de apagar desce para a linha de baixo com a
+   * largura toda (`col-span-2` nele). Separado dos outros dois, que é onde um
+   * botão de apagar deve ficar. Cada botão leva `w-full sm:w-auto`.
+   */
+  .rodape-acoes {
+    @apply grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center;
+  }
+
   /* Rótulo de seção e de campo: "MENU PRINCIPAL", "SENHA NOVA", "TEMA". */
   .rotulo {
     @apply text-[10px] font-semibold uppercase tracking-[0.07em] text-inkDim;
