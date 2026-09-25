@@ -39,21 +39,21 @@ export default function Contador() {
 
   return (
     <div className="flex h-full flex-col items-center justify-center p-6">
-      <h1 className="mb-6 font-mono text-base font-bold tracking-[0.16em] text-ink">CONTADOR</h1>
+      <h1 className="mb-6 titulo-pagina">CONTADOR</h1>
 
-      <output className="mb-6 font-mono text-7xl font-bold tabular text-accent">{n}</output>
+      <output className="mb-6 text-7xl font-semibold tabular tracking-tight text-accent">{n}</output>
 
       <div className="flex gap-3">
         <button
           onClick={() => setN((v) => Math.max(0, v - 1))}
-          className="transicao rounded-lg border border-edge bg-panel px-8 py-4 font-mono text-2xl font-bold text-ink hover:bg-panelHover"
+          className="transicao tabular rounded-2xl border border-edge bg-panel px-8 py-4 text-2xl font-semibold text-ink shadow-cartao hover:bg-panelHover"
           aria-label="Diminuir"
         >
           −
         </button>
         <button
           onClick={() => setN((v) => v + 1)}
-          className="transicao rounded-lg bg-accent px-8 py-4 font-mono text-2xl font-bold text-accentInk hover:brightness-110"
+          className="transicao tabular rounded-2xl bg-accent px-8 py-4 text-2xl font-semibold text-accentInk shadow-cartao hover:brightness-110"
           aria-label="Aumentar"
         >
           +
@@ -62,7 +62,7 @@ export default function Contador() {
 
       <button
         onClick={() => setN(0)}
-        className="transicao mt-8 rounded-md border border-edge px-4 py-1.5 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+        className="transicao mt-8 rounded-lg border border-edge px-4 py-1.5 text-[11px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
       >
         ZERAR
       </button>

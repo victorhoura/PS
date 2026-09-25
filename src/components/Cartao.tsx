@@ -38,22 +38,22 @@ export function Cartao({
   externo?: boolean;
 }) {
   const caixa =
-    "transicao block min-w-0 rounded-lg border border-edge bg-panel px-2.5 py-1.5 hover:border-accent/60 hover:bg-panelHover";
+    "transicao block min-w-0 rounded-xl border border-edge bg-panel px-3 py-2 shadow-cartao hover:border-accent/50 hover:bg-panelHover";
 
   const miolo = (
     <>
       <span className="flex min-w-0 items-center gap-2">
-        <span className="truncate text-[12px] font-bold tracking-wide text-ink">{nome}</span>
+        <span className="truncate text-[12.5px] font-semibold text-ink">{nome}</span>
         {valor !== undefined && (
-          <span className="tabular ml-auto shrink-0 font-mono text-[10px] text-inkDim">
+          <span className="tabular ml-auto shrink-0 text-[11px] font-medium text-inkDim">
             {valor}
           </span>
         )}
       </span>
       {nota && (
         <span
-          className={`mt-0.5 block truncate text-[10px] leading-snug text-inkDim ${
-            notaMono ? "font-mono" : ""
+          className={`mt-0.5 block truncate leading-snug text-inkDim ${
+            notaMono ? "font-mono text-[10px]" : "text-[11px]"
           }`}
         >
           {nota}
@@ -86,8 +86,8 @@ export function Cartao({
 /** Título de seção e o que vem embaixo dele, com o mesmo respiro em todo lugar. */
 export function Secao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <section className="mb-4">
-      <h2 className="mb-1.5 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">
+    <section className="mb-6">
+      <h2 className="mb-2 rotulo">
         {titulo}
       </h2>
       {children}

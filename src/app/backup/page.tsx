@@ -46,8 +46,8 @@ export default function Backup() {
   }
 
   return (
-    <div className="p-3 lg:p-4">
-      <h1 className="mb-1 font-mono text-base font-bold tracking-[0.16em] text-ink">BACKUP</h1>
+    <div className="p-3 sm:p-4 lg:px-7 lg:py-6">
+      <h1 className="mb-1 titulo-pagina">BACKUP</h1>
       <p className="mb-6 max-w-2xl text-[11px] leading-relaxed text-inkDim">
         Seus textos ficam guardados na nuvem e acompanham você em qualquer computador. Aqui você
         baixa uma cópia em arquivo, para o caso de o banco falhar, e restaura a partir dela.
@@ -64,8 +64,8 @@ export default function Backup() {
         </p>
       )}
 
-      <section className="mb-6 max-w-2xl rounded-lg border border-edge bg-panel p-4">
-        <h2 className="mb-1.5 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">
+      <section className="mb-6 max-w-2xl rounded-xl border border-edge bg-panel p-4 shadow-cartao">
+        <h2 className="mb-1.5 rotulo">
           FAZER BACKUP
         </h2>
         <p className="mb-3 text-[11px] leading-relaxed text-inkDim">
@@ -78,7 +78,7 @@ export default function Backup() {
         <button
           onClick={baixar}
           disabled={carregando || alteracoes === 0}
-          className="transicao rounded-lg bg-accent px-5 py-2 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-30"
+          className="transicao rounded-lg bg-accent px-5 py-2 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-30"
         >
           BAIXAR BACKUP
         </button>
@@ -89,8 +89,8 @@ export default function Backup() {
         )}
       </section>
 
-      <section className="max-w-2xl rounded-lg border border-edge bg-panel p-4">
-        <h2 className="mb-1.5 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">
+      <section className="max-w-2xl rounded-xl border border-edge bg-panel p-4 shadow-cartao">
+        <h2 className="mb-1.5 rotulo">
           RESTAURAR BACKUP
         </h2>
         <p className="mb-3 text-[11px] leading-relaxed text-inkDim">
@@ -104,7 +104,7 @@ export default function Backup() {
           accept="application/json,.json"
           onChange={carregar}
           disabled={carregando}
-          className="block w-full text-[11px] text-inkDim file:mr-3 file:cursor-pointer file:rounded file:border-0 file:bg-edge file:px-4 file:py-2 file:text-[11px] file:font-bold file:tracking-wide file:text-ink hover:file:bg-panelHover disabled:opacity-40"
+          className="block w-full text-[11px] text-inkDim file:mr-3 file:cursor-pointer file:rounded-lg file:border file:border-solid file:border-edge file:bg-panelHover file:px-4 file:py-2 file:text-[11px] file:font-semibold file:tracking-wide file:text-ink hover:file:border-accent/40 disabled:opacity-40"
         />
       </section>
 

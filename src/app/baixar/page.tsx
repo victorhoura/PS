@@ -37,10 +37,10 @@ const OPCOES = [
 
 export default function Baixar() {
   return (
-    <div className="p-3 lg:p-4">
-      <header className="mb-4">
-        <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">DOWNLOAD</h1>
-        <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-inkDim">
+    <div className="p-3 sm:p-4 lg:px-7 lg:py-6">
+      <header className="mb-5">
+        <h1 className="titulo-pagina">DOWNLOAD</h1>
+        <p className="mt-1.5 max-w-2xl text-[11px] leading-relaxed text-inkDim">
           Para usar o app em computador do hospital sem deixar rastro nele: o cookie, o histórico,
           o cache e os PDFs ficam no pen drive, não na máquina. Precisa de internet — nenhum dos
           dois guarda cópia do app.
@@ -52,27 +52,30 @@ export default function Baixar() {
           {OPCOES.map((o) => (
             <div
               key={o.arquivo}
-              className={`flex flex-col rounded-lg border bg-panel p-3 ${
-                o.destaque ? "border-accent/50" : "border-edge"
+              className={`flex flex-col rounded-xl border bg-panel p-4 shadow-cartao ${
+                o.destaque ? "border-accent/40" : "border-edge"
               }`}
             >
-              <span className="text-[12px] font-bold tracking-wide text-ink">{o.nome}</span>
-              <span className="mt-0.5 font-mono text-[10px] text-inkDim">{o.tamanho}</span>
+              <span className="text-[13px] font-semibold text-ink">{o.nome}</span>
+              <span className="tabular mt-0.5 text-[11px] text-inkDim">{o.tamanho}</span>
               {o.linhas.map((l) => (
                 <p key={l} className="mt-2 text-[11px] leading-relaxed text-inkDim">
                   {l}
                 </p>
               ))}
-              <a
-                href={`${RELEASE}/${o.arquivo}`}
-                className={`transicao mt-3 block rounded-lg px-4 py-2 text-center text-[11px] font-bold tracking-wide ${
-                  o.destaque
-                    ? "bg-accent text-accentInk hover:brightness-110"
-                    : "border border-edge text-inkDim hover:bg-panelHover hover:text-ink"
-                }`}
-              >
-                BAIXAR
-              </a>
+              {/* Botão no pé do cartão: os dois alinhados, tenha cada um quantas linhas tiver. */}
+              <div className="mt-auto pt-3">
+                <a
+                  href={`${RELEASE}/${o.arquivo}`}
+                  className={`transicao block rounded-lg px-4 py-2 text-center text-[12px] font-semibold tracking-wide ${
+                    o.destaque
+                      ? "bg-accent text-accentInk shadow-cartao hover:brightness-110"
+                      : "border border-edge text-inkDim hover:bg-panelHover hover:text-ink"
+                  }`}
+                >
+                  BAIXAR
+                </a>
+              </div>
             </div>
           ))}
         </div>

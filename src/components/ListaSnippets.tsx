@@ -47,10 +47,10 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
   const curto = itens.length > 0 && itens.every((i) => i.texto.length <= 12);
 
   return (
-    <div className="p-3 lg:p-4">
+    <div className="p-3 sm:p-4 lg:px-7 lg:py-6">
       <header className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">{titulo}</h1>
-        <span className="tabular font-mono text-[11px] text-inkDim">
+        <h1 className="titulo-pagina">{titulo}</h1>
+        <span className="tabular rounded-full bg-panelHover px-2 py-0.5 text-[11px] font-medium text-inkDim">
           {carregando ? "…" : `${filtrados.length}/${itens.length}`}
         </span>
       </header>
@@ -66,12 +66,12 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
             placeholder="Filtrar nesta categoria…"
             aria-label={`Filtrar ${titulo}`}
             autoFocus
-            className="h-8 w-full rounded-lg border border-edge bg-panel pl-9 pr-3 text-[13px] text-ink outline-none transition-colors placeholder:text-inkDim/60 focus:border-accent"
+            className="h-9 w-full rounded-lg border border-edge bg-panel pl-9 pr-3 text-[13px] text-ink shadow-cartao outline-none transition-colors placeholder:text-inkDim/60"
           />
         </div>
         <button
           onClick={() => setEditor("novo")}
-          className="transicao flex h-8 shrink-0 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-[11px] font-bold tracking-wide text-accentInk hover:brightness-110"
+          className="transicao flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-[12px] font-semibold text-accentInk shadow-cartao hover:brightness-110"
         >
           <IconeMais tamanho={14} />
           NOVO
@@ -87,18 +87,18 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
       )}
 
       {curto ? (
-        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {filtrados.map((s) => (
             <div
               key={s.id}
-              className="anel-dentro transicao group flex items-stretch overflow-hidden rounded-lg border border-edge bg-panel hover:border-accent/60"
+              className="anel-dentro transicao group flex items-stretch overflow-hidden rounded-lg border border-edge bg-panel shadow-cartao hover:border-accent/50"
             >
               <button
                 onClick={() => void copiarItem(s)}
                 className="transicao flex min-w-0 flex-1 items-center justify-between gap-2 px-2.5 py-1.5 text-left hover:bg-panelHover"
               >
-                <span className="truncate text-[11px] font-semibold text-ink">{s.nome}</span>
-                <span className="tabular shrink-0 font-mono text-[11px] text-accent">
+                <span className="truncate text-[11.5px] font-semibold text-ink">{s.nome}</span>
+                <span className="tabular shrink-0 font-mono text-[11px] font-medium text-accent">
                   {s.texto}
                 </span>
               </button>
@@ -107,15 +107,22 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
           ))}
         </div>
       ) : (
-        <ul className="space-y-1">
+        /*
+          Uma caixa só, com divisórias, em vez de um cartão com borda para
+          cada texto: 110 fármacos eram 110 retângulos empilhados. Mesma
+          altura de linha — o que muda é o ruído entre elas.
+        */
+        <ul
+          className={`divide-y divide-edge overflow-hidden rounded-xl border border-edge bg-panel shadow-cartao ${
+            filtrados.length === 0 ? "hidden" : ""
+          }`}
+        >
           {filtrados.map((s) => {
             const expandido = aberto === s.id;
             return (
               <li
                 key={s.id}
-                className={`anel-dentro transicao overflow-hidden rounded-lg border bg-panel ${
-                  expandido ? "border-accent/60" : "border-edge hover:border-accent/40"
-                }`}
+                className={`anel-dentro transicao ${expandido ? "bg-accent/[0.05]" : ""}`}
               >
                 <div className="flex items-stretch">
                   {/*
@@ -128,9 +135,9 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
                   */}
                   <button
                     onClick={() => void copiarItem(s)}
-                    className="transicao flex min-w-0 flex-1 items-center px-2.5 py-1.5 text-left hover:bg-panelHover"
+                    className="transicao flex min-w-0 flex-1 items-center px-3 py-[7px] text-left hover:bg-panelHover"
                   >
-                    <span className="truncate text-[12px] font-bold tracking-wide text-ink">
+                    <span className={`truncate text-[12px] font-semibold ${expandido ? "text-accent" : "text-ink"}`}>
                       {s.nome}
                     </span>
                   </button>
@@ -139,13 +146,13 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
                     onClick={() => setAberto(expandido ? null : s.id)}
                     aria-expanded={expandido}
                     aria-label={expandido ? `Recolher ${s.nome}` : `Ver texto de ${s.nome}`}
-                    className="transicao flex w-7 shrink-0 items-center justify-center border-l border-edge text-inkDim hover:bg-panelHover hover:text-ink"
+                    className="transicao flex w-8 shrink-0 items-center justify-center text-inkDim hover:bg-panelHover hover:text-ink"
                   >
                     <IconeSeta aberto={expandido} tamanho={12} />
                   </button>
                 </div>
                 {expandido && (
-                  <pre className="max-h-80 overflow-auto whitespace-pre-wrap border-t border-edge bg-base px-2.5 py-2 font-mono text-[11px] leading-relaxed text-inkDim">
+                  <pre className="mx-3 mb-3 max-h-80 overflow-auto whitespace-pre-wrap rounded-lg border border-edge bg-base px-3 py-2.5 font-mono text-[11px] leading-relaxed text-ink/80">
                     {s.texto}
                   </pre>
                 )}
@@ -177,9 +184,12 @@ function Carregando() {
   return (
     <div role="status" aria-label="Carregando seus textos">
       <p className="mb-2 text-[11px] text-inkDim">Carregando seus textos…</p>
-      <ul className="space-y-1" aria-hidden="true">
+      <ul
+        className="divide-y divide-edge overflow-hidden rounded-xl border border-edge bg-panel shadow-cartao"
+        aria-hidden="true"
+      >
         {[72, 55, 64, 48, 60, 52].map((largura, i) => (
-          <li key={i} className="flex h-8 items-center rounded-lg border border-edge bg-panel px-2.5">
+          <li key={i} className="flex h-[33px] items-center px-3">
             <span
               className="block h-2.5 rounded bg-edge motion-safe:animate-pulse"
               style={{ width: `${largura}%` }}
@@ -197,7 +207,7 @@ function BotaoEditar({ aoClicar, nome }: { aoClicar: () => void; nome: string })
       onClick={aoClicar}
       aria-label={`Editar ${nome}`}
       title={`Editar ${nome}`}
-      className="transicao flex w-7 shrink-0 items-center justify-center border-l border-edge text-inkDim hover:bg-panelHover hover:text-accent"
+      className="transicao flex w-8 shrink-0 items-center justify-center text-inkDim/70 hover:bg-panelHover hover:text-accent"
     >
       <IconeEditar tamanho={12} />
     </button>

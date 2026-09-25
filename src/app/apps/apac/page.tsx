@@ -210,9 +210,9 @@ export default function GeradorApac() {
   );
 
   return (
-    <div className="p-3 lg:p-4">
+    <div className="p-3 sm:p-4 lg:px-7 lg:py-6">
       <header className="mb-4">
-        <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">GERADOR DE APAC</h1>
+        <h1 className="titulo-pagina">GERADOR DE APAC</h1>
         <p className="mt-0.5 text-[11px] text-inkDim">
           Preenche o laudo oficial e devolve o PDF pronto para imprimir. Nenhum dado de paciente sai
           deste computador.
@@ -233,7 +233,7 @@ export default function GeradorApac() {
                 aria-label="Modelo pronto"
                 value=""
                 onChange={(e) => aplicarModelo(e.target.value)}
-                className="h-8 min-w-0 flex-1 rounded-lg border border-edge bg-panel px-2 text-[12px] text-ink outline-none focus:border-accent"
+                className="h-9 min-w-0 flex-1 rounded-lg border border-edge bg-panel px-2.5 text-[12px] text-ink outline-none focus:border-accent"
               >
                 <option value="">
                   {modelos.length
@@ -249,7 +249,7 @@ export default function GeradorApac() {
               <button
                 type="button"
                 onClick={() => setGerenciando(true)}
-                className="transicao shrink-0 rounded-lg border border-edge bg-panel px-3 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+                className="transicao shrink-0 rounded-lg border border-edge bg-panel px-3 text-[11px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
               >
                 GERENCIAR
               </button>
@@ -374,7 +374,7 @@ export default function GeradorApac() {
               <div className="mb-1 flex items-baseline justify-between gap-2">
                 <label
                   htmlFor="justificativa"
-                  className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim"
+                  className="rotulo"
                 >
                   JUSTIFICATIVA CLÍNICA
                 </label>
@@ -392,7 +392,7 @@ export default function GeradorApac() {
                 value={campos.justificativa}
                 onChange={(e) => mudar("justificativa", e.target.value.toUpperCase())}
                 spellCheck={false}
-                className="w-full resize-y rounded-lg border border-edge bg-panel px-3 py-2 font-mono text-[11px] leading-relaxed text-ink outline-none focus:border-accent"
+                className="w-full resize-y rounded-xl border border-edge bg-panel px-3.5 py-2.5 shadow-cartao font-mono text-[11px] leading-relaxed text-ink outline-none focus:border-accent"
               />
               {erros.justificativa && <Erro texto={erros.justificativa} />}
               <p className="mt-1 text-[10px] leading-relaxed text-inkDim/70">
@@ -427,21 +427,21 @@ export default function GeradorApac() {
             <button
               type="submit"
               disabled={gerando}
-              className="transicao flex-1 rounded-lg bg-accent px-4 py-2 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110 disabled:opacity-40"
+              className="transicao flex-1 rounded-lg bg-accent px-4 py-2 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 disabled:opacity-40"
             >
               {gerando ? "GERANDO…" : "GERAR APAC"}
             </button>
             <button
               type="button"
               onClick={limpar}
-              className="transicao rounded-lg border border-edge bg-panel px-4 py-2 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+              className="transicao rounded-lg border border-edge bg-panel px-4 py-2 text-[12px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
             >
               LIMPAR
             </button>
           </div>
 
           {falha && (
-            <p role="alert" className="rounded-lg border border-danger/40 bg-danger/10 p-3 text-[11px] leading-relaxed text-danger">
+            <p role="alert" className="rounded-xl border border-danger/30 bg-danger/10 p-3 text-[11px] leading-relaxed text-danger">
               {falha}
             </p>
           )}
@@ -449,7 +449,7 @@ export default function GeradorApac() {
 
         <div className="min-w-0">
           <div className="mb-1.5 flex items-baseline justify-between gap-2">
-            <span className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim">
+            <span className="rotulo">
               VISUALIZADOR
             </span>
             {pdf && <span className="truncate font-mono text-[10px] text-inkDim/70">{pdf.nome}</span>}
@@ -461,18 +461,18 @@ export default function GeradorApac() {
                 ref={quadro}
                 src={pdf.url}
                 title="APAC gerada"
-                className="h-[62vh] w-full rounded-lg border border-edge bg-panel xl:h-[calc(100vh-14rem)]"
+                className="h-[62vh] w-full rounded-xl border border-edge bg-panel shadow-cartao xl:h-[calc(100vh-14rem)]"
               />
               <div className="mt-2 flex gap-2">
                 <button
                   onClick={imprimir}
-                  className="transicao flex-1 rounded-lg bg-accent px-4 py-2 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110"
+                  className="transicao flex-1 rounded-lg bg-accent px-4 py-2 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110"
                 >
                   IMPRIMIR
                 </button>
                 <button
                   onClick={baixar}
-                  className="transicao rounded-lg border border-edge bg-panel px-4 py-2 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+                  className="transicao rounded-lg border border-edge bg-panel px-4 py-2 text-[12px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
                 >
                   BAIXAR
                 </button>
@@ -480,7 +480,7 @@ export default function GeradorApac() {
               {sobra.length > 0 && (
                 <div
                   role="alert"
-                  className="mt-2 rounded-lg border border-warn/40 bg-warn/10 p-3 text-[11px] leading-relaxed text-inkDim"
+                  className="mt-2 rounded-xl border border-warn/30 bg-warn/10 p-3 text-[11px] leading-relaxed text-inkDim"
                 >
                   <strong className="text-warn">A justificativa não coube inteira.</strong> O
                   formulário tem {LINHAS_JUSTIFICATIVA} linhas e{" "}
@@ -497,7 +497,7 @@ export default function GeradorApac() {
               </p>
             </>
           ) : (
-            <div className="flex h-[40vh] items-center justify-center rounded-lg border border-dashed border-edge bg-panel/40 p-6 text-center xl:h-[calc(100vh-14rem)]">
+            <div className="flex h-[40vh] items-center justify-center rounded-xl border border-dashed border-edge bg-panel/40 p-6 text-center xl:h-[calc(100vh-14rem)]">
               <p className="max-w-xs text-[11px] leading-relaxed text-inkDim">
                 Preencha o formulário e clique em <strong className="text-ink">GERAR APAC</strong>.
                 O laudo aparece aqui para conferência antes de imprimir.

@@ -16,11 +16,11 @@ const FERRAMENTAS = [
  */
 export default function Apps() {
   return (
-    <div className="p-3 lg:p-4">
-      <h1 className="mb-4 font-mono text-base font-bold tracking-[0.16em] text-ink">APLICATIVOS</h1>
+    <div className="p-3 sm:p-4 lg:px-7 lg:py-6">
+      <h1 className="mb-5 titulo-pagina">APLICATIVOS</h1>
 
       <Secao titulo="Escores">
-        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
           {CALCULADORAS.map((c) => (
             <Cartao key={c.slug} href={`/apps/${c.slug}`} nome={c.nome} nota={c.subtitulo} />
           ))}
@@ -28,7 +28,7 @@ export default function Apps() {
       </Secao>
 
       <Secao titulo="Ferramentas">
-        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
           {FERRAMENTAS.map((f) => (
             <Cartao key={f.href} href={f.href} nome={f.nome} nota={f.nota} />
           ))}

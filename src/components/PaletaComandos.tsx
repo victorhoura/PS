@@ -171,14 +171,14 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 p-4 pt-[10vh]"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-[2px] p-4 pt-[10vh]"
       onClick={aoFechar}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Buscar"
-        className="flex max-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-edge bg-panel shadow-painel"
+        className="flex max-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-edge bg-panel shadow-painel"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2.5 border-b border-edge px-4">
@@ -199,14 +199,14 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
             onKeyDown={onKeyDown}
             placeholder="Buscar texto, CID, fármaco, calculadora…"
             aria-label="Buscar"
-            className="foco-obvio w-full bg-transparent py-2.5 text-sm text-ink placeholder:text-inkDim/60"
+            className="foco-obvio w-full bg-transparent py-3.5 text-[14px] text-ink placeholder:text-inkDim/60"
           />
         </div>
 
-        <ul ref={listaRef} className="anel-dentro min-h-0 flex-1 overflow-y-auto py-1">
+        <ul ref={listaRef} className="anel-dentro min-h-0 flex-1 overflow-y-auto p-1.5">
           {/* Com os textos ainda chegando, "nada encontrado" seria mentira. */}
           {textosCarregando && termo.trim() && (
-            <li className="px-4 py-2 text-[11px] text-inkDim">Carregando seus textos…</li>
+            <li className="px-3 py-2 text-[11px] text-inkDim">Carregando seus textos…</li>
           )}
           {resultados.length === 0 && !textosCarregando && (
             <li className="px-4 py-6 text-center text-xs text-inkDim">Nada encontrado.</li>
@@ -216,13 +216,20 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
               <button
                 onClick={() => void acionar(r)}
                 onMouseEnter={() => setSelecionado(i)}
-                className={`flex w-full items-center justify-between gap-3 px-4 py-2 text-left ${
-                  i === selecionado ? "bg-accent/15" : ""
+                className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left ${
+                  i === selecionado ? "bg-accent/[0.12]" : ""
                 }`}
-                style={i === selecionado ? { boxShadow: "inset 2px 0 0 rgb(var(--accent))" } : undefined}
               >
-                <span className="truncate text-[13px] font-semibold text-ink">{r.titulo}</span>
-                <span className="shrink-0 font-mono text-[10px] uppercase text-inkDim">{r.contexto}</span>
+                <span
+                  className={`truncate text-[13px] font-medium ${
+                    i === selecionado ? "text-accent" : "text-ink"
+                  }`}
+                >
+                  {r.titulo}
+                </span>
+                <span className="shrink-0 rounded-md bg-panelHover px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-inkDim">
+                  {r.contexto}
+                </span>
               </button>
             </li>
           ))}
@@ -230,7 +237,7 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
 
         {/* Quebra em vez de vazar: numa janela de 240px as quatro dicas não
             cabem numa linha só. */}
-        <div className="flex flex-wrap gap-x-4 gap-y-0.5 border-t border-edge bg-base/50 px-4 py-2 font-mono text-[10px] text-inkDim">
+        <div className="flex flex-wrap gap-x-4 gap-y-0.5 border-t border-edge bg-base/40 px-4 py-2 text-[10.5px] text-inkDim">
           <span>↑↓ navegar</span>
           <span>↵ copiar / abrir</span>
           <span>esc fechar</span>

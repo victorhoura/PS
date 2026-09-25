@@ -56,30 +56,30 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
   const ocultos = escondidos(tipo);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 p-4 pt-[6vh]">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-[2px] p-4 pt-[6vh]">
       <div
         ref={caixa}
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label="Modelos prontos"
-        className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-edge bg-panel shadow-painel outline-none"
+        className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-edge bg-panel shadow-painel outline-none"
       >
         <header className="flex items-center gap-3 border-b border-edge px-4 py-3">
-          <h2 className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-ink">
+          <h2 className="text-[13px] font-semibold uppercase tracking-wide text-ink">
             {editando === null
               ? "MODELOS PRONTOS"
               : editando === "novo"
                 ? "NOVO MODELO"
                 : "EDITAR MODELO"}
           </h2>
-          <span className="tabular ml-auto font-mono text-[10px] text-inkDim">
+          <span className="tabular ml-auto text-[11px] font-medium text-inkDim">
             {editando === null ? `${modelos.length}` : ""}
           </span>
           <button
             onClick={aoFechar}
             aria-label="Fechar"
-            className="transicao flex h-7 w-7 items-center justify-center rounded-md border border-edge text-inkDim hover:bg-panelHover hover:text-ink"
+            className="transicao flex h-8 w-8 items-center justify-center rounded-lg text-inkDim hover:bg-panelHover hover:text-ink"
           >
             <IconeFechar tamanho={14} />
           </button>
@@ -102,7 +102,7 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
                     className="transicao flex items-stretch anel-dentro overflow-hidden rounded-lg border border-edge bg-base"
                   >
                     <div className="min-w-0 flex-1 px-3 py-2">
-                      <span className="block truncate text-[12px] font-bold tracking-wide text-ink">
+                      <span className="block truncate text-[12px] font-semibold tracking-wide text-ink">
                         {m.nome}
                       </span>
                       <span className="mt-0.5 block truncate text-[10px] text-inkDim">
@@ -114,7 +114,7 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
                       onClick={() => setEditando(m)}
                       aria-label={`Editar ${m.nome}`}
                       title={`Editar ${m.nome}`}
-                      className="transicao flex w-10 shrink-0 items-center justify-center border-l border-edge text-inkDim hover:bg-panelHover hover:text-accent"
+                      className="transicao flex w-10 shrink-0 items-center justify-center text-inkDim hover:bg-panelHover hover:text-accent"
                     >
                       <IconeEditar tamanho={14} />
                     </button>
@@ -122,7 +122,7 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
                       onClick={() => setConfirmando(m.id)}
                       aria-label={`Excluir ${m.nome}`}
                       title={`Excluir ${m.nome}`}
-                      className="transicao flex w-10 shrink-0 items-center justify-center border-l border-edge font-mono text-[15px] text-inkDim hover:bg-danger/10 hover:text-danger"
+                      className="transicao flex w-10 shrink-0 items-center justify-center font-mono text-[15px] text-inkDim hover:bg-danger/10 hover:text-danger"
                     >
                       ×
                     </button>
@@ -157,10 +157,10 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
               </div>
             )}
 
-            <footer className="flex flex-wrap items-center gap-2 border-t border-edge px-4 py-3">
+            <footer className="flex flex-wrap items-center gap-2 border-t border-edge bg-base/30 px-4 py-3">
               <button
                 onClick={() => setEditando("novo")}
-                className="transicao flex items-center gap-1.5 rounded-lg bg-accent px-3.5 py-2 text-[11px] font-bold tracking-wide text-accentInk hover:brightness-110"
+                className="transicao flex items-center gap-1.5 rounded-lg bg-accent px-3.5 py-2 text-[11px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110"
               >
                 <IconeMais tamanho={14} />
                 NOVO MODELO
@@ -169,7 +169,7 @@ export function GerenciadorModelos<T extends ModeloApac | ModeloSadt>({
               {ocultos > 0 && (
                 <button
                   onClick={() => restaurarBase(tipo)}
-                  className="transicao rounded-lg border border-edge px-3 py-2 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+                  className="transicao rounded-lg border border-edge px-3 py-2 text-[11px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
                 >
                   {ocultos === 1 ? "RESTAURAR 1 ORIGINAL" : `RESTAURAR OS ${ocultos} ORIGINAIS`}
                 </button>
@@ -295,14 +295,14 @@ function Formulario({
       <footer className="flex gap-2 border-t border-edge px-4 py-3">
         <button
           type="submit"
-          className="transicao flex-1 rounded-lg bg-accent px-4 py-2 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110"
+          className="transicao flex-1 rounded-lg bg-accent px-4 py-2 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110"
         >
           SALVAR
         </button>
         <button
           type="button"
           onClick={aoFechar}
-          className="transicao rounded-lg border border-edge px-4 py-2 text-[12px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+          className="transicao rounded-lg border border-edge px-4 py-2 text-[12px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
         >
           CANCELAR
         </button>
@@ -327,7 +327,7 @@ function Campo({
     <div>
       <label
         htmlFor={id}
-        className="mb-1 block font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim"
+        className="mb-1 block rotulo"
       >
         {rotulo}
       </label>
@@ -362,7 +362,7 @@ function Area({
     <div>
       <label
         htmlFor={id}
-        className="mb-1 block font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim"
+        className="mb-1 block rotulo"
       >
         {rotulo}
         {dica && (

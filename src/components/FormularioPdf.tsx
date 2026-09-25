@@ -7,10 +7,9 @@
 
 export function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <fieldset className="rounded-lg border border-edge bg-panel/40 p-3">
-      <legend className="px-1 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/70">
-        {titulo}
-      </legend>
+    // Título dentro do cartão, e não riscado na borda: ver Calculadora.
+    <fieldset className="min-w-0 rounded-xl border border-edge bg-panel p-3 shadow-cartao [&>legend+*]:clear-both">
+      <legend className="float-left mb-2.5 w-full rotulo">{titulo}</legend>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-6">{children}</div>
     </fieldset>
   );
@@ -61,7 +60,7 @@ export function Campo({
     <div className={`flex h-full flex-col ${COLUNAS[largura]}`}>
       <label
         htmlFor={id}
-        className="mb-1 block font-mono text-[9px] font-bold uppercase leading-tight tracking-[0.14em] text-inkDim"
+        className="mb-1 block leading-tight rotulo"
       >
         {rotulo}
         {dica && (
@@ -119,7 +118,7 @@ export function Opcoes<T extends string>({
     <div className={COLUNAS[largura]}>
       <span
         id={`rot-${rotulo.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
-        className="mb-1 block font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim"
+        className="mb-1 block rotulo"
       >
         {rotulo}
         <span className="ml-1.5 font-normal normal-case tracking-normal text-inkDim/60">
@@ -139,7 +138,7 @@ export function Opcoes<T extends string>({
               type="button"
               aria-pressed={escolhido}
               onClick={() => aoMudar(escolhido ? "" : o.valor)}
-              className={`transicao h-8 flex-1 rounded-lg border px-3 text-[11px] font-bold tracking-wide ${
+              className={`transicao h-8 flex-1 rounded-lg border px-3 text-[11px] font-semibold tracking-wide ${
                 escolhido
                   ? "border-accent bg-accent/15 text-accent"
                   : "border-edge bg-panel text-inkDim hover:bg-panelHover hover:text-ink"

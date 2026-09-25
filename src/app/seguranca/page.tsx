@@ -10,8 +10,8 @@ import { TrocarSenha } from "@/components/TrocarSenha";
  */
 export default function Seguranca() {
   return (
-    <div className="p-3 lg:p-4">
-      <h1 className="mb-4 font-mono text-base font-bold tracking-[0.16em] text-ink">SEGURANÇA</h1>
+    <div className="p-3 sm:p-4 lg:px-7 lg:py-6">
+      <h1 className="mb-5 titulo-pagina">SEGURANÇA</h1>
 
       <Secao titulo="Senha do app">
         <TrocarSenha />

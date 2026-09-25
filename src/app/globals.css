@@ -13,46 +13,80 @@
  * noturno. O claro existe para sala bem iluminada e para imprimir.
  */
 
+/*
+ * Paleta neutra, de cinzas levemente frios, com um acento só. As bordas
+ * ficaram mais discretas que antes: separam sem desenhar grade na tela, que
+ * é boa parte do que faz uma interface parecer limpa.
+ */
 :root,
 :root[data-tema="escuro"] {
   color-scheme: dark;
 
-  --base: 13 15 18;
-  --panel: 22 25 30;
-  --panel-hover: 31 36 43;
-  --edge: 43 49 58;
-  --ink: 232 234 237;
-  --ink-dim: 154 163 174;
-  --accent: 47 181 217;
-  --accent-ink: 6 34 43;
-  --warn: 224 160 48;
-  --danger: 224 82 82;
-  --ok: 63 179 127;
+  --base: 11 13 16;
+  --panel: 19 22 26;
+  --panel-hover: 27 31 37;
+  --edge: 38 43 50;
+  --ink: 236 238 241;
+  --ink-dim: 145 153 165;
+  --accent: 56 189 217;
+  --accent-ink: 4 28 36;
+  --warn: 230 166 60;
+  --danger: 235 94 94;
+  --ok: 70 190 136;
   --sombra: 0 0 0;
 }
 
 :root[data-tema="claro"] {
   color-scheme: light;
 
-  --base: 244 245 247;
+  --base: 246 247 249;
   --panel: 255 255 255;
-  --panel-hover: 237 239 243;
-  --edge: 214 219 226;
-  --ink: 21 24 28;
-  --ink-dim: 88 97 108;
+  --panel-hover: 242 244 247;
+  --edge: 226 230 235;
+  --ink: 17 20 24;
+  --ink-dim: 92 101 114;
   /* Ciano escurecido: o do tema escuro não alcança contraste AA sobre branco. */
   --accent: 11 106 133;
   --accent-ink: 255 255 255;
   --warn: 141 92 8;
-  --danger: 179 38 30;
+  --danger: 185 40 32;
   --ok: 22 114 76;
-  --sombra: 100 116 139;
+  --sombra: 71 85 105;
 }
 
 html,
 body {
   background: rgb(var(--base));
   color: rgb(var(--ink));
+}
+
+body {
+  font-family: var(--fonte-sans), ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif;
+  /* Algarismos da Inter com o 1 e o 4 mais fáceis de distinguir num laudo. */
+  font-feature-settings: "cv05", "cv08";
+  text-rendering: optimizeLegibility;
+}
+
+/*
+ * As três peças de texto que se repetem em toda tela. Viraram classe para a
+ * aparência morar num lugar só: antes cada página repetia a mesma sequência
+ * de utilitários, e mudar o título do app era mudar treze arquivos.
+ */
+@layer components {
+  /* Título da página: "RECEITAS", "CURB-65", "CONFIGURAÇÕES". */
+  .titulo-pagina {
+    @apply text-[17px] font-semibold leading-tight tracking-[0.01em] text-ink;
+  }
+
+  /* Linha de apoio embaixo do título. */
+  .subtitulo {
+    @apply mt-1 text-[12px] leading-snug text-inkDim;
+  }
+
+  /* Rótulo de seção e de campo: "MENU PRINCIPAL", "SENHA NOVA", "TEMA". */
+  .rotulo {
+    @apply text-[10px] font-semibold uppercase tracking-[0.07em] text-inkDim;
+  }
 }
 
 /* O app é para plantão: nada de animação longa atrapalhando. */
@@ -65,11 +99,33 @@ body {
   }
 }
 
-/* Foco sempre visível — o app é operado por teclado. */
+/*
+ * Foco sempre visível — o app é operado por teclado.
+ *
+ * Sem `border-radius` aqui: o contorno já acompanha o canto do próprio
+ * elemento, e forçar 4px fazia um botão de canto 8px mudar de forma ao
+ * receber o foco pelo Tab.
+ */
 :focus-visible {
   outline: 2px solid rgb(var(--accent));
   outline-offset: 2px;
-  border-radius: 4px;
+}
+
+/*
+ * Campo de digitar: o foco vira a borda acesa com um halo suave em volta, e
+ * não o contorno afastado dos botões. Num campo o contorno a 2px de distância
+ * desenhava uma segunda caixa em volta da primeira; a borda acesa diz a mesma
+ * coisa — "é aqui que o teclado escreve" — sem duplicar a moldura.
+ *
+ * Vale para todo campo de texto do app de uma vez, fora de @layer pelo mesmo
+ * motivo da regra de cima. O campo do Ctrl K fica de fora (ver .foco-obvio).
+ */
+:where(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):not(
+    .foco-obvio
+  ):focus-visible {
+  outline: none;
+  border-color: rgb(var(--accent) / 0.8);
+  box-shadow: 0 0 0 3px rgb(var(--accent) / 0.16);
 }
 
 /*
@@ -143,14 +199,14 @@ body {
  * têm a mesma largura e precisam de alturas opostas.
  */
 .linha-menu {
-  padding: 0.3125rem 0.75rem;
-  font-size: 12px;
+  padding: 0.4375rem 0.75rem;
+  font-size: 12.5px;
 }
 
 @media (pointer: coarse) {
   .linha-menu {
-    padding: 0.625rem 1rem;
-    font-size: 13px;
+    padding: 0.6875rem 1rem;
+    font-size: 14px;
   }
 }
 

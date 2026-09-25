@@ -76,28 +76,28 @@ export function FormularioEntrada({
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center p-6">
+    <div className="flex min-h-dvh flex-col items-center justify-center p-4">
       <div className="absolute right-3 top-3">
         <BotaoTema compacto />
       </div>
 
-      <div className="w-full max-w-[17rem]">
-        <div className="mb-4 flex flex-col items-center">
-          <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl border border-edge bg-panel text-accent">
+      <div className="w-full max-w-[18rem]">
+        <div className="mb-5 flex flex-col items-center">
+          <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/10 text-accent">
             <IconeCadeado tamanho={20} />
           </div>
           <div className="flex items-center gap-2.5">
-            <Logo tamanho={24} />
+            <Logo tamanho={26} />
             {/* "Pronto socorro" está logo abaixo: o "PS" seria a mesma coisa duas vezes. */}
-            <h1 className="font-mono text-lg font-bold tracking-[0.24em] text-accent">JAPA</h1>
+            <h1 className="text-[20px] font-bold leading-none tracking-[0.16em] text-accent">JAPA</h1>
           </div>
-          <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-inkDim">
+          <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.1em] text-inkDim">
             Pronto socorro
           </p>
         </div>
 
         {semSenhaConfigurada ? (
-          <div className="rounded-lg border border-warn/40 bg-warn/10 p-4">
+          <div className="rounded-xl border border-warn/30 bg-warn/10 p-4">
             <p className="text-[11px] leading-relaxed text-inkDim">
               O app está <strong className="text-warn">sem senha</strong>: falta definir a
               variável <code className="font-mono text-warn">PS_SENHA</code> na Vercel. Enquanto
@@ -107,17 +107,17 @@ export function FormularioEntrada({
                 senha ficaria preso nesta tela. */}
             <Link
               href="/"
-              className="transicao mt-3 block rounded-md bg-accent px-4 py-2 text-center text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110"
+              className="transicao mt-3 block rounded-lg bg-accent px-4 py-2.5 text-center text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110"
             >
               CONTINUAR ASSIM MESMO
             </Link>
           </div>
         ) : (
-          <form onSubmit={enviar}>
-            <label
-              htmlFor="senha"
-              className="mb-1.5 block font-mono text-[9px] uppercase tracking-[0.18em] text-inkDim"
-            >
+          <form
+            onSubmit={enviar}
+            className="rounded-2xl border border-edge bg-panel p-4 shadow-painel"
+          >
+            <label htmlFor="senha" className="mb-1.5 block rotulo">
               Senha
             </label>
             <input
@@ -133,15 +133,12 @@ export function FormularioEntrada({
               // gerenciador dele. Quem garante é o perfil do pen drive, onde o
               // gerenciador está desligado (ver desktop/PS JAPA.cmd).
               autoComplete="off"
-              className="w-full rounded-lg border border-edge bg-panel px-3 py-3 text-center font-mono text-lg tracking-[0.35em] text-ink outline-none transition-colors focus:border-accent"
+              className="h-11 w-full rounded-lg border border-edge bg-base px-3 text-center font-mono text-[17px] tracking-[0.3em] text-ink outline-none transition-colors"
             />
 
             {pedirCodigo && (
               <>
-                <label
-                  htmlFor="codigo"
-                  className="mb-1.5 mt-3 block font-mono text-[9px] uppercase tracking-[0.18em] text-inkDim"
-                >
+                <label htmlFor="codigo" className="mb-1.5 mt-4 block rotulo">
                   Código do autenticador
                 </label>
                 <input
@@ -154,7 +151,7 @@ export function FormularioEntrada({
                   // um computador público não tem o que oferecer aqui.
                   autoComplete="one-time-code"
                   placeholder="000000"
-                  className="w-full rounded-lg border border-edge bg-panel px-3 py-3 text-center font-mono text-lg tracking-[0.35em] text-ink outline-none transition-colors placeholder:text-inkDim/30 focus:border-accent"
+                  className="h-11 w-full rounded-lg border border-edge bg-base px-3 text-center font-mono text-[17px] tracking-[0.3em] text-ink outline-none transition-colors placeholder:text-inkDim/30"
                 />
               </>
             )}
@@ -168,14 +165,14 @@ export function FormularioEntrada({
             <button
               type="submit"
               disabled={enviando || !senha || (pedirCodigo && codigo.length !== 6)}
-              className="transicao mt-3 w-full rounded-lg bg-accent px-4 py-2 text-[12px] font-bold tracking-[0.12em] text-accentInk hover:brightness-110 disabled:opacity-40"
+              className="transicao mt-4 h-10 w-full rounded-lg bg-accent px-4 text-[12px] font-semibold tracking-[0.08em] text-accentInk shadow-cartao hover:brightness-110 disabled:opacity-40"
             >
               {enviando ? "…" : "ENTRAR"}
             </button>
           </form>
         )}
 
-        <p className="mt-6 text-center text-[10px] leading-relaxed text-inkDim/70">
+        <p className="mt-5 text-center text-[10.5px] leading-relaxed text-inkDim/70">
           A sessão dura 12 horas neste navegador. Use BLOQUEAR ao sair da máquina
           {pedirCodigo ? " — para voltar, senha e código de novo." : "."}
         </p>

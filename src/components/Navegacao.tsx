@@ -29,22 +29,27 @@ export function Navegacao({
   const pathname = usePathname();
   const cheia = variante === "cheia";
 
+  /*
+   * Item ativo em tom do acento sobre fundo levemente tingido, e não mais o
+   * bloco sólido: marca onde você está sem gritar, e o menu inteiro fica
+   * mais leve — que é o que se vê o tempo todo no plantão.
+   */
   const item = (ativo: boolean) =>
     [
-      "transicao flex items-center justify-between gap-2 rounded-md font-semibold tracking-wide",
-      cheia ? "linha-menu" : "px-3 py-1.5 text-[11px]",
+      "transicao flex items-center justify-between gap-2 rounded-lg",
+      cheia ? "linha-menu" : "px-3 py-[7px] text-[12px]",
       ativo
-        ? "bg-accent text-accentInk"
-        : "text-inkDim hover:bg-panelHover hover:text-ink",
+        ? "bg-accent/[0.13] font-semibold text-accent"
+        : "font-medium text-ink/75 hover:bg-panelHover hover:text-ink",
     ].join(" ");
 
   const contador = (ativo: boolean) =>
-    `tabular shrink-0 font-mono text-[10px] ${
-      ativo ? "text-accentInk/75" : "text-inkDim/60"
+    `tabular shrink-0 text-[10.5px] font-medium ${
+      ativo ? "text-accent/80" : "text-inkDim/70"
     }`;
 
   const grupo = (titulo: string) => (
-    <p className="mb-1 mt-3 px-3 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim/50">
+    <p className="mb-1 mt-4 px-3 rotulo text-inkDim/60 first:mt-2">
       {titulo}
     </p>
   );

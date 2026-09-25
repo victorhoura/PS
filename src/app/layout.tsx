@@ -1,8 +1,21 @@
 import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Moldura } from "@/components/Moldura";
 import { SCRIPT_TEMA } from "@/lib/tema";
 import { SCRIPT_TEXTOS } from "@/lib/antecipar";
+
+/**
+ * Inter variável, servida pelo próprio app: o arquivo vem no build e sai
+ * pelo mesmo endereço, sem pedido a terceiros e sem depender das fontes
+ * instaladas no computador do hospital.
+ */
+const inter = localFont({
+  src: "./fontes/inter-latin.woff2",
+  weight: "100 900",
+  variable: "--fonte-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "PS JAPA",
@@ -41,7 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
      * o que o script escreveu. Foi medido aqui e não acontece; se um dia
      * acontecer, o conserto é reler o cookie num `useLayoutEffect`.
      */
-    <html lang="pt-BR" data-tema="escuro" suppressHydrationWarning>
+    <html lang="pt-BR" data-tema="escuro" className={inter.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEXTOS }} />

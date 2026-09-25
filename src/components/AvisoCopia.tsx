@@ -41,14 +41,16 @@ export function AvisoCopia() {
       aria-live="polite"
       className="pointer-events-none fixed bottom-5 left-1/2 z-50 -translate-x-1/2 px-4"
     >
-      <div
-        className={`flex items-center gap-2 rounded-lg border px-3.5 py-2 text-[11px] font-semibold shadow-painel backdrop-blur-sm ${
-          aviso.ok
-            ? "border-ok/40 bg-ok/15 text-ok"
-            : "border-danger/40 bg-danger/15 text-danger"
-        }`}
-      >
-        {aviso.ok ? <IconeCheck tamanho={14} /> : <IconeFechar tamanho={14} />}
+      {/* Fundo sólido, e a cor só no ícone: o aviso passa por cima de
+          qualquer tela, e um fundo translúcido tingido lia mal sobre texto. */}
+      <div className="flex items-center gap-2 rounded-xl border border-edge bg-panel px-3.5 py-2 text-[12px] font-medium text-ink shadow-painel">
+        <span
+          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
+            aviso.ok ? "bg-ok/15 text-ok" : "bg-danger/15 text-danger"
+          }`}
+        >
+          {aviso.ok ? <IconeCheck tamanho={12} /> : <IconeFechar tamanho={12} />}
+        </span>
         <span className="truncate">
           {aviso.ok ? aviso.texto : "Não foi possível copiar"}
         </span>

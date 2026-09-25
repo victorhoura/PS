@@ -70,7 +70,7 @@ export function EstadoNuvem() {
         </span>
         <button
           onClick={() => void recarregar()}
-          className="transicao shrink-0 rounded border border-current px-2 py-0.5 font-bold"
+          className="transicao shrink-0 rounded-lg border border-current px-2.5 py-0.5 font-semibold"
         >
           TENTAR DE NOVO
         </button>

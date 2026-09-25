@@ -41,11 +41,25 @@ export function Calculadora({ slug }: { slug: string }) {
     avisarCopia(calc.nome, ok);
   }
 
+  /*
+   * O título de cada bloco mora DENTRO do cartão, e não riscado na borda como
+   * o <legend> desenha por padrão: flutuado, ele sai da moldura e vira a
+   * primeira linha do cartão. O `clear` no que vem depois devolve o conteúdo
+   * para baixo dele.
+   */
+  const cartao =
+    "min-w-0 rounded-xl border border-edge bg-panel p-2 shadow-cartao [&>legend+*]:clear-both";
+  const legenda = "float-left mb-1.5 w-full px-2 pt-1 rotulo";
+
+  /** Linha de critério: a marcada ganha fundo, e dá para ler o escore de relance. */
+  const opcao =
+    "transicao flex cursor-pointer gap-2.5 rounded-lg px-2 py-[7px] text-ink/90 hover:bg-panelHover has-[:checked]:bg-accent/[0.08] has-[:checked]:text-ink";
+
   return (
-    <div className="p-3 lg:p-4">
+    <div className="p-3 sm:p-4 lg:px-7 lg:py-6">
       <header className="mb-4">
-        <h1 className="font-mono text-base font-bold tracking-[0.16em] text-ink">{calc.nome}</h1>
-        <p className="mt-0.5 text-[11px] text-inkDim">{calc.subtitulo}</p>
+        <h1 className="titulo-pagina">{calc.nome}</h1>
+        <p className="subtitulo">{calc.subtitulo}</p>
       </header>
 
       {/*
@@ -60,9 +74,12 @@ export function Calculadora({ slug }: { slug: string }) {
       */}
       <div
         aria-live="polite"
-        className="mb-3 rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-1.5"
+        className="mb-4 flex items-start gap-2.5 rounded-xl border border-accent/25 bg-accent/[0.08] px-3 py-2.5"
       >
-        <span className="font-mono text-sm font-bold leading-snug text-accent">{resumo}</span>
+        <span aria-hidden className="mt-[5px] h-2 w-2 shrink-0 rounded-full bg-accent" />
+        <span className="tabular min-w-0 break-words text-[13px] font-semibold leading-snug text-accent">
+          {resumo}
+        </span>
       </div>
 
       {/*
@@ -74,14 +91,12 @@ export function Calculadora({ slug }: { slug: string }) {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="min-w-0 space-y-4">
           {calc.campos?.length ? (
-            <fieldset className="min-w-0 rounded-lg border border-edge bg-panel p-3">
-              <legend className="px-1 font-mono text-[10px] font-bold tracking-widest text-inkDim">
-                DADOS DO PACIENTE
-              </legend>
-              <div className="grid gap-2 sm:grid-cols-2">
+            <fieldset className={cartao}>
+              <legend className={legenda}>DADOS DO PACIENTE</legend>
+              <div className="grid gap-x-3 gap-y-2.5 px-1 pb-1 sm:grid-cols-2">
                 {calc.campos.map((campo) => (
-                  <label key={campo.id} className="block px-2 py-1">
-                    <span className="mb-0.5 block font-mono text-[10px] tracking-widest text-inkDim">
+                  <label key={campo.id} className="block min-w-0">
+                    <span className="mb-1 block break-words text-[11px] font-medium text-inkDim">
                       {campo.label}
                       {campo.unidade ? ` (${campo.unidade})` : ""}
                     </span>
@@ -98,7 +113,7 @@ export function Calculadora({ slug }: { slug: string }) {
                           [campo.id]: e.target.value === "" ? null : Number(e.target.value),
                         }))
                       }
-                      className="w-full rounded-md border border-edge bg-base px-2.5 py-1 font-mono text-[13px] text-ink outline-none focus:border-accent"
+                      className="tabular h-9 w-full rounded-lg border border-edge bg-base px-3 text-[13px] font-medium text-ink outline-none"
                     />
                   </label>
                 ))}
@@ -107,34 +122,32 @@ export function Calculadora({ slug }: { slug: string }) {
           ) : null}
 
           {calc.grupos.map((g) => (
-            <fieldset key={g.titulo} className="min-w-0 rounded-lg border border-edge bg-panel p-3">
-              <legend className="px-1 font-mono text-[10px] font-bold tracking-widest text-inkDim">
-                {g.titulo}
-              </legend>
+            <fieldset key={g.titulo} className={cartao}>
+              <legend className={legenda}>{g.titulo}</legend>
 
               {g.criterios.map((c) =>
                 c.opcoes ? (
-                  <div key={c.id} className="space-y-1">
+                  <div key={c.id} className="space-y-px">
                     {c.opcoes.map((o) => (
                       <label
                         key={o.label}
-                        className="transicao flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 hover:bg-panelHover"
+                        className={`${opcao} items-center`}
                       >
                         <input
                           type="radio"
                           name={c.id}
                           checked={resposta[c.id] === valorDaOpcao(o)}
                           onChange={() => setResposta((r) => ({ ...r, [c.id]: valorDaOpcao(o) }))}
-                          className="h-3.5 w-3.5 shrink-0 accent-[#2fb5d9]"
+                          className="h-3.5 w-3.5 shrink-0 accent-accent"
                         />
-                        <span className="min-w-0 break-words text-[11px] leading-snug text-ink">{o.label}</span>
+                        <span className="min-w-0 break-words text-[12px] leading-snug">{o.label}</span>
                       </label>
                     ))}
                   </div>
                 ) : (
                   <label
                     key={c.id}
-                    className="transicao flex cursor-pointer items-start gap-2.5 rounded px-2 py-1.5 hover:bg-panelHover"
+                    className={`${opcao} items-start`}
                   >
                     <input
                       type="checkbox"
@@ -142,15 +155,15 @@ export function Calculadora({ slug }: { slug: string }) {
                       onChange={(e) =>
                         setResposta((r) => ({ ...r, [c.id]: e.target.checked ? 1 : 0 }))
                       }
-                      className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-[#2fb5d9]"
+                      className="mt-px h-3.5 w-3.5 shrink-0 accent-accent"
                     />
-                    <span className="min-w-0 flex-1 break-words text-[11px] leading-snug text-ink">{c.label}</span>
+                    <span className="min-w-0 flex-1 break-words text-[12px] leading-snug">{c.label}</span>
                     {/* Critério que não pontua — os da PERC, por exemplo — não
                         ganha selo: um "0" ao lado é ruído, não informação. */}
                     {c.pontos ? (
                       <span
-                        className={`shrink-0 font-mono text-[10px] ${
-                          c.pontos < 0 ? "text-warn" : "text-inkDim"
+                        className={`tabular shrink-0 rounded-md px-1.5 py-px text-[10.5px] font-semibold ${
+                          c.pontos < 0 ? "bg-warn/10 text-warn" : "bg-panelHover text-inkDim"
                         }`}
                       >
                         {c.pontos > 0 ? `+${c.pontos}` : c.pontos}
@@ -164,19 +177,19 @@ export function Calculadora({ slug }: { slug: string }) {
 
           <button
             onClick={zerar}
-            className="transicao w-full rounded-lg border border-edge bg-panel px-4 py-2 text-[11px] font-bold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
+            className="transicao h-9 w-full rounded-lg border border-edge bg-panel px-4 text-[12px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-ink"
           >
             ZERAR
           </button>
         </div>
 
         <div className="flex min-w-0 flex-col">
-          <pre className="min-h-48 flex-1 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-edge bg-panel px-3 py-3 font-mono text-[11px] leading-relaxed text-ink">
+          <pre className="min-h-48 flex-1 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-edge bg-panel px-4 py-3.5 font-mono text-[11.5px] leading-relaxed text-ink shadow-cartao">
             {laudo}
           </pre>
           <button
             onClick={() => void copiarLaudo()}
-            className="transicao mt-2 w-full rounded-lg bg-accent px-4 py-2 text-[12px] font-bold tracking-wide text-accentInk hover:brightness-110"
+            className="transicao mt-2.5 h-10 w-full rounded-lg bg-accent px-4 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110"
           >
             COPIAR RESULTADO
           </button>

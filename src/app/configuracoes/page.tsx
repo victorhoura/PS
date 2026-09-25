@@ -30,13 +30,11 @@ export default function Configuracoes() {
   const { tema } = useTema();
 
   return (
-    <div className="p-3 lg:p-4">
-      <h1 className="mb-4 font-mono text-base font-bold tracking-[0.16em] text-ink">
-        CONFIGURAÇÕES
-      </h1>
+    <div className="p-3 sm:p-4 lg:px-7 lg:py-6">
+      <h1 className="mb-5 titulo-pagina">CONFIGURAÇÕES</h1>
 
       <Secao titulo="Tema">
-        <div className="flex gap-2">
+        <div className="inline-flex gap-0.5 rounded-lg border border-edge bg-panel p-0.5 shadow-cartao">
           {TEMAS.map(({ valor, nome, Icone }) => {
             const ativo = tema === valor;
             return (
@@ -44,10 +42,10 @@ export default function Configuracoes() {
                 key={valor}
                 onClick={() => aplicarTema(valor)}
                 aria-pressed={ativo}
-                className={`transicao flex h-8 items-center gap-2 rounded-lg border px-4 text-[11px] font-bold tracking-wide ${
+                className={`transicao flex h-7 items-center gap-2 rounded-[6px] px-3.5 text-[11px] font-semibold tracking-wide ${
                   ativo
-                    ? "border-accent bg-accent/15 text-accent"
-                    : "border-edge bg-panel text-inkDim hover:bg-panelHover hover:text-ink"
+                    ? "bg-accent/15 text-accent"
+                    : "text-inkDim hover:bg-panelHover hover:text-ink"
                 }`}
               >
                 <Icone tamanho={14} />
@@ -71,15 +69,15 @@ export default function Configuracoes() {
       </Secao>
 
       <Secao titulo="Mais">
-        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
           {TOPICOS_CONFIGURACOES.map((a) => (
             <Link
               key={a.href}
               href={a.href}
-              className="transicao block min-w-0 rounded-lg border border-edge bg-panel px-2.5 py-1.5 hover:border-accent/60 hover:bg-panelHover"
+              className="transicao block min-w-0 rounded-xl border border-edge bg-panel px-3 py-2 shadow-cartao hover:border-accent/50 hover:bg-panelHover"
             >
-              <span className="block text-[12px] font-bold tracking-wide text-ink">{a.nome}</span>
-              <span className="mt-0.5 block text-[10px] leading-snug text-inkDim">{a.nota}</span>
+              <span className="block text-[12.5px] font-semibold text-ink">{a.nome}</span>
+              <span className="mt-0.5 block text-[11px] leading-snug text-inkDim">{a.nota}</span>
             </Link>
           ))}
         </div>

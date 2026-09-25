@@ -93,10 +93,10 @@ export function Moldura({ children }: { children: React.ReactNode }) {
         (Ctrl K, engrenagem, tema, cadeado): o JAPA pede 74px de caixa e só
         os tem a partir de 326px de janela; abaixo de 230px nem a logo cabe.
       */}
-      <span className="hidden shrink-0 font-mono text-sm font-bold tracking-[0.22em] text-accent min-[330px]:inline">
+      <span className="hidden shrink-0 text-[14px] font-bold tracking-[0.16em] text-accent min-[330px]:inline">
         JAPA
       </span>
-      <span className="hidden truncate font-mono text-[9px] uppercase tracking-[0.14em] text-inkDim min-[440px]:inline">
+      <span className="hidden truncate text-[10px] font-medium uppercase tracking-[0.08em] text-inkDim min-[440px]:inline">
         Pronto socorro
       </span>
     </Link>
@@ -111,10 +111,10 @@ export function Moldura({ children }: { children: React.ReactNode }) {
     <button
       onClick={() => setPaletaAberta(true)}
       aria-label="Buscar"
-      className="transicao flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-edge px-2.5 text-[11px] text-inkDim hover:bg-panelHover hover:text-ink"
+      className="transicao flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-edge bg-base/40 px-2.5 text-[11px] text-inkDim hover:border-accent/40 hover:text-ink"
     >
       <IconeBusca tamanho={14} />
-      <kbd className="hidden font-mono text-[10px] text-accent min-[280px]:inline">Ctrl K</kbd>
+      <kbd className="hidden font-mono text-[10px] text-inkDim min-[280px]:inline">Ctrl K</kbd>
     </button>
   );
 
@@ -124,9 +124,9 @@ export function Moldura({ children }: { children: React.ReactNode }) {
       aria-label="Configurações"
       title="Configurações"
       aria-current={pathname === "/configuracoes" ? "page" : undefined}
-      className={`transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-edge ${
+      className={`transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
         emConfiguracoes(pathname)
-          ? "bg-accent text-accentInk"
+          ? "bg-accent/15 text-accent"
           : "text-inkDim hover:bg-panelHover hover:text-ink"
       }`}
     >
@@ -140,12 +140,12 @@ export function Moldura({ children }: { children: React.ReactNode }) {
    * menu, e o mesmo destino mudava de lugar conforme a largura.
    */
   const barraTopo = (fechando: boolean) => (
-    <div className="flex items-center gap-1.5 border-b border-edge bg-panel px-2 py-1.5">
+    <div className="flex items-center gap-1.5 border-b border-edge bg-panel/95 px-2 py-1.5 backdrop-blur">
       <button
         onClick={() => setGavetaAberta(!fechando)}
         aria-label={fechando ? "Fechar menu" : "Abrir menu"}
         aria-expanded={fechando}
-        className="transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-edge text-ink hover:bg-panelHover"
+        className="transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-ink hover:bg-panelHover"
       >
         {fechando ? <IconeFechar /> : <IconeMenu />}
       </button>
@@ -186,26 +186,28 @@ export function Moldura({ children }: { children: React.ReactNode }) {
       )}
 
       {/* ---------- tela larga: barra lateral fixa ---------- */}
-      <aside className="hidden shrink-0 border-r border-edge bg-panel lg:flex lg:h-dvh lg:w-52 lg:flex-col">
-        <div className="px-4 pb-3 pt-4">
-          <Link href="/" className="flex items-center gap-2.5">
+      <aside className="hidden shrink-0 border-r border-edge bg-panel lg:flex lg:h-dvh lg:w-56 lg:flex-col">
+        <div className="px-4 pb-3 pt-5">
+          <Link href="/" className="flex items-center gap-2.5 rounded-lg">
             <Logo tamanho={26} className="shrink-0" />
             <span className="min-w-0">
-              <span className="block font-mono text-sm font-bold tracking-[0.22em] text-accent">
+              <span className="block text-[15px] font-bold leading-none tracking-[0.16em] text-accent">
                 JAPA
               </span>
-              <span className="mt-0.5 block font-mono text-[9px] uppercase tracking-[0.14em] text-inkDim">
+              <span className="mt-1 block text-[10px] font-medium uppercase leading-none tracking-[0.08em] text-inkDim">
                 Pronto socorro
               </span>
             </span>
           </Link>
           <button
             onClick={() => setPaletaAberta(true)}
-            className="transicao mt-3 flex h-8 w-full items-center gap-2 rounded-md border border-edge px-2.5 text-[11px] text-inkDim hover:bg-panelHover hover:text-ink"
+            className="transicao mt-4 flex h-9 w-full items-center gap-2 rounded-lg border border-edge bg-base/40 px-3 text-[12px] text-inkDim hover:border-accent/40 hover:text-ink"
           >
             <IconeBusca tamanho={14} />
             <span>Buscar</span>
-            <kbd className="ml-auto font-mono text-[10px] text-accent">Ctrl K</kbd>
+            <kbd className="ml-auto rounded border border-edge bg-panel px-1.5 py-px font-mono text-[10px] text-inkDim">
+              Ctrl K
+            </kbd>
           </button>
         </div>
 
@@ -220,7 +222,7 @@ export function Moldura({ children }: { children: React.ReactNode }) {
           Chrome. O BLOQUEAR continua a um clique, que é o que importa numa
           máquina compartilhada — ele não foi para dentro das configurações.
         */}
-        <div className="flex items-center gap-1 border-t border-edge px-2 py-2">
+        <div className="flex items-center gap-1 border-t border-edge px-3 py-2.5">
           {botaoConfiguracoes}
           <BotaoTema compacto />
           <BotaoBloquear compacto />

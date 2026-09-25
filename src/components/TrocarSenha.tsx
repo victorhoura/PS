@@ -114,12 +114,12 @@ export function TrocarSenha() {
   }
 
   const campo =
-    "h-8 w-full rounded-lg border border-edge bg-base px-3 text-[13px] text-ink outline-none focus:border-accent";
+    "h-9 w-full rounded-lg border border-edge bg-base px-3 text-[13px] text-ink outline-none";
 
   // Ainda sem autenticador: o primeiro passo é combinar um.
   if (!estado.temAutenticador && !preparo) {
     return (
-      <div className="max-w-2xl">
+      <div className="max-w-2xl rounded-xl border border-edge bg-panel p-4 shadow-cartao">
         <p className="mb-3 text-[11px] leading-relaxed text-inkDim">
           Para trocar a senha é preciso um aplicativo autenticador no seu celular — o Google
           Authenticator ou o Authy, por exemplo. Você escaneia um QR uma única vez; depois é só o
@@ -129,7 +129,7 @@ export function TrocarSenha() {
         <button
           onClick={() => void preparar()}
           disabled={ocupado}
-          className="transicao h-8 rounded-lg bg-accent px-4 text-[11px] font-bold tracking-wide text-accentInk hover:brightness-110 disabled:opacity-40"
+          className="transicao h-9 rounded-lg bg-accent px-4 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 disabled:opacity-40"
         >
           {ocupado ? "GERANDO…" : "CONFIGURAR AUTENTICADOR"}
         </button>
@@ -139,9 +139,12 @@ export function TrocarSenha() {
   }
 
   return (
-    <form onSubmit={trocar} className="max-w-2xl">
+    <form
+      onSubmit={trocar}
+      className="max-w-2xl rounded-xl border border-edge bg-panel p-4 shadow-cartao"
+    >
       {preparo && (
-        <div className="mb-4 rounded-lg border border-accent/40 bg-panel p-3">
+        <div className="mb-4 rounded-xl border border-accent/25 bg-accent/[0.04] p-3">
           <p className="mb-2 text-[11px] leading-relaxed text-inkDim">
             <strong className="text-ink">Abra o autenticador no celular e escaneie de dentro
             dele</strong> — no Google Authenticator, no Authy ou no 1Password, procure por
@@ -151,14 +154,14 @@ export function TrocarSenha() {
             {/* O SVG vem do nosso próprio servidor, desenhado a partir do
                 segredo que ele acabou de sortear. */}
             <span
-              className="inline-block h-36 w-36 shrink-0 rounded bg-white p-1.5 [&>svg]:h-full [&>svg]:w-full"
+              className="inline-block h-36 w-36 shrink-0 rounded-lg bg-white p-1.5 [&>svg]:h-full [&>svg]:w-full"
               dangerouslySetInnerHTML={{ __html: preparo.svg }}
             />
             {/* basis-40: sem uma base, esta coluna cabia com largura zero ao
                 lado do QR numa janela estreita, e o COPIAR CÓDIGO vazava da
                 tela. Com ela, quando não há espaço, desce para baixo do QR. */}
             <div className="min-w-0 flex-1 basis-40">
-              <span className="mb-1 block font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim">
+              <span className="mb-1 block rotulo">
                 ou digite este código no app
               </span>
               <code className="block select-all break-all font-mono text-[11px] leading-relaxed tracking-wider text-accent">
@@ -167,7 +170,7 @@ export function TrocarSenha() {
               <button
                 type="button"
                 onClick={() => void copiarSegredo(preparo.segredo)}
-                className="transicao mt-2 flex items-center gap-1.5 rounded-md border border-edge px-2.5 py-1 text-[10px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-accent"
+                className="transicao mt-2 flex items-center gap-1.5 rounded-lg border border-edge px-2.5 py-1 text-[10px] font-semibold tracking-wide text-inkDim hover:bg-panelHover hover:text-accent"
               >
                 <IconeCopiar tamanho={12} /> COPIAR CÓDIGO
               </button>
@@ -195,9 +198,9 @@ export function TrocarSenha() {
         </div>
       )}
 
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2">
         <label className="block">
-          <span className="mb-1 block font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim">
+          <span className="mb-1 block rotulo">
             Senha nova
           </span>
           <input
@@ -209,7 +212,7 @@ export function TrocarSenha() {
           />
         </label>
         <label className="block">
-          <span className="mb-1 block font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim">
+          <span className="mb-1 block rotulo">
             Repita a senha nova
           </span>
           <input
@@ -222,8 +225,8 @@ export function TrocarSenha() {
         </label>
       </div>
 
-      <label className="mt-2 block sm:max-w-[12rem]">
-        <span className="mb-1 block font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-inkDim">
+      <label className="mt-3 block sm:max-w-[12rem]">
+        <span className="mb-1 block rotulo">
           Código do autenticador
         </span>
         <input
@@ -243,12 +246,12 @@ export function TrocarSenha() {
       <button
         type="submit"
         disabled={ocupado || !nova || !confirmacao || codigo.length < 6}
-        className="transicao mt-3 h-8 rounded-lg bg-accent px-4 text-[11px] font-bold tracking-wide text-accentInk hover:brightness-110 disabled:opacity-40"
+        className="transicao mt-4 h-9 rounded-lg bg-accent px-4 text-[12px] font-semibold tracking-wide text-accentInk shadow-cartao hover:brightness-110 disabled:opacity-40"
       >
         {ocupado ? "TROCANDO…" : "TROCAR SENHA"}
       </button>
 
-      <p className="mt-2 text-[10px] leading-relaxed text-inkDim/70">
+      <p className="mt-3 text-[10px] leading-relaxed text-inkDim/70">
         Trocar a senha derruba a sessão em todos os computadores onde o app estiver aberto,
         inclusive num pen drive esquecido na máquina do hospital. Aqui você continua dentro.
         O código do autenticador também é pedido para entrar e para desbloquear, e cada código
