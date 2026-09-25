@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { type Link, removerLink, salvarLink, urlValida } from "@/lib/links";
+import { Seletor } from "./Seletor";
 
 /**
  * Criar e editar um link. Mesmo formulário para os dois: `alvo` nulo é criar.
@@ -50,6 +51,11 @@ export function EditorLink({
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      // Com a lista de grupos aberta, o Esc é dela: fecha a lista e deixa a
+      // janela aberta. O segundo Esc fecha a janela.
+      if (e.key === "Escape" && (e.target as HTMLElement | null)?.getAttribute?.("aria-expanded") === "true") {
+        return;
+      }
       if (e.key === "Escape") {
         e.preventDefault();
         e.stopPropagation();
@@ -186,27 +192,24 @@ export function EditorLink({
               )}
             </div>
           ) : (
-            <select
+            <Seletor
               id="li-grupo"
-              value={grupo}
-              onChange={(e) => {
+              valor={grupo}
+              opcoes={[
+                ...grupos.map((g) => ({ valor: g, texto: g })),
+                { valor: NOVO_GRUPO, texto: "+ criar um grupo novo…", separada: true },
+              ]}
+              aoMudar={(v) => {
                 setErro("");
-                if (e.target.value === NOVO_GRUPO) {
+                if (v === NOVO_GRUPO) {
                   setCriandoGrupo(true);
                   setGrupo("");
                 } else {
-                  setGrupo(e.target.value);
+                  setGrupo(v);
                 }
               }}
-              className="campo cursor-pointer"
-            >
-              {grupos.map((g) => (
-                <option key={g} value={g}>
-                  {g}
-                </option>
-              ))}
-              <option value={NOVO_GRUPO}>+ criar um grupo novo…</option>
-            </select>
+              vazio="Escolha um grupo"
+            />
           )}
           <p className="nota mt-1">
             É o título da seção onde o link aparece.

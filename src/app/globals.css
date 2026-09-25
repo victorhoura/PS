@@ -91,19 +91,6 @@ input[type="number"] {
   appearance: textfield;
 }
 
-/*
- * Lista de escolha com a seta desenhada, e não a do sistema: a do Windows é
- * um triângulo preto que não muda com o tema. O cinza serve aos dois temas.
- */
-select.campo {
-  appearance: none;
-  padding-right: 2rem;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.625rem center;
-  background-size: 14px;
-  text-overflow: ellipsis;
-}
 
 /*
  * O sistema visual do app, num lugar só.
@@ -354,7 +341,7 @@ select.campo {
  * Vale para todo campo de texto do app de uma vez, fora de @layer pelo mesmo
  * motivo da regra de cima. O campo do Ctrl K fica de fora (ver .foco-obvio).
  */
-:where(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):not(
+:where(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select, button.campo):not(
     .foco-obvio
   ):focus-visible {
   outline: none;

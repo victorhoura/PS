@@ -15,6 +15,7 @@ import { carregarPreferencias, definirPreferencia, preferenciasAtuais } from "@/
 import { avisarCopia } from "@/components/AvisoCopia";
 import { Bloco, Campo, Erro } from "@/components/FormularioPdf";
 import { IconeEditar } from "@/components/Icones";
+import { Seletor } from "@/components/Seletor";
 
 const MEDICO_PADRAO = "VICTOR M. HOURA";
 
@@ -54,6 +55,8 @@ export default function GeradorApac() {
   const [gerando, setGerando] = useState(false);
   const [falha, setFalha] = useState("");
   const [gerenciando, setGerenciando] = useState(false);
+  /** O modelo que preencheu o formulário, para a lista continuar mostrando-o. */
+  const [modeloEscolhido, setModeloEscolhido] = useState("");
   const modelos = useModelosApac();
   const quadro = useRef<HTMLIFrameElement>(null);
 
@@ -77,6 +80,7 @@ export default function GeradorApac() {
   }
 
   function aplicarModelo(id: string) {
+    setModeloEscolhido(id);
     const m = modelos.find((x) => x.id === id);
     if (!m) return;
     setCampos((c) => ({
@@ -201,6 +205,7 @@ export default function GeradorApac() {
     setSobra([]);
     setErros({});
     setFalha("");
+    setModeloEscolhido("");
     setCampos((c) => ({ ...VAZIO, medico: c.medico, solicitacao: hoje() }));
   }
 
@@ -231,23 +236,25 @@ export default function GeradorApac() {
         >
           <Bloco titulo="MODELO PRONTO">
             <div className="flex gap-2 sm:col-span-6">
-              <select
-                aria-label="Modelo pronto"
-                value=""
-                onChange={(e) => aplicarModelo(e.target.value)}
-                className="campo min-w-0 flex-1 cursor-pointer"
-              >
-                <option value="">
-                  {modelos.length
+              {/*
+                Mostra o modelo em uso. Antes a lista voltava sozinha para
+                "Escolha para preencher…" logo depois de preencher, e parecia
+                que nada tinha sido escolhido. Se o modelo for apagado em
+                GERENCIAR, ela volta para o aviso. E é a lista do app, não a do
+                navegador: com a largura do campo, no painel estreito também.
+              */}
+              <Seletor
+                rotulo="Modelo pronto"
+                valor={modelos.some((m) => m.id === modeloEscolhido) ? modeloEscolhido : ""}
+                opcoes={modelos.map((m) => ({ valor: m.id, texto: m.nome }))}
+                aoMudar={aplicarModelo}
+                vazio={
+                  modelos.length
                     ? "Escolha para preencher exame, diagnóstico, CID e justificativa…"
-                    : "Nenhum modelo — use GERENCIAR para criar o primeiro"}
-                </option>
-                {modelos.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.nome}
-                  </option>
-                ))}
-              </select>
+                    : "Nenhum modelo — use GERENCIAR para criar o primeiro"
+                }
+                className="flex-1"
+              />
               {/* Abaixo de 360px fica só o lápis: com a palavra, a lista de
                   modelos ao lado encolhia até mostrar "Escolha para p". */}
               <button
