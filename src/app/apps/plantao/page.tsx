@@ -89,10 +89,11 @@ export default function DivisaoPlantao() {
     const celular = window.matchMedia("(pointer: coarse)").matches;
     const podeMandar = !!imagem && !!navigator.canShare?.({ files: [imagem] });
 
-    // Celular: a folha do sistema, chamada antes de qualquer espera.
+    // Celular: a folha do sistema, chamada antes de qualquer espera. Só o
+    // arquivo — com título, o WhatsApp o punha de legenda embaixo da imagem.
     if (imagem && celular && podeMandar) {
       try {
-        await navigator.share({ files: [imagem], title: "DIVISÃO DE PLANTÃO" });
+        await navigator.share({ files: [imagem] });
         return;
       } catch (e) {
         if ((e as Error).name === "AbortError") return; // fechou a folha
