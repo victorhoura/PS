@@ -7,6 +7,7 @@ const FERRAMENTAS = [
   { href: "/apps/labs", nome: "FORMATADOR DE EXAMES", nota: "laudo do SHIFT vira linha de prontuário" },
   { href: "/apps/texto", nome: "CONVERSOR DE LETRAS", nota: "maiúsculas, minúsculas, primeira letra" },
   { href: "/apps/contador", nome: "CONTADOR", nota: "contagem de atendimentos do plantão" },
+  { href: "/apps/plantao", nome: "DIVISÃO DE PLANTÃO", nota: "turnos iguais de agora até as 07:00" },
 ];
 
 /**

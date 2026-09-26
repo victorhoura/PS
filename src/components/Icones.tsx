@@ -70,6 +70,12 @@ export const IconeMais = (p: Props) => (
   </Svg>
 );
 
+export const IconeMenos = (p: Props) => (
+  <Svg {...p}>
+    <path d="M5 12h14" />
+  </Svg>
+);
+
 export const IconeSeta = ({ aberto, ...p }: Props & { aberto?: boolean }) => (
   <Svg {...p}>
     <path d={aberto ? "m6 15 6-6 6 6" : "m6 9 6 6 6-6"} />

@@ -69,6 +69,13 @@ const FERRAMENTAS: Resultado[] = [
     acao: { tipo: "ir" as const, href: "/apps/contador" },
     peso: 1,
   },
+  {
+    chave: "t:plantao",
+    titulo: "DIVISÃO DE PLANTÃO",
+    contexto: "FERRAMENTA",
+    acao: { tipo: "ir" as const, href: "/apps/plantao" },
+    peso: 1,
+  },
 ];
 
 function pontuar(alvo: { titulo: string; contexto: string }, termo: string): number {
