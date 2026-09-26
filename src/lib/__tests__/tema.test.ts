@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SCRIPT_TEMA, aplicarTema, lerTema, pintarTema, temaDoCookie } from "@/lib/tema";
+import { COR_DA_BARRA, SCRIPT_TEMA, aplicarTema, lerTema, pintarTema, temaDoCookie } from "@/lib/tema";
 
 /**
  * O que estes testes protegem é uma frase só: o tema escolhido sobrevive ao
@@ -16,6 +16,8 @@ vi.mock("@/lib/preferencias", () => ({ definirPreferencia: vi.fn() }));
 function fingirDocumento(cookieInicial = "") {
   const atributos = new Map<string, string>([["data-tema", "escuro"]]);
   const potes = new Map<string, string>();
+  /** O <meta name="theme-color"> que o layout escreve com a cor do escuro. */
+  const barra = new Map<string, string>([["content", COR_DA_BARRA.escuro]]);
 
   for (const parte of cookieInicial.split("; ").filter(Boolean)) {
     const i = parte.indexOf("=");
@@ -27,6 +29,10 @@ function fingirDocumento(cookieInicial = "") {
       setAttribute: (k: string, v: string) => atributos.set(k, v),
       getAttribute: (k: string) => atributos.get(k) ?? null,
     },
+    querySelector: (seletor: string) =>
+      seletor === 'meta[name="theme-color"]'
+        ? { setAttribute: (k: string, v: string) => barra.set(k, v) }
+        : null,
     get cookie() {
       return [...potes].map(([k, v]) => `${k}=${v}`).join("; ");
     },
@@ -41,7 +47,7 @@ function fingirDocumento(cookieInicial = "") {
 
   const escritos: { par: string; atributos: string[] }[] = [];
   vi.stubGlobal("document", doc);
-  return { atributos, escritos, doc };
+  return { atributos, escritos, doc, barra };
 }
 
 function rodarScriptDoHead() {
@@ -78,6 +84,16 @@ describe("script do <head>", () => {
     expect(atributos.get("data-tema")).toBe("escuro");
   });
 
+  it("a barra do sistema (status do iPhone) já nasce na cor do tema do cookie", () => {
+    const claro = fingirDocumento("ps_tema=claro");
+    rodarScriptDoHead();
+    expect(claro.barra.get("content")).toBe(COR_DA_BARRA.claro);
+
+    const novo = fingirDocumento("");
+    rodarScriptDoHead();
+    expect(novo.barra.get("content")).toBe(COR_DA_BARRA.escuro);
+  });
+
   it("não se confunde com um cookie de nome parecido", () => {
     const { atributos } = fingirDocumento("xps_tema=claro");
     rodarScriptDoHead();
@@ -111,6 +127,14 @@ describe("gravação", () => {
     const emLocalhost = fingirDocumento();
     pintarTema("claro");
     expect(emLocalhost.escritos[0].atributos).not.toContain("secure");
+  });
+
+  it("trocar o tema troca junto a cor da barra do sistema", () => {
+    const { barra } = fingirDocumento("ps_tema=claro");
+    pintarTema("escuro");
+    expect(barra.get("content")).toBe(COR_DA_BARRA.escuro);
+    pintarTema("claro");
+    expect(barra.get("content")).toBe(COR_DA_BARRA.claro);
   });
 
   it("escolher o tema também deixa o rastro que sobrevive ao bloqueio", () => {

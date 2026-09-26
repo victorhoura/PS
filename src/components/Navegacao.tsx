@@ -37,7 +37,7 @@ export function Navegacao({
   const item = (ativo: boolean) =>
     [
       "transicao flex items-center justify-between gap-2 rounded-lg",
-      cheia ? "linha-menu" : "px-3 py-[7px] text-[12px]",
+      cheia ? "linha-menu" : "px-3 py-[7px] text-[12px] toque:py-[11px]",
       ativo
         ? "bg-accent/[0.13] font-semibold text-accent"
         : "font-medium text-ink/75 hover:bg-panelHover hover:text-ink",

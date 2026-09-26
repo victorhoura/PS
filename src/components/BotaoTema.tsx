@@ -19,7 +19,7 @@ export function BotaoTema({ compacto = false }: { compacto?: boolean }) {
         onClick={alternar}
         aria-label={rotulo}
         title={rotulo}
-        className="transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-inkDim hover:bg-panelHover hover:text-ink"
+        className="transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-inkDim hover:bg-panelHover hover:text-ink toque:h-10 toque:w-10"
       >
         {claro ? <IconeLua /> : <IconeSol />}
       </button>

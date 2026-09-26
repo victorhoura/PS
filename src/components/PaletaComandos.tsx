@@ -216,7 +216,7 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
               <button
                 onClick={() => void acionar(r)}
                 onMouseEnter={() => setSelecionado(i)}
-                className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left ${
+                className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left toque:py-3 ${
                   i === selecionado ? "bg-accent/[0.12]" : ""
                 }`}
               >
@@ -238,9 +238,10 @@ export function PaletaComandos({ aberta, aoFechar }: { aberta: boolean; aoFechar
         {/* Quebra em vez de vazar: numa janela de 240px as quatro dicas não
             cabem numa linha só. */}
         <div className="flex flex-wrap gap-x-4 gap-y-0.5 border-t border-edge bg-base/40 px-4 py-2 text-[10px] text-inkDim">
-          <span>↑↓ navegar</span>
-          <span>↵ copiar / abrir</span>
-          <span>esc fechar</span>
+          {/* Dicas de teclado: no toque não há teclado físico para usá-las. */}
+          <span className="toque:hidden">↑↓ navegar</span>
+          <span className="toque:hidden">↵ copiar / abrir</span>
+          <span className="toque:hidden">esc fechar</span>
           <span className="ml-auto">{resultados.length} resultado(s)</span>
         </div>
       </div>

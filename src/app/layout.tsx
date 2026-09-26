@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Moldura } from "@/components/Moldura";
-import { SCRIPT_TEMA } from "@/lib/tema";
+import { COR_DA_BARRA, SCRIPT_TEMA } from "@/lib/tema";
 import { SCRIPT_TEXTOS } from "@/lib/antecipar";
 
 /**
@@ -21,7 +21,17 @@ export const metadata: Metadata = {
   title: "PS JAPA",
   description: "Apoio ao atendimento em pronto socorro",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, title: "PS JAPA", statusBarStyle: "black-translucent" },
+  /*
+   * Barra de status opaca ("default"), e o app começa embaixo dela. A
+   * "black-translucent" deixava a página correr por baixo do relógio: a barra
+   * de topo do app — menu, busca, cadeado — ficava sob a hora e a bateria, e
+   * no tema claro o relógio (sempre branco nesse modo) sumia no branco. A cor
+   * da barra vem do theme-color, que acompanha o tema do app (lib/tema).
+   */
+  appleWebApp: { capable: true, title: "PS JAPA", statusBarStyle: "default" },
+  // O Next escreve só a marca genérica (mobile-web-app-capable). A do iOS vai
+  // junto: é com ela que o iPhone lê o estilo da barra de status acima.
+  other: { "apple-mobile-web-app-capable": "yes" },
   icons: {
     // O iOS ignora o manifest e lê esta tag; o PNG é opaco porque lá a
     // transparência do ícone vira preto.
@@ -30,10 +40,6 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#0d0f12" },
-    { media: "(prefers-color-scheme: light)", color: "#f4f5f7" },
-  ],
   width: "device-width",
   initialScale: 1,
 };
@@ -56,6 +62,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
      */
     <html lang="pt-BR" data-tema="escuro" className={inter.variable} suppressHydrationWarning>
       <head>
+        {/*
+          A cor da barra do sistema vem escrita aqui, e não pelo `viewport` do
+          Next, para vir ANTES do script abaixo: ele a troca pela do tema do
+          cookie antes da primeira pintura. `suppressHydrationWarning` pelo
+          mesmo motivo do <html>.
+        */}
+        <meta name="theme-color" content={COR_DA_BARRA.escuro} suppressHydrationWarning />
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEXTOS }} />
       </head>

@@ -190,7 +190,7 @@ export function EditorTexto({
             CANCELAR
           </button>
 
-          <span className="hidden text-[10px] text-inkDim/70 sm:inline">Ctrl+Enter salva</span>
+          <span className="hidden text-[10px] text-inkDim/70 sm:inline toque:!hidden">Ctrl+Enter salva</span>
 
           {!criando &&
             (confirmandoApagar ? (

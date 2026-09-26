@@ -53,7 +53,7 @@ export function BotaoBloquear({
         disabled={saindo}
         aria-label="Bloquear"
         title="Bloquear"
-        className="transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-inkDim hover:bg-danger/10 hover:text-danger disabled:opacity-50"
+        className="transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-inkDim hover:bg-danger/10 hover:text-danger disabled:opacity-50 toque:h-10 toque:w-10"
       >
         <IconeCadeado />
       </button>

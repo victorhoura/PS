@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
 
 /** Lê a variável CSS mantendo os modificadores de opacidade do Tailwind. */
 const cor = (nome: string) => `rgb(var(--${nome}) / <alpha-value>)`;
@@ -48,5 +49,20 @@ export default {
       },
     },
   },
-  plugins: [],
+  /*
+   * `hover:` só onde existe mouse. No toque o iPhone deixava a linha tocada
+   * acesa até o próximo toque em outro lugar, como se ainda houvesse um
+   * ponteiro parado em cima dela.
+   */
+  future: { hoverOnlyWhenSupported: true },
+  plugins: [
+    /*
+     * `toque:` — quando quem aponta é o dedo (celular, tablet). É o mesmo
+     * corte do `.linha-menu` em globals.css: pela forma de apontar, e não
+     * pela largura, porque o painel lateral do Chrome e o iPhone têm a mesma
+     * largura e pedem alturas opostas — o mouse quer linha baixa, o dedo
+     * quer alvo de 40px.
+     */
+    plugin(({ addVariant }) => addVariant("toque", "@media (pointer: coarse)")),
+  ],
 } satisfies Config;

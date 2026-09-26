@@ -53,7 +53,7 @@ export function Calculadora({ slug }: { slug: string }) {
 
   /** Linha de critério: a marcada ganha fundo, e dá para ler o escore de relance. */
   const opcao =
-    "transicao flex cursor-pointer gap-2.5 rounded-lg px-2 py-[7px] text-ink/90 hover:bg-panelHover has-[:checked]:bg-accent/[0.08] has-[:checked]:text-ink";
+    "transicao flex cursor-pointer gap-2.5 rounded-lg px-2 py-[7px] text-ink/90 hover:bg-panelHover has-[:checked]:bg-accent/[0.08] has-[:checked]:text-ink toque:py-[11px]";
 
   return (
     <div className="pagina">

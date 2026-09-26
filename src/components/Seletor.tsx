@@ -223,7 +223,7 @@ export function Seletor({
                 aria-selected={marcada}
                 onMouseEnter={() => setAtivo(i)}
                 onClick={() => escolher(i)}
-                className={`relative flex cursor-pointer items-start gap-2 rounded-lg px-2.5 py-[7px] text-[12px] leading-snug ${
+                className={`relative flex cursor-pointer items-start gap-2 rounded-lg px-2.5 py-[7px] text-[12px] leading-snug toque:py-[11px] ${
                   o.separada
                     ? "mt-2 before:absolute before:-top-1 before:left-1 before:right-1 before:border-t before:border-edge"
                     : ""

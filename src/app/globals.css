@@ -279,6 +279,38 @@ input[type="number"] {
     }
   }
 
+  /*
+   * No toque, cada alvo sobe um degrau (botão 40px, pequeno 36px, campo 40px):
+   * a escala do mouse é fina demais para o dedo. No mouse — inclusive no
+   * painel lateral do Chrome — nada muda.
+   */
+  @media (pointer: coarse) {
+    .botao {
+      @apply h-10;
+    }
+    .botao-sm {
+      @apply h-9;
+    }
+    .botao-icone {
+      @apply w-10;
+    }
+    .botao-sm.botao-icone {
+      @apply w-9;
+    }
+    .campo {
+      @apply h-10;
+    }
+    .campo-compacto {
+      @apply h-9;
+    }
+    .segmento {
+      @apply h-[34px];
+    }
+    .opcao {
+      @apply h-9;
+    }
+  }
+
   /* Estado vazio: "Categoria vazia", "Nenhum link", "Nada encontrado". */
   .vazio {
     @apply rounded-xl border border-dashed border-edge px-4 py-8 text-center text-[12px] leading-relaxed text-inkDim;
@@ -429,6 +461,19 @@ input[type="number"] {
   .linha-menu {
     padding: 0.6875rem 1rem;
     font-size: 14px;
+  }
+
+  /*
+   * Campo de digitar a 16px no toque. Abaixo disso o iPhone dá zoom na página
+   * inteira ao tocar no campo — o filtro de 12px fazia a tela crescer a cada
+   * busca, e era preciso pinçar para voltar. No mouse os campos continuam
+   * com a letra da escala do app.
+   */
+  /* `:is` dá à caixa de texto o mesmo peso da regra dos campos (0,1,1): só
+     `textarea` perdia para o `text-[11px]` da própria caixa, e o editor de
+     textos continuava dando zoom. */
+  :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"]), textarea) {
+    font-size: 16px;
   }
 }
 

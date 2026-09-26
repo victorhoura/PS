@@ -47,7 +47,17 @@ async function sessaoValida(cookie: string | undefined): Promise<boolean> {
  * Tranca tudo menos a tela de entrada e o que o PWA precisa buscar antes de
  * ter sessão (manifest, service worker, ícones) — senão o app não instala.
  */
-const LIVRES = ["/entrar", "/api/entrar", "/manifest.webmanifest", "/sw.js", "/icon.svg"];
+const LIVRES = [
+  "/entrar",
+  "/api/entrar",
+  "/manifest.webmanifest",
+  "/sw.js",
+  "/icon.svg",
+  // O iPhone busca este ao "Adicionar à Tela de Início", e pode ser da tela
+  // de senha, ainda sem sessão. Barrado, ele virava a tela de entrada — e o
+  // iOS, sem ícone, punha uma foto da página no lugar.
+  "/apple-touch-icon.png",
+];
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;

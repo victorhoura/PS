@@ -111,10 +111,11 @@ export function Moldura({ children }: { children: React.ReactNode }) {
     <button
       onClick={() => setPaletaAberta(true)}
       aria-label="Buscar"
-      className="transicao flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-edge bg-base/40 px-2.5 text-[11px] text-inkDim hover:border-accent/40 hover:text-ink"
+      className="transicao flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-edge bg-base/40 px-2.5 text-[11px] text-inkDim hover:border-accent/40 hover:text-ink toque:h-10 toque:w-10 toque:justify-center toque:px-0"
     >
       <IconeBusca tamanho={14} />
-      <kbd className="hidden font-mono text-[10px] text-inkDim min-[280px]:inline">Ctrl K</kbd>
+      {/* No toque não há teclado físico: a dica do atalho sai. */}
+      <kbd className="hidden font-mono text-[10px] text-inkDim min-[280px]:inline toque:!hidden">Ctrl K</kbd>
     </button>
   );
 
@@ -124,7 +125,7 @@ export function Moldura({ children }: { children: React.ReactNode }) {
       aria-label="Configurações"
       title="Configurações"
       aria-current={pathname === "/configuracoes" ? "page" : undefined}
-      className={`transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+      className={`transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-lg toque:h-10 toque:w-10 ${
         emConfiguracoes(pathname)
           ? "bg-accent/15 text-accent"
           : "text-inkDim hover:bg-panelHover hover:text-ink"
@@ -145,7 +146,7 @@ export function Moldura({ children }: { children: React.ReactNode }) {
         onClick={() => setGavetaAberta(!fechando)}
         aria-label={fechando ? "Fechar menu" : "Abrir menu"}
         aria-expanded={fechando}
-        className="transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-ink hover:bg-panelHover"
+        className="transicao flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-ink hover:bg-panelHover toque:h-10 toque:w-10"
       >
         {fechando ? <IconeFechar /> : <IconeMenu />}
       </button>
@@ -205,7 +206,7 @@ export function Moldura({ children }: { children: React.ReactNode }) {
           >
             <IconeBusca tamanho={14} />
             <span>Buscar</span>
-            <kbd className="ml-auto rounded border border-edge bg-panel px-1.5 py-px font-mono text-[10px] text-inkDim">
+            <kbd className="ml-auto rounded border border-edge bg-panel px-1.5 py-px font-mono text-[10px] text-inkDim toque:hidden">
               Ctrl K
             </kbd>
           </button>

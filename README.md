@@ -214,11 +214,32 @@ aparecia como cacos na barra de tarefas.
 | `public/apple-touch-icon.png` | iOS, opaco (lá transparência vira preto) |
 | `src/app/icon.svg` | favicon, sem o pulso — a 16px ele vira ruído |
 
-## Offline
+## Instalar como aplicativo
 
-É um PWA: instala como aplicativo e funciona sem rede. O service worker
-pré-cacheia todas as rotas na instalação; `npm run build` carimba uma versão
-nova nele para invalidar o cache do deploy anterior.
+É um PWA: instala como aplicativo no computador (Chrome/Edge, ícone de
+instalar na barra de endereço) e no celular. O service worker existe só para
+isso — ele **não guarda nada**: o app roda também em computador compartilhado,
+e páginas já autenticadas em cache seriam rastro. Por isso, sem internet o app
+não abre. `npm run build` carimba uma versão nova no worker a cada deploy.
+
+### iPhone
+
+No Safari: abrir ps.victorhoura.com → **Compartilhar** → **Adicionar à Tela de
+Início**. O app abre em tela cheia, sem a barra do Safari.
+
+- **Entrar de novo dentro do app.** O app da tela de início tem cookies
+  próprios, separados dos do Safari: o login feito no Safari não vale lá, e o
+  BLOQUEAR de um não tranca o outro. A sessão dura as mesmas 12 horas.
+- **Barra de status opaca** (`default`), na cor da barra de topo do tema
+  escolhido no app — o script do `<head>` e a troca de tema mantêm o
+  `theme-color` em dia. A `black-translucent` punha a página sob o relógio.
+- **Toque (`pointer: coarse`)**: campos a 16px, porque abaixo disso o iOS dá
+  zoom na página ao tocar no campo; linhas, filtro, "+" e barra de topo com
+  40px; dicas de teclado (Ctrl K, Ctrl+Enter) escondidas; `hover:` só com mouse
+  (`hoverOnlyWhenSupported`), para a linha tocada não ficar acesa. No mouse —
+  inclusive no painel lateral do Chrome — nada disso muda.
+- `/apple-touch-icon.png` é público no `proxy.ts`: o iPhone o busca ao
+  adicionar, às vezes ainda na tela de senha.
 
 ## Correções em relação ao PS.py
 

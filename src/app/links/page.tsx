@@ -32,7 +32,7 @@ export default function Links() {
           onClick={() => setEditor("novo")}
           aria-label="Novo link"
           title="Novo link"
-          className="botao botao-sm botao-icone botao-primario"
+          className="botao botao-sm botao-icone botao-primario toque:h-10 toque:w-10"
         >
           <IconeMais tamanho={16} traco={2} />
         </button>
@@ -78,7 +78,7 @@ export default function Links() {
                       href={l.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex min-w-0 flex-1 items-center px-3 py-[7px]"
+                      className="flex min-w-0 flex-1 items-center px-3 py-[7px] toque:py-[11px]"
                     >
                       <span className={`truncate text-[12px] font-semibold ${aberto ? "text-accent" : "text-ink"}`}>
                         {l.nome}

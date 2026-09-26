@@ -30,6 +30,21 @@ const UM_ANO = 60 * 60 * 24 * 365;
 const DO_COOKIE = new RegExp(`(?:^|; )${COOKIE}=(claro|escuro)(?:;|$)`);
 
 /**
+ * Cor da barra do sistema — a barra de status do iPhone com o app na tela de
+ * início, e a barra do navegador no celular. É a cor da barra de topo do app,
+ * para as duas parecerem uma só.
+ *
+ * Segue o tema escolhido NO APP, e não o do celular: com a cor presa ao modo
+ * claro/escuro do sistema, um iPhone escuro com o app claro ganhava uma
+ * faixa preta em cima da barra branca.
+ */
+export const COR_DA_BARRA: Record<Tema, string> = { escuro: "#13161a", claro: "#ffffff" };
+
+function pintarBarra(tema: Tema) {
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", COR_DA_BARRA[tema]);
+}
+
+/**
  * O que roda no <head> antes da primeira pintura.
  *
  * Precisa ser texto porque vai inteiro para dentro do HTML: ele executa
@@ -38,7 +53,10 @@ const DO_COOKIE = new RegExp(`(?:^|; )${COOKIE}=(claro|escuro)(?:;|$)`);
  */
 export const SCRIPT_TEMA =
   `(function(){try{var m=document.cookie.match(/${DO_COOKIE.source}/);` +
-  `if(m)document.documentElement.setAttribute("data-tema",m[1])}catch(e){}})()`;
+  `if(m)document.documentElement.setAttribute("data-tema",m[1]);` +
+  `var b=document.querySelector('meta[name="theme-color"]');` +
+  `if(b&&m)b.setAttribute("content",m[1]==="claro"?"${COR_DA_BARRA.claro}":"${COR_DA_BARRA.escuro}")` +
+  `}catch(e){}})()`;
 
 export function lerTema(): Tema {
   if (typeof document === "undefined") return "escuro";
@@ -81,6 +99,7 @@ function guardarNoCookie(tema: Tema) {
 /** Aplica sem gravar na nuvem — usado quando o tema chega dela. */
 export function pintarTema(tema: Tema) {
   document.documentElement.setAttribute("data-tema", tema);
+  pintarBarra(tema);
   guardarNoCookie(tema);
 }
 

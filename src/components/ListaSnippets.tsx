@@ -59,7 +59,8 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
         Filtro e "+" com 32px, a altura exata de uma linha da lista: a barra
         de cima não pode parecer maior que o conteúdo que ela filtra. Com
         36px, e o halo do foco em volta, ela ocupava o espaço de uma linha e
-        meia no painel estreito.
+        meia no painel estreito. No toque os três sobem juntos para 40px, e a
+        barra continua do tamanho de uma linha.
       */}
       <div className="mb-3 flex gap-2">
         <div className="relative min-w-0 flex-1">
@@ -72,7 +73,7 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
             placeholder="Filtrar nesta categoria…"
             aria-label={`Filtrar ${titulo}`}
             autoFocus
-            className="h-8 w-full rounded-lg border border-edge bg-panel pl-8 pr-2.5 text-[12px] text-ink shadow-cartao outline-none transition-colors placeholder:text-inkDim/60"
+            className="h-8 w-full rounded-lg border border-edge bg-panel pl-8 pr-2.5 text-[12px] text-ink shadow-cartao outline-none transition-colors placeholder:text-inkDim/60 toque:h-10"
           />
         </div>
         {/* Só o "+": o nome aparece ao parar o mouse em cima e é o que o
@@ -82,7 +83,7 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
           onClick={() => setEditor("novo")}
           aria-label="Novo texto"
           title="Novo texto"
-          className="botao botao-sm botao-icone botao-primario"
+          className="botao botao-sm botao-icone botao-primario toque:h-10 toque:w-10"
         >
           <IconeMais tamanho={16} traco={2} />
         </button>
@@ -111,7 +112,7 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
             >
               <button
                 onClick={() => void copiarItem(s)}
-                className="flex min-w-0 flex-1 items-center justify-between gap-2 py-[7px] pl-3 pr-1 text-left"
+                className="flex min-w-0 flex-1 items-center justify-between gap-2 py-[7px] pl-3 pr-1 text-left toque:py-[11px]"
               >
                 <span className="truncate text-[12px] font-semibold text-ink">{s.nome}</span>
                 <span className="tabular shrink-0 font-mono text-[11px] font-medium text-accent">
@@ -154,7 +155,7 @@ export function ListaSnippets({ slug, titulo }: { slug: CategoriaSlug; titulo: s
                   */}
                   <button
                     onClick={() => void copiarItem(s)}
-                    className="flex min-w-0 flex-1 items-center px-3 py-[7px] text-left"
+                    className="flex min-w-0 flex-1 items-center px-3 py-[7px] text-left toque:py-[11px]"
                   >
                     <span className={`truncate text-[12px] font-semibold ${expandido ? "text-accent" : "text-ink"}`}>
                       {s.nome}
@@ -208,7 +209,7 @@ function Carregando() {
         aria-hidden="true"
       >
         {[72, 55, 64, 48, 60, 52].map((largura, i) => (
-          <li key={i} className="flex h-[33px] items-center px-3">
+          <li key={i} className="flex h-[33px] items-center px-3 toque:h-[41px]">
             <span
               className="block h-2.5 rounded bg-edge motion-safe:animate-pulse"
               style={{ width: `${largura}%` }}
