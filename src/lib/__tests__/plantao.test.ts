@@ -1,8 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+  cadastrar,
+  descadastrar,
   dividirPlantao,
   duracao,
+  foraDoCadastro,
   horaAtual,
+  lerCadastrados,
+  MAX_CADASTRADOS,
+  mesmoNome,
   paraHora,
   paraMinutos,
   textoDaDivisao,
@@ -82,5 +88,42 @@ describe("divisão", () => {
         "3. CARLA — 04:00 ÀS 07:00 (3h)",
       ].join("\n"),
     );
+  });
+});
+
+describe("plantonistas cadastrados", () => {
+  it("cadastra em maiúsculas, sem espaço sobrando e em ordem alfabética", () => {
+    let lista: string[] = [];
+    for (const nome of ["  victor ", "iza", "Ândrea  lima", "bruno"]) {
+      const r = cadastrar(lista, nome);
+      if ("erro" in r) throw new Error(r.erro);
+      lista = r.lista;
+    }
+    expect(lista).toEqual(["ÂNDREA LIMA", "BRUNO", "IZA", "VICTOR"]);
+  });
+
+  it("a mesma pessoa não entra duas vezes, com ou sem acento", () => {
+    expect(mesmoNome("João", "JOAO")).toBe(true);
+    expect(cadastrar(["JOÃO"], "joao")).toEqual({ erro: "JOÃO já está cadastrado." });
+    expect(cadastrar(["JOÃO"], "   ")).toEqual({ erro: "Escreva o nome do plantonista." });
+  });
+
+  it("tem limite", () => {
+    const cheia = Array.from({ length: MAX_CADASTRADOS }, (_, i) => `NOME ${String(i).padStart(2, "0")}`);
+    expect("erro" in cadastrar(cheia, "OUTRO")).toBe(true);
+  });
+
+  it("descadastra pelo nome, com ou sem acento", () => {
+    expect(descadastrar(["BRUNO", "JOÃO"], "joao")).toEqual(["BRUNO"]);
+  });
+
+  it("o que vem da nuvem é conferido", () => {
+    expect(lerCadastrados(undefined)).toEqual([]);
+    expect(lerCadastrados("IZA")).toEqual([]);
+    expect(lerCadastrados(["iza", 3, null, "IZA", " bruno "])).toEqual(["BRUNO", "IZA"]);
+  });
+
+  it("acha os nomes da divisão que ainda não estão cadastrados", () => {
+    expect(foraDoCadastro(["japa", "", "Iza", "IZA", "bruno"], ["BRUNO"])).toEqual(["JAPA", "IZA"]);
   });
 });

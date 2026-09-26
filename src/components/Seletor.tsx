@@ -9,6 +9,10 @@ export interface OpcaoSeletor {
   texto: string;
   /** Linha de separação antes dela, e texto no acento: "+ criar um grupo novo…". */
   separada?: boolean;
+  /** Marca curta à direita — o número do turno em que um nome já está. */
+  selo?: string;
+  /** O que o selo quer dizer, para o leitor de tela: "já no turno 2". */
+  seloDescricao?: string;
 }
 
 /**
@@ -46,6 +50,82 @@ export function Seletor({
   vazio: string;
   className?: string;
 }) {
+  const { gatilho, lista, aberto } = useListaSuspensa({ valor, opcoes, aoEscolher: aoMudar, rotulo });
+  const escolhida = opcoes.find((o) => o.valor === valor);
+
+  return (
+    <div className={`relative min-w-0 ${className}`}>
+      <button
+        {...gatilho}
+        id={id}
+        aria-label={rotulo}
+        disabled={!opcoes.length}
+        className="campo flex cursor-pointer items-center gap-2 text-left disabled:cursor-default aria-expanded:border-accent/80 aria-expanded:shadow-[0_0_0_2px_rgb(var(--accent)/0.16)]"
+      >
+        <span className={`min-w-0 flex-1 truncate ${escolhida ? "text-ink" : "text-inkDim/70"}`}>
+          {escolhida?.texto ?? vazio}
+        </span>
+        <IconeSeta aberto={aberto} tamanho={14} className="text-inkDim" />
+      </button>
+      {lista}
+    </div>
+  );
+}
+
+/**
+ * A mesma lista, aberta por um botão pequeno em vez do campo inteiro — o +
+ * no canto de cada nome da Divisão de Plantão. A lista abre com a largura de
+ * `ancora` (o campo onde o botão mora), e não com a do botão, que tem 28px.
+ */
+export function BotaoDeLista({
+  valor,
+  opcoes,
+  aoEscolher,
+  rotulo,
+  ancora,
+  disabled,
+  className = "",
+  children,
+}: {
+  valor: string;
+  opcoes: OpcaoSeletor[];
+  aoEscolher: (valor: string) => void;
+  rotulo: string;
+  ancora: React.RefObject<HTMLElement | null>;
+  disabled?: boolean;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const { gatilho, lista } = useListaSuspensa({ valor, opcoes, aoEscolher, rotulo, ancora });
+  return (
+    <>
+      <button {...gatilho} aria-label={rotulo} title={rotulo} disabled={disabled} className={className}>
+        {children}
+      </button>
+      {lista}
+    </>
+  );
+}
+
+/**
+ * O comportamento da lista, separado de quem a abre: o Seletor abre pelo
+ * campo inteiro, o BotaoDeLista por um ícone. O foco fica sempre no botão
+ * que abriu — é nele que o teclado continua funcionando.
+ */
+function useListaSuspensa({
+  valor,
+  opcoes,
+  aoEscolher,
+  rotulo,
+  ancora,
+}: {
+  valor: string;
+  opcoes: OpcaoSeletor[];
+  aoEscolher: (valor: string) => void;
+  rotulo?: string;
+  /** De onde a lista mede posição e largura; sem ela, do próprio botão. */
+  ancora?: React.RefObject<HTMLElement | null>;
+}) {
   const idLista = useId();
   const botao = useRef<HTMLButtonElement>(null);
   const lista = useRef<HTMLUListElement>(null);
@@ -54,7 +134,6 @@ export function Seletor({
   const [lugar, setLugar] = useState<React.CSSProperties>({});
   const busca = useRef({ texto: "", ate: 0 });
 
-  const escolhida = opcoes.find((o) => o.valor === valor);
   const idOpcao = (i: number) => `${idLista}-op${i}`;
 
   /**
@@ -63,9 +142,9 @@ export function Seletor({
    * cabe embaixo.
    */
   function abrir(indice?: number) {
-    const b = botao.current;
-    if (!b || !opcoes.length) return;
-    const r = b.getBoundingClientRect();
+    const alvo = ancora?.current ?? botao.current;
+    if (!alvo || !opcoes.length) return;
+    const r = alvo.getBoundingClientRect();
     const abaixo = window.innerHeight - r.bottom - 8;
     const acima = r.top - 8;
     const paraCima = abaixo < 220 && acima > abaixo;
@@ -85,7 +164,7 @@ export function Seletor({
   function escolher(i: number) {
     const o = opcoes[i];
     setAberto(false);
-    if (o) aoMudar(o.valor);
+    if (o) aoEscolher(o.valor);
   }
 
   // A opção ativa sempre à vista, inclusive andando pelas setas.
@@ -110,6 +189,20 @@ export function Seletor({
       window.removeEventListener("scroll", aoRolar, true);
       window.removeEventListener("resize", aoRedimensionar);
     };
+  }, [aberto]);
+
+  // Tocar ou clicar fora fecha. O blur sozinho não bastava: o Safari (Mac e
+  // iPhone) não dá foco a um botão tocado, e sem foco não há blur — a lista
+  // ficava aberta por cima da tela até alguém escolher alguma coisa.
+  useEffect(() => {
+    if (!aberto) return;
+    const fora = (e: PointerEvent) => {
+      const alvo = e.target as Node;
+      if (lista.current?.contains(alvo) || botao.current?.contains(alvo)) return;
+      setAberto(false);
+    };
+    document.addEventListener("pointerdown", fora, true);
+    return () => document.removeEventListener("pointerdown", fora, true);
   }, [aberto]);
 
   function procurar(tecla: string) {
@@ -177,73 +270,72 @@ export function Seletor({
     }
   }
 
-  return (
-    <div className={`relative min-w-0 ${className}`}>
-      <button
-        ref={botao}
-        id={id}
-        type="button"
-        role="combobox"
-        aria-haspopup="listbox"
-        aria-expanded={aberto}
-        aria-controls={aberto ? idLista : undefined}
-        aria-activedescendant={aberto && ativo >= 0 ? idOpcao(ativo) : undefined}
-        aria-label={rotulo}
-        disabled={!opcoes.length}
-        onClick={() => (aberto ? setAberto(false) : abrir())}
-        onKeyDown={teclas}
-        onBlur={() => setAberto(false)}
-        className="campo flex cursor-pointer items-center gap-2 text-left disabled:cursor-default aria-expanded:border-accent/80 aria-expanded:shadow-[0_0_0_2px_rgb(var(--accent)/0.16)]"
-      >
-        <span className={`min-w-0 flex-1 truncate ${escolhida ? "text-ink" : "text-inkDim/70"}`}>
-          {escolhida?.texto ?? vazio}
-        </span>
-        <IconeSeta aberto={aberto} tamanho={14} className="text-inkDim" />
-      </button>
+  const gatilho = {
+    ref: botao,
+    type: "button" as const,
+    role: "combobox",
+    "aria-haspopup": "listbox" as const,
+    "aria-expanded": aberto,
+    "aria-controls": aberto ? idLista : undefined,
+    "aria-activedescendant": aberto && ativo >= 0 ? idOpcao(ativo) : undefined,
+    onClick: () => (aberto ? setAberto(false) : abrir()),
+    onKeyDown: teclas,
+    onBlur: () => setAberto(false),
+  };
 
-      {aberto && (
-        <ul
-          ref={lista}
-          id={idLista}
-          role="listbox"
-          aria-label={rotulo}
-          style={lugar}
-          // Clicar na lista não pode tirar o foco do campo: é por ele que o
-          // teclado continua funcionando, e o foco saindo fecha a lista.
-          onMouseDown={(e) => e.preventDefault()}
-          className="surgir z-[60] overflow-y-auto overscroll-contain rounded-xl border border-edge bg-panel p-1 shadow-painel"
-        >
-          {opcoes.map((o, i) => {
-            const marcada = o.valor === valor;
-            return (
-              <li
-                key={o.valor}
-                id={idOpcao(i)}
-                role="option"
-                aria-selected={marcada}
-                onMouseEnter={() => setAtivo(i)}
-                onClick={() => escolher(i)}
-                className={`relative flex cursor-pointer items-start gap-2 rounded-lg px-2.5 py-[7px] text-[12px] leading-snug toque:py-[11px] ${
-                  o.separada
-                    ? "mt-2 before:absolute before:-top-1 before:left-1 before:right-1 before:border-t before:border-edge"
-                    : ""
-                } ${i === ativo ? "bg-panelHover" : ""} ${
-                  marcada
-                    ? "font-semibold text-accent"
-                    : o.separada
-                      ? "text-accent"
-                      : "text-ink"
-                }`}
+  const elemento = aberto ? (
+    <ul
+      ref={lista}
+      id={idLista}
+      role="listbox"
+      aria-label={rotulo}
+      style={lugar}
+      // Clicar na lista não pode tirar o foco do campo: é por ele que o
+      // teclado continua funcionando, e o foco saindo fecha a lista.
+      onMouseDown={(e) => e.preventDefault()}
+      className="surgir z-[60] overflow-y-auto overscroll-contain rounded-xl border border-edge bg-panel p-1 shadow-painel"
+    >
+      {opcoes.map((o, i) => {
+        const marcada = o.valor === valor;
+        return (
+          <li
+            key={o.valor}
+            id={idOpcao(i)}
+            role="option"
+            aria-selected={marcada}
+            // O selo é só um número na tela; para o leitor, a frase inteira.
+            aria-label={o.seloDescricao ? `${o.texto}, ${o.seloDescricao}` : undefined}
+            onMouseEnter={() => setAtivo(i)}
+            onClick={() => escolher(i)}
+            className={`relative flex cursor-pointer items-start gap-2 rounded-lg px-2.5 py-[7px] text-[12px] leading-snug toque:py-[11px] ${
+              o.separada
+                ? "mt-2 before:absolute before:-top-1 before:left-1 before:right-1 before:border-t before:border-edge"
+                : ""
+            } ${i === ativo ? "bg-panelHover" : ""} ${
+              marcada
+                ? "font-semibold text-accent"
+                : o.separada
+                  ? "text-accent"
+                  : "text-ink"
+            }`}
+          >
+            {/* Quebra em vez de cortar: "TC DE CRÂNIO - CEFALEIA C/ RED
+                FLAGS" num painel de 268px só se distingue inteiro. */}
+            <span className="min-w-0 flex-1 break-words">{o.texto}</span>
+            {o.selo && (
+              <span
+                aria-hidden="true"
+                className="tabular mt-px flex h-4 min-w-[16px] shrink-0 items-center justify-center rounded-full bg-inkDim/15 px-1 text-[10px] font-semibold text-inkDim"
               >
-                {/* Quebra em vez de cortar: "TC DE CRÂNIO - CEFALEIA C/ RED
-                    FLAGS" num painel de 268px só se distingue inteiro. */}
-                <span className="min-w-0 flex-1 break-words">{o.texto}</span>
-                {marcada && <IconeCheck tamanho={13} className="mt-px shrink-0" />}
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
-  );
+                {o.selo}
+              </span>
+            )}
+            {marcada && <IconeCheck tamanho={13} className="mt-px shrink-0" />}
+          </li>
+        );
+      })}
+    </ul>
+  ) : null;
+
+  return { gatilho, lista: elemento, aberto };
 }

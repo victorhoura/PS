@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { copiar, copiarImagem } from "@/lib/clipboard";
 import { imagemDaDivisao, resumoDaDivisao } from "@/lib/imagemPlantao";
 import {
@@ -9,22 +9,36 @@ import {
   MIN_PLANTONISTAS,
   dividirPlantao,
   duracao,
+  foraDoCadastro,
   horaAtual,
+  lerCadastrados,
+  mesmoNome,
   nomeDoPlantonista,
   paraMinutos,
   textoDaDivisao,
   type Divisao,
 } from "@/lib/plantao";
+import {
+  carregarPreferencias,
+  definirPreferencia,
+  inscreverPreferencias,
+  preferenciasAtuais,
+  preferenciasNoServidor,
+} from "@/lib/preferencias";
 import { avisarCopia } from "@/components/AvisoCopia";
-import { IconeCompartilhar, IconeMais, IconeMenos } from "@/components/Icones";
+import { CadastroPlantonistas } from "@/components/CadastroPlantonistas";
+import { IconeCompartilhar, IconeEditar, IconeMais, IconeMenos } from "@/components/Icones";
+import { BotaoDeLista, type OpcaoSeletor } from "@/components/Seletor";
 
 /**
  * Divisão de plantão: de agora até as 07:00, em turnos iguais.
  *
  * O início nasce com a hora em que a tela abriu — é o "a partir de agora" do
  * plantão noturno — e pode ser corrigido, como o fim. Nomes são opcionais:
- * em branco vira PLANTONISTA 1, 2… Nada disso é guardado; fechou a tela, a
- * divisão vai embora, como qualquer outra coisa do plantão.
+ * em branco vira PLANTONISTA 1, 2… O + de cada nome escolhe entre os
+ * plantonistas cadastrados, os colegas de sempre, que moram nas preferências
+ * na nuvem. A divisão em si não é guardada: fechou a tela, ela vai embora,
+ * como qualquer outra coisa do plantão.
  *
  * A divisão só aparece ao apertar DIVIDIR, e some se algo mudar depois:
  * uma tabela que não bate com os campos acima é pior que tabela nenhuma.
@@ -49,7 +63,23 @@ export default function DivisaoPlantao() {
   const [imagem, setImagem] = useState<File | null>(null);
   const vez = useRef(0);
 
+  // Os cadastrados chegam com as preferências. Até lá o + fica apagado: um
+  // cadastro que parece vazio só porque a nuvem ainda não respondeu levaria
+  // a cadastrar de novo quem já está lá.
+  const preferencias = useSyncExternalStore(inscreverPreferencias, preferenciasAtuais, preferenciasNoServidor);
+  const cadastrados = useMemo(() => lerCadastrados(preferencias.plantonistas), [preferencias.plantonistas]);
+  const [prefsProntas, setPrefsProntas] = useState(false);
+  const [cadastroAberto, setCadastroAberto] = useState(false);
+
   useEffect(() => setInicio(horaAtual()), []);
+
+  useEffect(() => {
+    let vivo = true;
+    void carregarPreferencias().then(() => vivo && setPrefsProntas(true));
+    return () => {
+      vivo = false;
+    };
+  }, []);
 
   /** Qualquer mudança invalida a divisão mostrada. */
   function mexeu() {
@@ -57,6 +87,11 @@ export default function DivisaoPlantao() {
     setDivisao(null);
     setImagem(null);
     setErro("");
+  }
+
+  function mudarNome(i: number, nome: string) {
+    setNomes((atual) => atual.map((x, j) => (j === i ? nome : x)));
+    mexeu();
   }
 
   function mudarQuantidade(delta: number) {
@@ -167,20 +202,25 @@ export default function DivisaoPlantao() {
         </section>
 
         <section className="rounded-xl border border-edge bg-panel p-4 shadow-cartao">
-          <div className="mb-3 flex items-center justify-between gap-3">
+          {/*
+            Abaixo de 270px o contador encolhe: com os botões de 32px ele
+            passava da borda do cartão no painel de 240px. E, se nem assim
+            couber, desce para a linha de baixo em vez de vazar.
+          */}
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-x-2 gap-y-2 min-[270px]:gap-x-3">
             <h2 className="rotulo">Plantonistas</h2>
             {/* Contador de pessoas: − 3 + */}
-            <div className="flex items-center gap-1.5">
+            <div className="ml-auto flex items-center gap-1 min-[270px]:gap-1.5">
               <button
                 type="button"
                 onClick={() => mudarQuantidade(-1)}
                 disabled={n <= MIN_PLANTONISTAS}
                 aria-label="Um plantonista a menos"
-                className="botao botao-sm botao-icone botao-secundario"
+                className="botao botao-sm botao-icone botao-secundario max-[269px]:!h-7 max-[269px]:!w-7"
               >
                 <IconeMenos tamanho={15} traco={2} />
               </button>
-              <span aria-live="polite" className="tabular w-7 text-center text-[14px] font-semibold text-ink">
+              <span aria-live="polite" className="tabular w-5 text-center text-[14px] font-semibold text-ink min-[270px]:w-7">
                 {n}
               </span>
               <button
@@ -188,7 +228,7 @@ export default function DivisaoPlantao() {
                 onClick={() => mudarQuantidade(1)}
                 disabled={n >= MAX_PLANTONISTAS}
                 aria-label="Um plantonista a mais"
-                className="botao botao-sm botao-icone botao-secundario"
+                className="botao botao-sm botao-icone botao-secundario max-[269px]:!h-7 max-[269px]:!w-7"
               >
                 <IconeMais tamanho={15} traco={2} />
               </button>
@@ -201,25 +241,33 @@ export default function DivisaoPlantao() {
                 <span className="tabular flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-panelHover text-[11px] font-semibold text-inkDim">
                   {i + 1}
                 </span>
-                <input
-                  value={nome}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setNomes((atual) => atual.map((x, j) => (j === i ? v : x)));
-                    mexeu();
-                  }}
-                  placeholder={nomeDoPlantonista("", i)}
-                  aria-label={`Nome do plantonista ${i + 1}`}
-                  autoComplete="off"
-                  spellCheck={false}
-                  className="campo uppercase"
+                <CampoDeNome
+                  indice={i}
+                  nomes={nomes}
+                  cadastrados={cadastrados}
+                  pronto={prefsProntas}
+                  aoMudar={(v) => mudarNome(i, v)}
+                  aoAbrirCadastro={() => setCadastroAberto(true)}
                 />
               </li>
             ))}
           </ol>
           <p className="nota mt-2.5">
-            Nome é opcional. A ordem da lista é a ordem dos turnos: o 1 fica com o primeiro.
+            Nome é opcional; o + escolhe entre os cadastrados. A ordem da lista é a ordem dos turnos.
           </p>
+          {/* Curto de propósito: "PLANTONISTAS CADASTRADOS (3)" quebrava em
+              duas linhas no painel de 240–268px. O nome inteiro está no
+              título da janela que ele abre. */}
+          <button
+            type="button"
+            onClick={() => setCadastroAberto(true)}
+            disabled={!prefsProntas}
+            className="mt-2 inline-flex items-center gap-1.5 whitespace-nowrap py-1 text-[10px] font-semibold tracking-[0.07em] text-accent hover:underline disabled:opacity-50 toque:py-2"
+          >
+            <IconeEditar tamanho={12} />
+            {cadastrados.length ? "CADASTRADOS" : "CADASTRAR"}
+            {cadastrados.length > 0 && <span className="tabular font-medium text-inkDim">({cadastrados.length})</span>}
+          </button>
         </section>
 
         {erro && (
@@ -267,6 +315,106 @@ export default function DivisaoPlantao() {
           </section>
         )}
       </div>
+
+      {cadastroAberto && (
+        <CadastroPlantonistas
+          cadastrados={cadastrados}
+          sugestoes={foraDoCadastro(nomes, cadastrados)}
+          aoMudar={(lista) => definirPreferencia("plantonistas", lista)}
+          aoFechar={() => setCadastroAberto(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Valor da última linha da lista do +, que abre o cadastro em vez de escolher. */
+const ABRIR_CADASTRO = "\u0000cadastro";
+
+/**
+ * O campo de um nome, com o + no canto direito: escolhe um dos cadastrados.
+ *
+ * Na lista, o nome que já está em outro turno leva o número dele — escolher
+ * de novo pode ser engano, mas também pode ser de propósito (dois colegas
+ * revezando em quatro turnos), então avisa em vez de esconder. Sem ninguém
+ * cadastrado, o + abre direto o cadastro: uma lista vazia seria um passo a
+ * mais para chegar no mesmo lugar.
+ */
+function CampoDeNome({
+  indice,
+  nomes,
+  cadastrados,
+  pronto,
+  aoMudar,
+  aoAbrirCadastro,
+}: {
+  indice: number;
+  nomes: string[];
+  cadastrados: string[];
+  pronto: boolean;
+  aoMudar: (nome: string) => void;
+  aoAbrirCadastro: () => void;
+}) {
+  const caixa = useRef<HTMLDivElement>(null);
+  const nome = nomes[indice];
+
+  const opcoes: OpcaoSeletor[] = [
+    ...cadastrados.map((c) => {
+      const j = nomes.findIndex((n, k) => k !== indice && mesmoNome(n, c));
+      return j < 0
+        ? { valor: c, texto: c }
+        : { valor: c, texto: c, selo: String(j + 1), seloDescricao: `já no turno ${j + 1}` };
+    }),
+    { valor: ABRIR_CADASTRO, texto: "Editar cadastrados…", separada: true },
+  ];
+
+  const classeDoMais =
+    "transicao flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-inkDim hover:bg-panelHover hover:text-accent disabled:pointer-events-none disabled:opacity-40 aria-expanded:bg-panelHover aria-expanded:text-accent toque:h-8 toque:w-8";
+
+  /*
+   * A moldura é da caixa, e o campo e o + ficam lado a lado dentro dela —
+   * não um por cima do outro. Assim o toque no canto direito é sempre do +
+   * e o do texto é sempre do campo; e a lista abre com a largura da caixa.
+   * O foco do campo acende a moldura inteira, como nos outros campos.
+   */
+  return (
+    <div
+      ref={caixa}
+      className="campo relative flex min-w-0 flex-1 items-center gap-1 pr-1 has-[input:focus]:border-accent/80 has-[input:focus]:shadow-[0_0_0_2px_rgb(var(--accent)/0.16)]"
+    >
+      <input
+        value={nome}
+        onChange={(e) => aoMudar(e.target.value)}
+        placeholder={nomeDoPlantonista("", indice)}
+        aria-label={`Nome do plantonista ${indice + 1}`}
+        autoComplete="off"
+        spellCheck={false}
+        className="foco-obvio h-full min-w-0 flex-1 bg-transparent uppercase outline-none placeholder:text-inkDim/50"
+      />
+      {cadastrados.length > 0 ? (
+        <BotaoDeLista
+          valor={cadastrados.find((c) => mesmoNome(c, nome)) ?? ""}
+          opcoes={opcoes}
+          aoEscolher={(v) => (v === ABRIR_CADASTRO ? aoAbrirCadastro() : aoMudar(v))}
+          rotulo={`Escolher plantonista cadastrado para o turno ${indice + 1}`}
+          ancora={caixa}
+          disabled={!pronto}
+          className={classeDoMais}
+        >
+          <IconeMais tamanho={14} traco={2} />
+        </BotaoDeLista>
+      ) : (
+        <button
+          type="button"
+          onClick={aoAbrirCadastro}
+          disabled={!pronto}
+          aria-label="Cadastrar plantonistas"
+          title="Cadastrar plantonistas"
+          className={classeDoMais}
+        >
+          <IconeMais tamanho={14} traco={2} />
+        </button>
+      )}
     </div>
   );
 }

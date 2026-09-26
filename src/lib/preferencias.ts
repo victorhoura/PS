@@ -1,6 +1,6 @@
 /**
  * Preferências e o contador do plantão — tema, médico solicitante, unidade
- * requisitante, município, quantos atendimentos.
+ * requisitante, município, quantos atendimentos, os plantonistas cadastrados.
  *
  * Não é dado clínico, mas mora na nuvem como todo o resto: o app roda em
  * computador de uso compartilhado e nada é gravado na máquina. De brinde,
@@ -20,6 +20,11 @@ export interface Preferencias {
   sadt?: { requisitante?: string; municipio?: string };
   /** Atendimentos contados no plantão. */
   contador?: number;
+  /**
+   * Plantonistas cadastrados para a Divisão de Plantão — os colegas de
+   * sempre, escolhidos pelo + de cada nome. Lido com lerCadastrados().
+   */
+  plantonistas?: string[];
 }
 
 const VAZIAS: Preferencias = {};

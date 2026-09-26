@@ -11,9 +11,15 @@
  * a conta não é exata — melhor que um último turno que "sobra" ou "falta".
  */
 
+import { normalizar } from "./clipboard";
+
 export const FIM_PADRAO = "07:00";
 export const MIN_PLANTONISTAS = 2;
 export const MAX_PLANTONISTAS = 8;
+/** Os colegas de plantão, não uma lista telefônica. */
+export const MAX_CADASTRADOS = 60;
+/** Cabe na linha da lista e na imagem sem virar só reticências. */
+export const MAX_NOME = 40;
 
 const DIA = 24 * 60;
 
@@ -93,6 +99,66 @@ export function dividirPlantao(inicio: string, fim: string, nomes: string[]): Di
     minutos: divisas[i + 1] - divisas[i],
   }));
   return { inicio: paraHora(a), fim: paraHora(b), total, turnos };
+}
+
+// ------------------------------------------------------------ cadastrados
+
+/*
+ * Plantonistas cadastrados: os colegas de sempre, para escolher pelo + de
+ * cada nome em vez de digitar toda noite. Moram nas preferências, na nuvem.
+ *
+ * Sempre em maiúsculas, sem espaço sobrando, sem repetição e em ordem
+ * alfabética — a ordem em que se procura um nome numa lista. "João" e
+ * "JOAO" são a mesma pessoa: acento e caixa não fazem outro cadastro.
+ */
+
+/** "  maria   eduarda " → "MARIA EDUARDA". */
+export function nomeLimpo(nome: string): string {
+  return nome.replace(/\s+/g, " ").trim().toUpperCase();
+}
+
+/** Mesma pessoa, com ou sem acento, em qualquer caixa. */
+export function mesmoNome(a: string, b: string): boolean {
+  return normalizar(nomeLimpo(a)) === normalizar(nomeLimpo(b));
+}
+
+function arrumar(nomes: string[]): string[] {
+  const unicos: string[] = [];
+  for (const nome of nomes) {
+    const n = nomeLimpo(nome).slice(0, MAX_NOME).trim();
+    if (n && !unicos.some((u) => mesmoNome(u, n))) unicos.push(n);
+  }
+  return unicos.sort((a, b) => a.localeCompare(b, "pt-BR")).slice(0, MAX_CADASTRADOS);
+}
+
+/** O que veio da nuvem, conferido: só nomes, limpos, sem repetição, em ordem. */
+export function lerCadastrados(valor: unknown): string[] {
+  if (!Array.isArray(valor)) return [];
+  return arrumar(valor.filter((v): v is string => typeof v === "string"));
+}
+
+/** Cadastra um nome: devolve a lista nova, ou por que ele não entrou. */
+export function cadastrar(lista: string[], nome: string): { lista: string[] } | { erro: string } {
+  const n = nomeLimpo(nome);
+  if (!n) return { erro: "Escreva o nome do plantonista." };
+  const igual = lista.find((x) => mesmoNome(x, n));
+  if (igual) return { erro: `${igual} já está cadastrado.` };
+  if (lista.length >= MAX_CADASTRADOS) return { erro: `O cadastro vai até ${MAX_CADASTRADOS} nomes.` };
+  return { lista: arrumar([...lista, n]) };
+}
+
+export function descadastrar(lista: string[], nome: string): string[] {
+  return lista.filter((x) => !mesmoNome(x, nome));
+}
+
+/** Os nomes digitados na divisão que ainda não estão cadastrados. */
+export function foraDoCadastro(nomes: string[], lista: string[]): string[] {
+  const fora: string[] = [];
+  for (const nome of nomes) {
+    const n = nomeLimpo(nome).slice(0, MAX_NOME).trim();
+    if (n && !lista.some((x) => mesmoNome(x, n)) && !fora.some((x) => mesmoNome(x, n))) fora.push(n);
+  }
+  return fora;
 }
 
 /** O texto que vai para a área de transferência — pronto para o grupo. */
