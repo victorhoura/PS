@@ -109,6 +109,15 @@ export const IconeCopiar = (p: Props) => (
   </Svg>
 );
 
+/** A seta saindo da caixa, como o botão de compartilhar do iPhone. */
+export const IconeCompartilhar = (p: Props) => (
+  <Svg {...p}>
+    <path d="M12 3v12" />
+    <path d="m8 7 4-4 4 4" />
+    <path d="M8 10H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1" />
+  </Svg>
+);
+
 export const IconeCheck = (p: Props) => (
   <Svg {...p}>
     <path d="m4 12 5.5 5.5L20 7" />

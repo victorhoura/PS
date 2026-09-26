@@ -29,6 +29,22 @@ export async function copiar(texto: string): Promise<boolean> {
   }
 }
 
+/**
+ * Imagem para a área de transferência — no computador, é o Ctrl V no
+ * WhatsApp Web. Sem fallback: o truque do <textarea> só copia texto.
+ */
+export async function copiarImagem(imagem: Blob): Promise<boolean> {
+  try {
+    if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined" || !window.isSecureContext) {
+      return false;
+    }
+    await navigator.clipboard.write([new ClipboardItem({ [imagem.type]: imagem })]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Busca sem acento e sem caixa — "cefaleia" acha "CEFALÉIA". */
 export function normalizar(s: string): string {
   return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();

@@ -12,7 +12,7 @@ formatador de laudos. Nada do que é digitado no formatador é persistido.
 |---|---|
 | Textos | 311 modelos em 10 categorias (anamnese, exame físico, CID, condutas, reavaliação, receitas, prescrições, fármacos, encaminhamento, notas); prescrições começa vazia, para os seus textos |
 | Escores | 21 escores e calculadoras: Alvarado, Atlanta, cefaleia (ICHD-3 e protocolo), Charcot/Reynolds, Cincinnati, CURB-65, Glasgow, Hinchey, hipo/hipercalemia, hipo/hipernatremia, NIHSS, qSOFA, sequência rápida IOT, SOFA, Tokyo (colangite e colecistite), Wells (TEP e TVP) |
-| Ferramentas | Formatador de exames (SHIFT/AFIP), conversor de letras, contador, divisão de plantão (turnos iguais de agora até as 07:00) |
+| Ferramentas | Formatador de exames (SHIFT/AFIP), conversor de letras, contador, divisão de plantão (turnos iguais de agora até as 07:00, compartilhada como imagem) |
 
 ## Criar e editar textos
 

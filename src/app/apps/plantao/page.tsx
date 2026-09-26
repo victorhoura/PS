@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { copiar } from "@/lib/clipboard";
+import { useEffect, useRef, useState } from "react";
+import { copiar, copiarImagem } from "@/lib/clipboard";
+import { imagemDaDivisao, resumoDaDivisao } from "@/lib/imagemPlantao";
 import {
   FIM_PADRAO,
   MAX_PLANTONISTAS,
@@ -15,7 +16,7 @@ import {
   type Divisao,
 } from "@/lib/plantao";
 import { avisarCopia } from "@/components/AvisoCopia";
-import { IconeCopiar, IconeMais, IconeMenos } from "@/components/Icones";
+import { IconeCompartilhar, IconeMais, IconeMenos } from "@/components/Icones";
 
 /**
  * Divisão de plantão: de agora até as 07:00, em turnos iguais.
@@ -27,6 +28,10 @@ import { IconeCopiar, IconeMais, IconeMenos } from "@/components/Icones";
  *
  * A divisão só aparece ao apertar DIVIDIR, e some se algo mudar depois:
  * uma tabela que não bate com os campos acima é pior que tabela nenhuma.
+ *
+ * COMPARTILHAR manda a divisão como imagem — o cartão de TURNOS — para o
+ * grupo do WhatsApp: no celular, pela folha de compartilhar do sistema; no
+ * computador, copiando a imagem para colar (Ctrl V) no WhatsApp Web.
  */
 export default function DivisaoPlantao() {
   // A hora só entra depois da hidratação: o HTML é gerado no build, e a hora
@@ -36,12 +41,21 @@ export default function DivisaoPlantao() {
   const [nomes, setNomes] = useState<string[]>(["", "", ""]);
   const [divisao, setDivisao] = useState<Divisao | null>(null);
   const [erro, setErro] = useState("");
+  /*
+   * A imagem nasce junto com a divisão, e não no toque em COMPARTILHAR: o
+   * Safari só abre a folha de compartilhar se ela for pedida no próprio
+   * toque, e esperar o desenho ficar pronto consumia essa licença.
+   */
+  const [imagem, setImagem] = useState<File | null>(null);
+  const vez = useRef(0);
 
   useEffect(() => setInicio(horaAtual()), []);
 
   /** Qualquer mudança invalida a divisão mostrada. */
   function mexeu() {
+    vez.current++;
     setDivisao(null);
+    setImagem(null);
     setErro("");
   }
 
@@ -63,10 +77,35 @@ export default function DivisaoPlantao() {
       return;
     }
     setDivisao(d);
+    setImagem(null);
+    const esta = ++vez.current;
+    imagemDaDivisao(d)
+      .then((f) => vez.current === esta && setImagem(f))
+      .catch(() => {});
   }
 
-  async function copiarDivisao() {
+  async function compartilhar() {
     if (!divisao) return;
+    const celular = window.matchMedia("(pointer: coarse)").matches;
+    const podeMandar = !!imagem && !!navigator.canShare?.({ files: [imagem] });
+
+    // Celular: a folha do sistema, chamada antes de qualquer espera.
+    if (imagem && celular && podeMandar) {
+      try {
+        await navigator.share({ files: [imagem], title: "DIVISÃO DE PLANTÃO" });
+        return;
+      } catch (e) {
+        if ((e as Error).name === "AbortError") return; // fechou a folha
+      }
+    }
+
+    // Computador: a imagem vai para colar no WhatsApp Web.
+    if (imagem && (await copiarImagem(imagem))) {
+      avisarCopia("IMAGEM COPIADA · cole no WhatsApp", true);
+      return;
+    }
+
+    // Sem imagem na área de transferência, o texto.
     avisarCopia("DIVISÃO DE PLANTÃO", await copiar(textoDaDivisao(divisao)));
   }
 
@@ -199,10 +238,7 @@ export default function DivisaoPlantao() {
           >
             <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
               <h2 className="rotulo text-accent">Turnos</h2>
-              <span className="tabular text-[11px] text-inkDim">
-                {divisao.inicio} às {divisao.fim} · {duracao(divisao.total)} ·{" "}
-                {duracao(Math.round(divisao.total / divisao.turnos.length))} cada
-              </span>
+              <span className="tabular text-[11px] text-inkDim">{resumoDaDivisao(divisao)}</span>
             </div>
 
             {/* Duas linhas por turno — nome em cima, horário embaixo — para o
@@ -224,8 +260,8 @@ export default function DivisaoPlantao() {
               ))}
             </ol>
 
-            <button onClick={() => void copiarDivisao()} className="botao botao-secundario mt-3 w-full sm:w-auto">
-              <IconeCopiar tamanho={14} /> COPIAR
+            <button onClick={() => void compartilhar()} className="botao botao-secundario mt-3 w-full sm:w-auto">
+              <IconeCompartilhar tamanho={14} /> COMPARTILHAR
             </button>
           </section>
         )}

@@ -252,6 +252,21 @@ input[type="number"] {
   textarea.campo {
     @apply h-auto py-2 leading-relaxed;
   }
+  /*
+   * Campo de hora no iPhone: com a aparência nativa, o Safari desenha o
+   * <input type="time"> como um botão do tamanho do texto, ignora a largura
+   * e centraliza a hora — na Divisão de Plantão ficava um quadradinho no
+   * canto da coluna. Sem ela, ocupa a coluna como qualquer campo, com a
+   * hora à esquerda. No Chrome nada muda: o relógio de escolher continua.
+   */
+  input[type="time"].campo {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input[type="time"].campo::-webkit-date-and-time-value {
+    min-height: 1.5em;
+    text-align: left;
+  }
 
   /* ---------------------------------------------------------- coleções */
 
