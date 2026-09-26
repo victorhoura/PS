@@ -132,7 +132,7 @@ input[type="number"] {
     @apply text-[10px] leading-relaxed text-inkDim/80;
   }
 
-  /* Rótulo de seção e de campo: "MENU PRINCIPAL", "SENHA NOVA", "TEMA". */
+  /* Rótulo de seção e de campo: "MENU DO ATENDIMENTO", "SENHA NOVA", "TEMA". */
   .rotulo {
     @apply text-[10px] font-semibold uppercase tracking-[0.07em] text-inkDim;
   }

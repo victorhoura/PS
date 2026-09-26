@@ -55,8 +55,10 @@ export function Navegacao({
   );
 
   return (
+    // O menu principal é o menu inteiro do app: o do atendimento e as
+    // ferramentas. Por isso o primeiro grupo não se chama "menu principal".
     <nav aria-label="Menu principal" className={`flex flex-col gap-px pb-4 ${cheia ? "px-2.5" : "px-2"}`}>
-      {grupo("Menu principal")}
+      {grupo("Menu do atendimento")}
       {CATEGORIAS.map((c) => {
         const href = `/c/${c.slug}`;
         const ativo = pathname === href;
@@ -69,6 +71,9 @@ export function Navegacao({
       })}
 
       {grupo("Ferramentas")}
+      <Link href="/escores" onClick={aoNavegar} className={item(pathname.startsWith("/escores"))}>
+        ESCORES / CALCULADORAS
+      </Link>
       <Link href="/apps" onClick={aoNavegar} className={item(pathname.startsWith("/apps"))}>
         APLICATIVOS
       </Link>

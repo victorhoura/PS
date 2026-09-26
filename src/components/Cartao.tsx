@@ -1,7 +1,8 @@
 import Link from "next/link";
 
 /**
- * O cartão de destino — a peça repetida no início, em APLICATIVOS e em LINKS.
+ * O cartão de destino — a peça repetida em ESCORES / CALCULADORAS, em
+ * APLICATIVOS e em LINKS.
  *
  * Mora aqui, e não copiado em cada página, porque a densidade é uma decisão
  * só. O app é usado no painel lateral do Chrome, com uns 300px de largura, e

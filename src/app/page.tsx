@@ -11,7 +11,11 @@ import { useEstadoTextos, useTextos } from "@/hooks/useTextos";
  * Antes ela era um catálogo à parte: cartões das categorias, dos 21 escores e
  * das ferramentas. Era um segundo menu, diferente do primeiro, para os mesmos
  * destinos — e o menu de verdade é a barra. Escores e ferramentas continuam a
- * um toque, em APLICATIVOS, e em qualquer lugar pelo Ctrl K.
+ * um toque, em ESCORES / CALCULADORAS e APLICATIVOS, e em qualquer lugar pelo
+ * Ctrl K.
+ *
+ * "Menu principal" é o menu inteiro: o grupo MENU DO ATENDIMENTO (as
+ * categorias de texto) e o grupo FERRAMENTAS.
  */
 export default function Home() {
   const textos = useTextos();

@@ -31,7 +31,7 @@ const FERRAMENTAS: Resultado[] = [
     chave: `c:${c.slug}`,
     titulo: c.nome,
     contexto: "CALCULADORA",
-    acao: { tipo: "ir" as const, href: `/apps/${c.slug}` },
+    acao: { tipo: "ir" as const, href: `/escores/${c.slug}` },
     peso: 1,
   })),
   {
