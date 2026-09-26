@@ -157,7 +157,7 @@ export default function DivisaoPlantao() {
       </header>
 
       <div className="max-w-xl space-y-4">
-        <section className="rounded-xl border border-edge bg-panel p-4 shadow-cartao">
+        <section className="rounded-xl border border-edge bg-panel p-3 shadow-cartao">
           <h2 className="mb-2.5 rotulo">Horário</h2>
           {/* Lado a lado só com folga: o campo de hora do Chrome reserva o
               relógio e o AM/PM, e no painel de 240–268px cortava o "07:00". */}
@@ -183,7 +183,7 @@ export default function DivisaoPlantao() {
                   setInicio(e.target.value);
                   mexeu();
                 }}
-                className="campo tabular text-[13px] font-medium"
+                className="campo campo-compacto tabular"
               />
             </label>
             <label className="block min-w-0">
@@ -195,32 +195,32 @@ export default function DivisaoPlantao() {
                   setFim(e.target.value);
                   mexeu();
                 }}
-                className="campo tabular text-[13px] font-medium"
+                className="campo campo-compacto tabular"
               />
             </label>
           </div>
         </section>
 
-        <section className="rounded-xl border border-edge bg-panel p-4 shadow-cartao">
+        <section className="rounded-xl border border-edge bg-panel p-3 shadow-cartao">
           {/*
-            Abaixo de 270px o contador encolhe: com os botões de 32px ele
+            Abaixo de 260px o contador encolhe: com os botões de 32px ele
             passava da borda do cartão no painel de 240px. E, se nem assim
             couber, desce para a linha de baixo em vez de vazar.
           */}
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-x-2 gap-y-2 min-[270px]:gap-x-3">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-x-2 gap-y-2 min-[260px]:gap-x-3">
             <h2 className="rotulo">Plantonistas</h2>
             {/* Contador de pessoas: − 3 + */}
-            <div className="ml-auto flex items-center gap-1 min-[270px]:gap-1.5">
+            <div className="ml-auto flex items-center gap-1 min-[260px]:gap-1.5">
               <button
                 type="button"
                 onClick={() => mudarQuantidade(-1)}
                 disabled={n <= MIN_PLANTONISTAS}
                 aria-label="Um plantonista a menos"
-                className="botao botao-sm botao-icone botao-secundario max-[269px]:!h-7 max-[269px]:!w-7"
+                className="botao botao-sm botao-icone botao-secundario max-[259px]:!h-7 max-[259px]:!w-7"
               >
                 <IconeMenos tamanho={15} traco={2} />
               </button>
-              <span aria-live="polite" className="tabular w-5 text-center text-[14px] font-semibold text-ink min-[270px]:w-7">
+              <span aria-live="polite" className="tabular w-5 text-center text-[14px] font-semibold text-ink min-[260px]:w-7">
                 {n}
               </span>
               <button
@@ -228,7 +228,7 @@ export default function DivisaoPlantao() {
                 onClick={() => mudarQuantidade(1)}
                 disabled={n >= MAX_PLANTONISTAS}
                 aria-label="Um plantonista a mais"
-                className="botao botao-sm botao-icone botao-secundario max-[269px]:!h-7 max-[269px]:!w-7"
+                className="botao botao-sm botao-icone botao-secundario max-[259px]:!h-7 max-[259px]:!w-7"
               >
                 <IconeMais tamanho={15} traco={2} />
               </button>
@@ -283,7 +283,7 @@ export default function DivisaoPlantao() {
         {divisao && (
           <section
             aria-live="polite"
-            className="surgir rounded-xl border border-accent/25 bg-panel p-4 shadow-cartao"
+            className="surgir rounded-xl border border-accent/25 bg-panel p-3 shadow-cartao"
           >
             <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
               <h2 className="rotulo text-accent">Turnos</h2>
@@ -369,7 +369,7 @@ function CampoDeNome({
   ];
 
   const classeDoMais =
-    "transicao flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-inkDim hover:bg-panelHover hover:text-accent disabled:pointer-events-none disabled:opacity-40 aria-expanded:bg-panelHover aria-expanded:text-accent toque:h-8 toque:w-8";
+    "transicao flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-inkDim hover:bg-panelHover hover:text-accent disabled:pointer-events-none disabled:opacity-40 aria-expanded:bg-panelHover aria-expanded:text-accent toque:h-7 toque:w-7";
 
   /*
    * A moldura é da caixa, e o campo e o + ficam lado a lado dentro dela —
@@ -380,7 +380,7 @@ function CampoDeNome({
   return (
     <div
       ref={caixa}
-      className="campo relative flex min-w-0 flex-1 items-center gap-1 pr-1 has-[input:focus]:border-accent/80 has-[input:focus]:shadow-[0_0_0_2px_rgb(var(--accent)/0.16)]"
+      className="campo campo-compacto relative flex min-w-0 flex-1 items-center gap-1 pr-1 has-[input:focus]:border-accent/80 has-[input:focus]:shadow-[0_0_0_2px_rgb(var(--accent)/0.16)]"
     >
       <input
         value={nome}
